@@ -1,21 +1,57 @@
-# Next.js template
+# Gray CSM UI
 
-This is a Next.js template with shadcn/ui.
+Open-source Customer Success workspace UI built with Next.js, TypeScript, Tailwind CSS, and shadcn/ui.
 
-## Adding components
+## Current Open-Source Scope
 
-To add components to your app, run the following command:
+The publish branch (`master`) currently focuses on the **Tickets workspace page**:
+
+- Ticket board and table layouts
+- Search, filter, sorting, and bulk update interactions
+- Reusable app shell and sidebar navigation patterns
+
+Unreleased flows (for example ticket drawer and full ticket detail) are kept on the `staging` branch and are not part of the public scope yet.
+
+## Tech Stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- dnd-kit
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 10+
+
+### Install
 
 ```bash
-npx shadcn@latest add button
+pnpm install
 ```
 
-This will place the ui components in the `components` directory.
+### Develop
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+pnpm dev
 ```
+
+Open `http://localhost:3000`.
+
+## Scripts
+
+- `pnpm dev` - Run local development server
+- `pnpm build` - Build for production
+- `pnpm start` - Run production server
+- `pnpm typecheck` - TypeScript check
+- `pnpm lint` - ESLint checks
+
+## Branch Strategy
+
+- `master`: public open-source scope (ticket page preview)
+- `staging`: internal work-in-progress and unreleased flows
+
+Use selective cherry-pick or scoped PRs when promoting changes from `staging` to `master`.
