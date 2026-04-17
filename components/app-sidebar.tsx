@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import { Suspense } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   IconBook,
+  IconCommand,
   IconInbox,
   IconLock,
   IconMessage2,
@@ -230,14 +230,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       "0 0 0 0.667px rgba(0, 0, 0, 0.20) inset, 0 2px 2px 0 rgba(255, 255, 255, 0.10) inset, 0 2px 2.667px -0.667px rgba(42, 42, 42, 0.1), 0 0.667px 0.667px 0 rgba(42, 42, 42, 0.08)",
                   }}
                 >
-                  <Image
-                    src="/Logo.svg"
-                    alt="Gray CSM logo"
-                    width={16}
-                    height={16}
-                    className="size-4"
-                    priority
-                  />
+                  <IconCommand className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">Gray CSM</span>
