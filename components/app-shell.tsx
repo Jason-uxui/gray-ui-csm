@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <NavUser user={currentUser}/>
           </div>
         </header>
-        <main className="mx-auto flex w-full max-w-500 flex-1 flex-col gap-4 p-8">
+        <main className="mx-auto flex min-w-0 w-full max-w-500 flex-1 flex-col gap-4 overflow-x-hidden p-8">
           {children}
         </main>
       </SidebarInset>
