@@ -138,24 +138,18 @@ export function DataGridTableBody<
                       aria-hidden
                       className="pointer-events-none absolute inset-0 border border-transparent transition-colors duration-150 group-focus-within/cell:border-ring/30 group-hover/cell:border-ring/30"
                     />
-                    <div
-                      className={cn(
-                        "min-w-0 truncate transition-[padding] duration-150",
-                        showDrawerAction &&
-                          "group-hover/cell:pr-16 group-focus-within/cell:pr-16"
-                      )}
-                    >
+                    <div className={cn("min-w-0", showDrawerAction && "pr-8")}>
                       {renderCell(row, column)}
                     </div>
                     {showDrawerAction ? (
-                      <div className="pointer-events-none absolute top-1/2 right-1.5 z-10 -translate-y-1/2 opacity-0 transition-all group-focus-within/cell:pointer-events-auto group-focus-within/cell:opacity-100 group-hover/cell:pointer-events-auto group-hover/cell:opacity-100">
+                      <div className="pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 opacity-0 transition-all group-focus-within/cell:pointer-events-auto group-focus-within/cell:opacity-100 group-hover/cell:pointer-events-auto group-hover/cell:opacity-100">
                         <Button
                           type="button"
                           variant="outline"
-                          size="xs"
+                          size="icon"
                           aria-label={`Open details for ${getRowLabel(row)} ${column.label}`}
                           title="Open drawer"
-                          className="h-7 rounded-xl border-ring/20 bg-muted px-2.5 text-muted-foreground hover:border-ring/30 hover:bg-muted hover:text-foreground"
+                          className="border-ring/20 bg-muted text-muted-foreground hover:border-ring/30 hover:bg-muted hover:text-foreground"
                           onPointerDown={(event) => {
                             event.stopPropagation()
                           }}
@@ -164,26 +158,10 @@ export function DataGridTableBody<
                           }}
                           onClick={(event) => {
                             event.stopPropagation()
-                            const originElement =
-                              event.currentTarget.closest("td") ??
-                              event.currentTarget
-                            const originRect =
-                              originElement.getBoundingClientRect()
-
-                            onOpenDrawer({
-                              rowId: row.id,
-                              columnId: column.id,
-                              originRect: {
-                                x: originRect.x,
-                                y: originRect.y,
-                                width: originRect.width,
-                                height: originRect.height,
-                              },
-                            })
+                            onOpenDrawer({ rowId: row.id, columnId: column.id })
                           }}
                         >
                           <IconExternalLink className="size-4" />
-                          Open
                         </Button>
                       </div>
                     ) : null}

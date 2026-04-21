@@ -1,14 +1,10 @@
 import { CsmPageTemplate } from "@/components/csm-page-template"
-import { getRouteByPathOrThrow } from "@/lib/csm-routes"
-
-const route = getRouteByPathOrThrow("/inbox")
 
 export default function InboxPage() {
   return (
     <CsmPageTemplate
-      title={route.title}
-      description={route.description}
-      metrics={route.templateMetrics}
+      title="Inbox"
+      description="Email, chat, in-app, and form conversations in one unified queue for first response and triage."
     />
   )
 }

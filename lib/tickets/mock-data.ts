@@ -21,7 +21,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-001",
     ticketNumber: "#-001",
-    subject: "Low activation in week-one onboarding cohort for Pine & Peak",
+    subject: "SSO SAML configuration failing on IdP callback",
     queueStatus: "open",
     health: "warning",
     channel: "email",
@@ -36,7 +36,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-002",
     ticketNumber: "#-002",
-    subject: "Expansion review blocked by delayed Salesforce health sync",
+    subject: "Webhook delivery delays to our Salesforce endpoint",
     queueStatus: "open",
     health: "on-track",
     channel: "slack",
@@ -51,7 +51,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-003",
     ticketNumber: "#-003",
-    subject: "Need admin ownership model before enterprise rollout",
+    subject: "Can we get custom roles and permissions on Growth plan?",
     queueStatus: "pending",
     health: "breached",
     channel: "email",
@@ -66,7 +66,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-004",
     ticketNumber: "#-004",
-    subject: "Executive business review needs clearer API export guidance",
+    subject: "Rate limiting our batch export API calls unexpectedly",
     queueStatus: "open",
     health: "on-track",
     channel: "email",
@@ -81,7 +81,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-005",
     ticketNumber: "#-005",
-    subject: "Renewal prep needs invoice usage breakdown by workspace",
+    subject: "Need proration breakdown for yearly invoice",
     queueStatus: "open",
     health: "warning",
     channel: "chat",
@@ -95,7 +95,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-006",
     ticketNumber: "#-006",
-    subject: "Customer asks for a rollout plan for conditional workflows",
+    subject: "How to set up conditional workflow triggers?",
     queueStatus: "resolved",
     health: "on-track",
     channel: "chat",
@@ -110,7 +110,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-007",
     ticketNumber: "#-007",
-    subject: "Close out unused seats after the regional team restructure",
+    subject: "Deactivate unused seats without closing the account",
     queueStatus: "closed",
     health: "on-track",
     channel: "chat",
@@ -125,7 +125,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-008",
     ticketNumber: "#-008",
-    subject: "Champion cannot reset admin access before the training session",
+    subject: "Customer cannot regenerate API key after role update",
     queueStatus: "open",
     health: "warning",
     channel: "chat",
@@ -139,8 +139,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-009",
     ticketNumber: "#-009",
-    subject:
-      "CSV import adoption stalled for the multilingual customer segment",
+    subject: "Bulk import failed with UTF-8 CSV names",
     queueStatus: "pending",
     health: "warning",
     channel: "email",
@@ -155,7 +154,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-010",
     ticketNumber: "#-010",
-    subject: "Need a credit summary for the canceled onboarding add-on",
+    subject: "Need downgrade credit note for canceled add-on",
     queueStatus: "resolved",
     health: "on-track",
     channel: "email",
@@ -170,7 +169,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-011",
     ticketNumber: "#-011",
-    subject: "Finance review asks for invoice split by cost center",
+    subject: "Ask for invoice by legal entity split",
     queueStatus: "pending",
     health: "warning",
     channel: "chat",
@@ -185,7 +184,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-012",
     ticketNumber: "#-012",
-    subject: "Push notification drop is hurting mobile adoption metrics",
+    subject: "Mobile app push notifications missing after latest release",
     queueStatus: "open",
     health: "breached",
     channel: "slack",
@@ -200,7 +199,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-013",
     ticketNumber: "#-013",
-    subject: "Seat transfer request between subsidiaries before renewal",
+    subject: "Enable seat transfer between subsidiaries",
     queueStatus: "resolved",
     health: "on-track",
     channel: "email",
@@ -215,7 +214,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-014",
     ticketNumber: "#-014",
-    subject: "SLA export timezone mismatch is affecting QBR reporting",
+    subject: "SLA breach report export has timezone mismatch",
     queueStatus: "open",
     health: "warning",
     channel: "email",
@@ -230,7 +229,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-015",
     ticketNumber: "#-015",
-    subject: "Plan phased seat expansion for the next quarter launch",
+    subject: "Early renewal request with prorated invoice",
     queueStatus: "pending",
     health: "on-track",
     channel: "chat",
@@ -245,7 +244,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-016",
     ticketNumber: "#-016",
-    subject: "Domain migration left the new workspace owner unverified",
+    subject: "Cannot verify ownership after domain migration",
     queueStatus: "open",
     health: "breached",
     channel: "slack",
@@ -259,7 +258,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-017",
     ticketNumber: "#-017",
-    subject: "Broken help article is slowing onboarding conversion",
+    subject: "Help center article link broken in onboarding email",
     queueStatus: "closed",
     health: "on-track",
     channel: "chat",
@@ -274,7 +273,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-018",
     ticketNumber: "#-018",
-    subject: "Need audit log retention options for the enterprise rollout",
+    subject: "Need audit log retention extension for enterprise policy",
     queueStatus: "pending",
     health: "warning",
     channel: "email",
@@ -289,7 +288,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-019",
     ticketNumber: "#-019",
-    subject: "Intercom sync duplicates are skewing lifecycle reporting",
+    subject: "Intercom sync creates duplicate contacts",
     queueStatus: "resolved",
     health: "on-track",
     channel: "slack",
@@ -304,7 +303,7 @@ const ticketSeeds: TicketSeed[] = [
   {
     id: "t-020",
     ticketNumber: "#-020",
-    subject: "VAT breakdown per region is needed for the renewal review",
+    subject: "Finance asks for separate VAT line per region",
     queueStatus: "closed",
     health: "on-track",
     channel: "email",
@@ -318,20 +317,17 @@ const ticketSeeds: TicketSeed[] = [
   },
 ]
 
-export const tickets: Ticket[] = ticketSeeds.map(
-  (ticket, index, allTickets) => {
-    const boardOrder = allTickets
-      .slice(0, index)
-      .filter(
-        (currentTicket) => currentTicket.queueStatus === ticket.queueStatus
-      ).length
+export const tickets: Ticket[] = ticketSeeds.map((ticket, index, allTickets) => {
+  const boardOrder = allTickets
+    .slice(0, index)
+    .filter((currentTicket) => currentTicket.queueStatus === ticket.queueStatus)
+    .length
 
-    return {
-      ...ticket,
-      boardOrder,
-    }
+  return {
+    ...ticket,
+    boardOrder,
   }
-)
+})
 
 export const ticketSidebarGroups: TicketSidebarGroup[] =
   buildTicketSidebarGroups(tickets)
@@ -379,9 +375,7 @@ export const ticketStats: TicketStat[] = [
   },
 ]
 
-export function buildTicketSidebarGroups(
-  sourceTickets: Ticket[]
-): TicketSidebarGroup[] {
+export function buildTicketSidebarGroups(sourceTickets: Ticket[]): TicketSidebarGroup[] {
   const categoryCounts: Record<TicketCategoryKey, number> = {
     billing: 0,
     technical: 0,

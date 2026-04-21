@@ -99,7 +99,7 @@ export function SortableHeaderCell<ColumnId extends string>({
 }: SortableHeaderCellProps<ColumnId>) {
   return (
     <TableHead
-      className="group/column-head relative h-10 overflow-hidden border-r bg-muted/20 px-2 text-sm"
+      className="group/column-head relative h-10 overflow-hidden border-r bg-muted/60 px-2 text-sm"
       style={{
         width,
         minWidth: width,
@@ -115,7 +115,7 @@ export function SortableHeaderCell<ColumnId extends string>({
         className="absolute top-0 right-0 flex h-full w-3 cursor-col-resize items-center justify-center text-border transition-colors hover:text-muted-foreground"
         onPointerDown={(event) => onResize(event, column.id)}
       >
-        <IconSeparatorVertical className="size-4 opacity-0" />
+        <IconSeparatorVertical className="size-4" />
       </button>
     </TableHead>
   )

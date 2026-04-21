@@ -1,14 +1,10 @@
 import { CsmPageTemplate } from "@/components/csm-page-template"
-import { getRouteByPathOrThrow } from "@/lib/csm-routes"
-
-const route = getRouteByPathOrThrow("/internal-notes")
 
 export default function InternalNotesPage() {
   return (
     <CsmPageTemplate
-      title={route.title}
-      description={route.description}
-      metrics={route.templateMetrics}
+      title="Internal Notes"
+      description="Private internal collaboration space for contextual notes, handoffs, and mentions."
     />
   )
 }
