@@ -467,7 +467,7 @@ export function TicketTable({
   }, [onToolbarPropsChange])
 
   return (
-    <div className="overflow-hidden rounded-3xl border bg-card shadow-sm ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="overflow-hidden rounded-xl border bg-card ring-1 ring-foreground/5 dark:ring-foreground/10">
       <DataGrid<Ticket, TicketColumnId>
         rows={sortedTickets}
         columns={ticketColumns}
