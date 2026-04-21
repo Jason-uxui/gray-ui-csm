@@ -35,6 +35,7 @@ export type DataGridToolbarRenderProps<ColumnId extends string> = {
   selectedRowCount: number
   allVisibleRowsSelected: boolean
   someVisibleRowsSelected: boolean
+  onToggleAllRows: (checked: boolean) => void
   clearSelection: () => void
   showSummaries: boolean
   onShowSummariesChange: (next: boolean) => void
@@ -73,12 +74,22 @@ export type DataGridProps<
     props: DataGridToolbarRenderProps<ColumnId>
   ) => React.ReactNode
   onToolbarPropsChange?: (props: DataGridToolbarRenderProps<ColumnId>) => void
+  onOpenDrawerCell?: (cell: EditingCell<ColumnId>) => void
   drawerModal?: boolean
   disablePointerDismissal?: boolean
+  stickySummaryFooter?: boolean
+  fillAvailableHeight?: boolean
+  tableContainerClassName?: string
   onRowsChange?: (rows: Row[]) => void
 }
 
 export type EditingCell<ColumnId extends string> = {
   rowId: string
   columnId: ColumnId
+  originRect?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
 }

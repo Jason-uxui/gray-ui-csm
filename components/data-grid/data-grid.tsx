@@ -9,6 +9,7 @@ import { DrawerPanel } from "@/components/data-grid/drawer-panel"
 import { DataGridTableView } from "@/components/data-grid/table-view"
 import { useGridColumns } from "@/components/data-grid/use-grid-columns"
 import { useGridEditing } from "@/components/data-grid/use-grid-editing"
+import { cn } from "@/lib/utils"
 import {
   type DataGridDrawerPanelProps,
   type DataGridProps,
@@ -47,8 +48,12 @@ export function DataGrid<Row extends DataGridRowBase, ColumnId extends string>({
   renderDrawerPanel,
   renderToolbar,
   onToolbarPropsChange,
+  onOpenDrawerCell,
   drawerModal = false,
   disablePointerDismissal = true,
+  stickySummaryFooter = false,
+  fillAvailableHeight = false,
+  tableContainerClassName,
   onRowsChange,
 }: DataGridProps<Row, ColumnId>) {
   const [showSummaries, setShowSummaries] = React.useState(true)
@@ -82,12 +87,16 @@ export function DataGrid<Row extends DataGridRowBase, ColumnId extends string>({
     controlColumnWidth: CONTROL_COLUMN_WIDTH,
   })
 
-  const optionsSensors = useSensors(
-    useSensor(PointerSensor, {
+  const optionsPointerSensorOptions = React.useMemo(
+    () => ({
       activationConstraint: {
         distance: 6,
       },
-    })
+    }),
+    []
+  )
+  const optionsSensors = useSensors(
+    useSensor(PointerSensor, optionsPointerSensorOptions)
   )
 
   const drawerRow = React.useMemo(() => {
@@ -201,6 +210,7 @@ export function DataGrid<Row extends DataGridRowBase, ColumnId extends string>({
       selectedRowCount,
       allVisibleRowsSelected,
       someVisibleRowsSelected,
+      onToggleAllRows: toggleAllRows,
       clearSelection,
       showSummaries,
       onShowSummariesChange: setShowSummaries,
@@ -218,6 +228,7 @@ export function DataGrid<Row extends DataGridRowBase, ColumnId extends string>({
       selectedRowCount,
       allVisibleRowsSelected,
       someVisibleRowsSelected,
+      toggleAllRows,
       clearSelection,
       showSummaries,
       visibleColumns,
@@ -243,39 +254,53 @@ export function DataGrid<Row extends DataGridRowBase, ColumnId extends string>({
         if (!open) closeDrawer()
       }}
     >
-      <div className="min-h-0" ref={gridRef}>
+      <div
+        className={cn("min-h-0", fillAvailableHeight && "flex h-full flex-col")}
+        ref={gridRef}
+      >
         {renderToolbar?.(toolbarProps)}
 
-        <DataGridTableView
-          tableRef={tableRef}
-          gridMinWidth={gridMinWidth}
-          visibleColumns={visibleColumns}
-          columnWidths={columnWidths}
-          draggingColumnId={draggingColumnId}
-          visibleRows={rows}
-          getRowLabel={getRowLabel}
-          editingCell={editingCell}
-          isEditableColumn={isEditableColumn}
-          startEditing={startEditing}
-          onCellKeyDown={handleCellKeyDown}
-          inputRef={inputRef}
-          draftValue={draftValue}
-          setDraftValue={setDraftValue}
-          commitEdit={commitEdit}
-          cancelEdit={cancelEdit}
-          canOpenDrawer={canOpenDrawer}
-          renderCell={renderCell}
-          onOpenDrawer={setDrawerCell}
-          selectedRowIds={selectedRowIds}
-          allVisibleRowsSelected={allVisibleRowsSelected}
-          someVisibleRowsSelected={someVisibleRowsSelected}
-          onToggleRowSelection={toggleRowSelection}
-          onToggleAllRows={toggleAllRows}
-          showSummaries={showSummaries}
-          renderSummary={renderSummary}
-          isEmptyValue={isEmptyValue}
-          onResizeStart={beginResize}
-        />
+        <div className={cn(fillAvailableHeight && "min-h-0 flex-1")}>
+          <DataGridTableView
+            tableRef={tableRef}
+            gridMinWidth={gridMinWidth}
+            visibleColumns={visibleColumns}
+            columnWidths={columnWidths}
+            draggingColumnId={draggingColumnId}
+            visibleRows={rows}
+            getRowLabel={getRowLabel}
+            editingCell={editingCell}
+            isEditableColumn={isEditableColumn}
+            startEditing={startEditing}
+            onCellKeyDown={handleCellKeyDown}
+            inputRef={inputRef}
+            draftValue={draftValue}
+            setDraftValue={setDraftValue}
+            commitEdit={commitEdit}
+            cancelEdit={cancelEdit}
+            canOpenDrawer={canOpenDrawer}
+            renderCell={renderCell}
+            onOpenDrawer={(cell) => {
+              if (onOpenDrawerCell) {
+                onOpenDrawerCell(cell)
+                return
+              }
+
+              setDrawerCell(cell)
+            }}
+            selectedRowIds={selectedRowIds}
+            allVisibleRowsSelected={allVisibleRowsSelected}
+            someVisibleRowsSelected={someVisibleRowsSelected}
+            onToggleRowSelection={toggleRowSelection}
+            onToggleAllRows={toggleAllRows}
+            showSummaries={showSummaries}
+            renderSummary={renderSummary}
+            stickySummaryFooter={stickySummaryFooter}
+            tableContainerClassName={tableContainerClassName}
+            isEmptyValue={isEmptyValue}
+            onResizeStart={beginResize}
+          />
+        </div>
       </div>
 
       {renderDrawerPanel ? (

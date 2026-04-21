@@ -1,15 +1,20 @@
 import { Button } from "@/components/ui/button"
 
 export default function Page() {
+  const stats = [
+    { label: "Revenue", value: "324" },
+    { label: "NPS", value: "61" },
+    { label: "Active Accounts", value: "324" },
+    { label: "At Risk", value: "12" },
+  ]
+
   return (
     <>
       <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-        {["Revenue", "NPS", "Active Accounts", "At Risk"].map((item) => (
-          <div key={item} className="rounded-xl border bg-card p-4">
-            <p className="text-sm text-muted-foreground">{item}</p>
-            <p className="mt-2 text-xl font-semibold">
-              {item === "At Risk" ? "12" : item === "NPS" ? "61" : "324"}
-            </p>
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-xl border bg-card p-4">
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className="mt-2 text-xl font-semibold">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -17,9 +22,11 @@ export default function Page() {
       <section className="rounded-xl border bg-background p-6">
         <h2 className="text-lg font-semibold">Dashboard</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Đây là ví dụ một route con (`/dashboard`) đang dùng chung layout sidebar.
-          Bạn có thể tiếp tục tạo các route khác trong `app/*` và tái sử dụng cùng
-          khung.
+          This route demonstrates how additional workspace screens can share the
+          same app shell and design system primitives.
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Demo data for UI showcase. Replace with real API data in production.
         </p>
         <Button className="mt-4">View Reports</Button>
       </section>

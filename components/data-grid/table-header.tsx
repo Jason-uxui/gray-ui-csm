@@ -40,9 +40,9 @@ export function DataGridTableHeader<ColumnId extends string>({
         ))}
       </colgroup>
 
-      <TableHeader className="bg-muted/60">
-        <TableRow className="bg-muted/60 hover:bg-muted/60">
-          <TableHead className="h-10 w-10 border-r bg-muted/60 px-0 text-center">
+      <TableHeader className="bg-background">
+        <TableRow className="bg-muted/20 hover:bg-muted/20">
+          <TableHead className="h-10 w-10 border-r bg-muted/20 px-0 text-center">
             <Checkbox
               aria-label="Select all rows"
               checked={allVisibleRowsSelected}

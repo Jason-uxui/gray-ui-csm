@@ -1,10 +1,14 @@
 import { CsmPageTemplate } from "@/components/csm-page-template"
+import { getRouteByPathOrThrow } from "@/lib/csm-routes"
+
+const route = getRouteByPathOrThrow("/settings")
 
 export default function SettingsPage() {
   return (
     <CsmPageTemplate
-      title="Settings"
-      description="Workspace-level configuration for SLA policy, permissions, and channel behavior."
+      title={route.title}
+      description={route.description}
+      metrics={route.templateMetrics}
     />
   )
 }

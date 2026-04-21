@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import Script from "next/script"
 
 import "./globals.css"
 import { AppShell } from "@/components/app-shell"
@@ -84,6 +85,12 @@ export default function RootLayout({
       )}
     >
       <body>
+        {process.env.NODE_ENV === "development" ? (
+          <Script
+            src="https://mcp.figma.com/mcp/html-to-design/capture.js"
+            strategy="afterInteractive"
+          />
+        ) : null}
         <ThemeProvider>
           <TooltipProvider delay={0}>
             <AppShell>{children}</AppShell>

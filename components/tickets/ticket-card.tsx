@@ -10,11 +10,9 @@ import { cn } from "@/lib/utils"
 
 type TicketCardProps = {
   ticket: Ticket
-  draggable?: boolean
   isDragging?: boolean
   isRecentlyMoved?: boolean
-  onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void
-  onDragEnd?: () => void
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
 function TicketChannelIcon({ channel }: { channel: Ticket["channel"] }) {
@@ -31,11 +29,9 @@ function TicketChannelIcon({ channel }: { channel: Ticket["channel"] }) {
 
 export function TicketCard({
   ticket,
-  draggable,
   isDragging,
   isRecentlyMoved,
-  onDragStart,
-  onDragEnd,
+  onClick,
 }: TicketCardProps) {
   const initials = ticket.assignee?.name
     .split(" ")
@@ -49,12 +45,10 @@ export function TicketCard({
 
   return (
     <Card
-      draggable={draggable}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onClick={onClick}
       className={cn(
         "gap-0 rounded-2xl border bg-card py-0 shadow-none ring-0 transition-[transform,opacity,box-shadow,border-color,background-color] duration-200",
-        draggable ? "cursor-grab active:cursor-grabbing" : "",
+        onClick ? "cursor-pointer" : "",
         isDragging
           ? "scale-[0.98] rotate-1 border-primary/25 opacity-35 shadow-xl"
           : "",

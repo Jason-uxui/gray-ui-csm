@@ -50,6 +50,8 @@ type DataGridTableViewProps<
     column: DataGridColumn<ColumnId>,
     visibleRows: Row[]
   ) => React.ReactNode
+  stickySummaryFooter: boolean
+  tableContainerClassName?: string
   isEmptyValue: (value: React.ReactNode) => boolean
   onResizeStart: (
     event: React.PointerEvent<HTMLButtonElement>,
@@ -87,6 +89,8 @@ export function DataGridTableView<
   onToggleAllRows,
   showSummaries,
   renderSummary,
+  stickySummaryFooter,
+  tableContainerClassName,
   isEmptyValue,
   onResizeStart,
   draggingColumnId,
@@ -95,6 +99,7 @@ export function DataGridTableView<
     <Table
       ref={tableRef}
       className="table-fixed"
+      containerClassName={tableContainerClassName}
       style={{ width: `max(100%, ${gridMinWidth}px)` }}
     >
       <DataGridTableHeader
@@ -131,6 +136,7 @@ export function DataGridTableView<
       <DataGridSummaryFooter
         showSummaries={showSummaries}
         renderSummary={renderSummary}
+        stickySummaryFooter={stickySummaryFooter}
         visibleColumns={visibleColumns}
         visibleRows={visibleRows}
         columnWidths={columnWidths}
