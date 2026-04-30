@@ -105,7 +105,9 @@ function DetailStat({
   )
 }
 
-function mapTicketEventToActivityItem(item: TicketTimelineEvent): ActivityTimelineItem {
+function mapTicketEventToActivityItem(
+  item: TicketTimelineEvent
+): ActivityTimelineItem {
   return {
     id: item.id,
     title: item.title,
@@ -115,18 +117,44 @@ function mapTicketEventToActivityItem(item: TicketTimelineEvent): ActivityTimeli
   }
 }
 
+function TimelineEntry({
+  author,
+  timestamp,
+  badges,
+  body,
+  className,
+}: {
+  author: PersonLike
+  timestamp: string
+  badges?: React.ReactNode
+  body: string
+  className?: string
+}) {
+  return (
+    <div className={cn("flex gap-3", className)}>
+      <TimelineAvatar person={author} />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-semibold text-foreground">{author.name}</span>
+          <span className="text-muted-foreground">{timestamp}</span>
+          {badges}
+        </div>
+        <div className="mt-2 text-sm leading-6 text-foreground">{body}</div>
+      </div>
+    </div>
+  )
+}
+
 function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
   const isOutbound = item.direction === "outbound"
 
   return (
-    <div className="flex gap-3">
-      <TimelineAvatar person={item.author} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold text-foreground">
-            {item.author.name}
-          </span>
-          <span className="text-muted-foreground">{item.timestamp}</span>
+    <TimelineEntry
+      author={item.author}
+      timestamp={item.timestamp}
+      body={item.body}
+      badges={
+        <>
           <Badge
             variant="outline"
             className="h-5 rounded-full px-2 text-[11px]"
@@ -141,35 +169,48 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
               Reply
             </Badge>
           ) : null}
-        </div>
-        <div className={cn("mt-2 text-sm leading-6 text-foreground")}>
-          {item.body}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   )
 }
 
 function NoteCard({ note }: { note: TicketNote }) {
   return (
-    <div className="flex gap-3 rounded-2xl border bg-background/70 p-4">
-      <TimelineAvatar person={note.author} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold text-foreground">
-            {note.author.name}
-          </span>
-          <span className="text-muted-foreground">{note.timestamp}</span>
-          <Badge
-            variant="outline"
-            className="h-5 rounded-full px-2 text-[11px]"
-          >
-            Internal
-          </Badge>
+    <TimelineEntry
+      author={note.author}
+      timestamp={note.timestamp}
+      body={note.body}
+      badges={
+        <Badge variant="outline" className="h-5 rounded-full px-2 text-[11px]">
+          Internal
+        </Badge>
+      }
+    />
+  )
+}
+
+function ComposerShell({
+  currentUser,
+  header,
+  children,
+}: {
+  currentUser: PersonLike
+  header?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl">
+      <div className="flex items-start gap-3">
+        <TimelineAvatar person={currentUser} />
+        <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border bg-background shadow-sm">
+          {header ? (
+            <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm">
+              {header}
+            </div>
+          ) : null}
+          {children}
         </div>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {note.body}
-        </p>
       </div>
     </div>
   )
@@ -229,196 +270,194 @@ export function ConversationTabContent({
         </div>
       </div>
 
-      <div className="shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl">
-        <div className="flex items-start gap-3">
-          <TimelineAvatar person={currentUser} />
-          <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border bg-background shadow-sm">
-            <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm">
-              <span className="text-muted-foreground">Via</span>
-              <Badge
-                variant="secondary"
-                className="h-8 rounded-full px-3 font-medium"
+      <ComposerShell
+        currentUser={currentUser}
+        header={
+          <>
+            <span className="text-muted-foreground">Via</span>
+            <Badge
+              variant="secondary"
+              className="h-8 rounded-full px-3 font-medium"
+            >
+              {channelLabel[ticket.channel]}
+            </Badge>
+            <span className="text-muted-foreground">From</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-8 rounded-full px-3 font-medium"
+                  />
+                }
               >
-                {channelLabel[ticket.channel]}
-              </Badge>
-              <span className="text-muted-foreground">From</span>
+                {selectedReplyAccount?.label}
+                <IconChevronDown className="size-4 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72 p-2">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="px-2 pb-3 text-base font-semibold text-foreground">
+                    Select account
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={replyFrom}
+                    onValueChange={onReplyFromChange}
+                  >
+                    {replyAccounts.map((account) => (
+                      <DropdownMenuRadioItem
+                        key={account.address}
+                        value={account.address}
+                        className="mb-2 rounded-xl border border-border/70 px-3 py-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate font-medium">
+                            {account.label}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {account.description}
+                          </div>
+                        </div>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={onManageAccounts}>
+                    Manage accounts
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+      >
+        <textarea
+          value={draftMessage}
+          onChange={(event) => onDraftMessageChange(event.target.value)}
+          placeholder="Comment or type '/' for commands"
+          className="min-h-40 w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/70"
+        />
+
+        <div className="border-t px-3 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-lg text-muted-foreground"
+              >
+                <span className="text-base font-medium">T</span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-lg text-muted-foreground"
+              >
+                <IconMoodSmile className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-lg text-muted-foreground"
+              >
+                <IconPaperclip className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-lg text-muted-foreground"
+              >
+                <IconMicrophone className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-lg text-muted-foreground"
+              >
+                <IconPhoto className="size-4" />
+              </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button
                       type="button"
-                      variant="secondary"
-                      className="h-8 rounded-full px-3 font-medium"
+                      variant="outline"
+                      className="ml-1 h-9 rounded-xl px-3 text-sm font-medium"
                     />
                   }
                 >
-                  {selectedReplyAccount?.label}
+                  Macros
                   <IconChevronDown className="size-4 text-muted-foreground" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-72 p-2">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="px-2 pb-3 text-base font-semibold text-foreground">
-                      Select account
-                    </DropdownMenuLabel>
-                    <DropdownMenuRadioGroup
-                      value={replyFrom}
-                      onValueChange={onReplyFromChange}
-                    >
-                      {replyAccounts.map((account) => (
-                        <DropdownMenuRadioItem
-                          key={account.address}
-                          value={account.address}
-                          className="mb-2 rounded-xl border border-border/70 px-3 py-3"
-                        >
-                          <div className="min-w-0">
-                            <div className="truncate font-medium">
-                              {account.label}
-                            </div>
-                            <div className="truncate text-xs text-muted-foreground">
-                              {account.description}
-                            </div>
-                          </div>
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={onManageAccounts}>
-                      Manage accounts
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
+                <DropdownMenuContent
+                  align="start"
+                  className="w-[19rem] rounded-2xl p-0"
+                >
+                  <div className="border-b border-border/70 px-4 py-3">
+                    <div className="text-sm font-semibold text-foreground">
+                      Add Macros
+                    </div>
+                    <div className="relative mt-3">
+                      <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={templateQuery}
+                        onChange={(event) =>
+                          onTemplateQueryChange(event.target.value)
+                        }
+                        placeholder="Search macros"
+                        className="h-10 rounded-xl border-border/70 pl-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="scrollbar-hidden max-h-72 overflow-y-auto px-2 py-2">
+                    <div className="px-2 py-2 text-xs font-medium text-muted-foreground">
+                      Suggested replies
+                    </div>
+                    {filteredMacros.map((macro) => (
+                      <button
+                        key={macro}
+                        type="button"
+                        className="w-full rounded-xl px-2 py-2 text-left text-sm text-foreground/80 transition hover:bg-muted"
+                        onClick={() => onMacroInsert(macro)}
+                      >
+                        {macro}
+                      </button>
+                    ))}
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
-            <textarea
-              value={draftMessage}
-              onChange={(event) => onDraftMessageChange(event.target.value)}
-              placeholder="Comment or type '/' for commands"
-              className="min-h-40 w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/70"
-            />
-
-            <div className="border-t px-3 py-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-lg text-muted-foreground"
-                  >
-                    <span className="text-base font-medium">T</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-lg text-muted-foreground"
-                  >
-                    <IconMoodSmile className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-lg text-muted-foreground"
-                  >
-                    <IconPaperclip className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-lg text-muted-foreground"
-                  >
-                    <IconMicrophone className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-lg text-muted-foreground"
-                  >
-                    <IconPhoto className="size-4" />
-                  </Button>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="ml-1 h-9 rounded-xl px-3 text-sm font-medium"
-                        />
-                      }
-                    >
-                      Macros
-                      <IconChevronDown className="size-4 text-muted-foreground" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="start"
-                      className="w-[19rem] rounded-2xl p-0"
-                    >
-                      <div className="border-b border-border/70 px-4 py-3">
-                        <div className="text-sm font-semibold text-foreground">
-                          Add Macros
-                        </div>
-                        <div className="relative mt-3">
-                          <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            value={templateQuery}
-                            onChange={(event) =>
-                              onTemplateQueryChange(event.target.value)
-                            }
-                            placeholder="Search macros"
-                            className="h-10 rounded-xl border-border/70 pl-9"
-                          />
-                        </div>
-                      </div>
-                      <div className="scrollbar-hidden max-h-72 overflow-y-auto px-2 py-2">
-                        <div className="px-2 py-2 text-xs font-medium text-muted-foreground">
-                          Suggested replies
-                        </div>
-                        {filteredMacros.map((macro) => (
-                          <button
-                            key={macro}
-                            type="button"
-                            className="w-full rounded-xl px-2 py-2 text-left text-sm text-foreground/80 transition hover:bg-muted"
-                            onClick={() => onMacroInsert(macro)}
-                          >
-                            {macro}
-                          </button>
-                        ))}
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-9 rounded-xl px-3 text-sm font-medium"
-                    onClick={() => onSubmitReply("closed")}
-                  >
-                    End Chat
-                  </Button>
-                  <Button
-                    type="button"
-                    className="h-9 rounded-xl px-4"
-                    onClick={() => onSubmitReply()}
-                    disabled={!draftMessage.trim()}
-                  >
-                    Send
-                    <IconSend className="size-4" />
-                  </Button>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-9 rounded-xl px-3 text-sm font-medium"
+                onClick={() => onSubmitReply("closed")}
+              >
+                End Chat
+              </Button>
+              <Button
+                type="button"
+                className="h-9 rounded-xl px-4"
+                onClick={() => onSubmitReply()}
+                disabled={!draftMessage.trim()}
+              >
+                Send
+                <IconSend className="size-4" />
+              </Button>
             </div>
           </div>
         </div>
-      </div>
+      </ComposerShell>
     </>
   )
 }
@@ -471,7 +510,7 @@ export function ActivityTabContent({
 
   return (
     <div className="scrollbar-hidden h-full overflow-y-auto px-6 py-6">
-      <div className="border-l border-border/70 pl-6">
+      <div className="px-0">
         <ActivityTimelineList items={mappedActivityItems} />
       </div>
     </div>
@@ -492,43 +531,41 @@ export function NotesTabContent({
   onAddNote: () => void
 }) {
   return (
-    <div className="scrollbar-hidden h-full overflow-y-auto px-6 py-6">
-      <div className="space-y-4">
-        <div className="rounded-3xl border bg-background p-4">
-          <div className="flex items-start gap-3">
-            <TimelineAvatar person={currentUser} />
-            <div className="min-w-0 flex-1 space-y-3">
-              <textarea
-                value={noteDraft}
-                onChange={(event) => onNoteDraftChange(event.target.value)}
-                placeholder="Write an internal note..."
-                className="min-h-28 w-full resize-none rounded-2xl border bg-background px-4 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground/70"
-              />
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-muted-foreground">
-                  Only the support team can see this note.
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={onAddNote}
-                  disabled={!noteDraft.trim()}
-                >
-                  Add note
-                  <IconPlus className="size-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6">
+        <div className="space-y-8">
           {notes.map((note) => (
             <NoteCard key={note.id} note={note} />
           ))}
         </div>
       </div>
+
+      <ComposerShell currentUser={currentUser}>
+        <textarea
+          value={noteDraft}
+          onChange={(event) => onNoteDraftChange(event.target.value)}
+          placeholder="Write an internal note..."
+          className="min-h-28 w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/70"
+        />
+
+        <div className="border-t px-3 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">
+              Only the support team can see this note.
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-xl"
+              onClick={onAddNote}
+              disabled={!noteDraft.trim()}
+            >
+              Add note
+              <IconPlus className="size-4" />
+            </Button>
+          </div>
+        </div>
+      </ComposerShell>
     </div>
   )
 }
