@@ -18,7 +18,7 @@ export {
 export const detailTabs: Array<{ value: TicketDetailTab; label: string }> = [
   { value: "conversation", label: "Conversation" },
   { value: "task", label: "Task" },
-  { value: "activity", label: "Activity Logs" },
+  { value: "activity", label: "Activity" },
   { value: "notes", label: "Notes" },
 ]
 

@@ -32,6 +32,21 @@ export type CustomerResponseTone = "slow" | "steady" | "healthy"
 
 export type CustomerActivityTone = "neutral" | "warning" | "positive"
 
+export type CustomerAttachmentType =
+  | "pdf"
+  | "image"
+  | "doc"
+  | "sheet"
+  | "slide"
+  | "zip"
+  | "link"
+  | "other"
+
+export type CustomerAttachmentSource = {
+  kind: "ticket" | "manual"
+  ticketId?: string
+}
+
 export type CustomerRecentTicket = {
   id: string
   subject: string
@@ -43,9 +58,29 @@ export type CustomerRecentTicket = {
 
 export type CustomerActivityEvent = {
   id: string
-  message: string
-  timestampLabel: string
+  title: string
+  detail?: string
+  timestamp: string
   tone: CustomerActivityTone
+}
+
+export type CustomerAttachment = {
+  id: string
+  name: string
+  type: CustomerAttachmentType
+  sizeMB: number
+  url: string
+  addedBy: CustomerOwner
+  addedAt: string
+  source: CustomerAttachmentSource
+  isLinkAsset?: boolean
+  attachments?: Array<{
+    id: string
+    name: string
+    type: CustomerAttachmentType
+    sizeMB: number
+    url: string
+  }>
 }
 
 export type CustomerCompanyProfile = {
@@ -96,6 +131,7 @@ export type Customer = {
   productAreas: string[]
   riskSignals: string[]
   recentTickets: CustomerRecentTicket[]
+  attachments: CustomerAttachment[]
   activityEvents: CustomerActivityEvent[]
   companyProfile: CustomerCompanyProfile
 }

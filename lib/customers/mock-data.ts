@@ -1,6 +1,7 @@
 import { currentUser } from "@/lib/current-user"
 import type {
   CustomerActivityEvent,
+  CustomerAttachment,
   Customer,
   CustomerRecentTicket,
   CustomerLifecycle,
@@ -19,6 +20,7 @@ type RawCustomer = Omit<
   | "timezone"
   | "firstContactDate"
   | "recentTickets"
+  | "attachments"
   | "activityEvents"
   | "companyProfile"
 > & {
@@ -234,8 +236,9 @@ function buildActivityEvents(
   const events: CustomerActivityEvent[] = [
     {
       id: `${customer.id}-contact-added`,
-      message: `${customer.primaryContactName} added to contacts`,
-      timestampLabel: formatEventTimestamp(
+      title: `${customer.primaryContactName} added to contacts`,
+      detail: `Primary contact was linked under ${customer.companyName} and assigned to ${customer.owner.name}.`,
+      timestamp: formatEventTimestamp(
         firstContactDate,
         getTextSeed(customer.primaryContactName)
       ),
@@ -253,8 +256,14 @@ function buildActivityEvents(
 
     events.push({
       id: `${customer.id}-${ticket.id}-activity`,
-      message: `Ticket #${ticket.id} ${actionLabel}`,
-      timestampLabel: formatEventTimestamp(
+      title: `Ticket #${ticket.id} ${actionLabel}`,
+      detail:
+        ticket.status === "resolved"
+          ? `${ticket.subject} was resolved by ${ticket.assigneeLabel}.`
+          : ticket.status === "pending"
+            ? `${ticket.subject} is pending owner follow-up from ${ticket.assigneeLabel}.`
+            : `${ticket.subject} was opened and routed to ${ticket.assigneeLabel}.`,
+      timestamp: formatEventTimestamp(
         ticket.requestDate,
         getTextSeed(ticket.id)
       ),
@@ -269,8 +278,9 @@ function buildActivityEvents(
 
   events.push({
     id: `${customer.id}-created`,
-    message: `${customer.primaryContactName} created by ${customer.owner.name}`,
-    timestampLabel: formatEventTimestamp(
+    title: `${customer.primaryContactName} created by ${customer.owner.name}`,
+    detail: `${customer.companyName} entered the portfolio under the ${customer.plan} plan.`,
+    timestamp: formatEventTimestamp(
       firstContactDate,
       getTextSeed(customer.owner.name)
     ),
@@ -278,6 +288,75 @@ function buildActivityEvents(
   })
 
   return events
+}
+
+function inferAttachmentTypeFromSubject(subject: string): CustomerAttachment["type"] {
+  const normalizedSubject = subject.toLowerCase()
+  if (
+    normalizedSubject.includes("invoice") ||
+    normalizedSubject.includes("contract") ||
+    normalizedSubject.includes("report") ||
+    normalizedSubject.includes("pdf")
+  ) {
+    return "pdf"
+  }
+  if (
+    normalizedSubject.includes("sheet") ||
+    normalizedSubject.includes("export") ||
+    normalizedSubject.includes("csv")
+  ) {
+    return "sheet"
+  }
+  if (
+    normalizedSubject.includes("slide") ||
+    normalizedSubject.includes("deck") ||
+    normalizedSubject.includes("presentation")
+  ) {
+    return "slide"
+  }
+  if (
+    normalizedSubject.includes("image") ||
+    normalizedSubject.includes("screenshot") ||
+    normalizedSubject.includes("preview")
+  ) {
+    return "image"
+  }
+  return "doc"
+}
+
+function buildAttachmentNameFromTicket(ticket: CustomerRecentTicket): string {
+  const safeName = ticket.subject.replace(/[^\w\s-]/g, "").trim()
+  if (!safeName) return `ticket-${ticket.id}.pdf`
+  return `${safeName}.pdf`
+}
+
+function buildCustomerAttachments(
+  customer: RawCustomer,
+  tickets: CustomerRecentTicket[]
+): CustomerAttachment[] {
+  return tickets.slice(0, 4).map((ticket, ticketIndex) => {
+    const seed = getTextSeed(`${customer.id}-${ticket.id}`)
+    const inferredType = inferAttachmentTypeFromSubject(ticket.subject)
+    const sizeMB = Number((0.8 + (seed % 42) / 10).toFixed(1))
+    const addedAt = new Date(
+      Date.UTC(2024, ticketIndex + 1, (seed % 27) + 1, 8 + (seed % 9), seed % 60)
+    ).toISOString()
+
+    return {
+      id: `${customer.id}-attachment-${ticket.id}`,
+      name: buildAttachmentNameFromTicket(ticket),
+      type: inferredType,
+      sizeMB,
+      url: `https://files.graycsm.example/customers/${customer.id}/${ticket.id}`,
+      addedBy: customer.owner,
+      addedAt,
+      source: {
+        kind: "ticket",
+        ticketId: ticket.id,
+      },
+      isLinkAsset: false,
+    }
+  })
 }
 
 function enrichCustomer(customer: RawCustomer): Customer {
@@ -303,6 +382,7 @@ function enrichCustomer(customer: RawCustomer): Customer {
     timezone: region.timezone,
     firstContactDate,
     recentTickets,
+    attachments: buildCustomerAttachments(customer, recentTickets),
     companyProfile: buildCompanyProfile(customer),
     activityEvents: buildActivityEvents(customer, recentTickets, firstContactDate),
   }

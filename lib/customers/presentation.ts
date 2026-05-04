@@ -78,7 +78,7 @@ export const customerTierToneClassName: Record<"default" | "vip", string> = {
 export const customerPresenceDotClassName = "bg-chart-2"
 
 export const customerPositiveTrendBadgeClassName =
-  "border-0 bg-chart-2/20 text-chart-5 dark:bg-chart-2/25 dark:text-chart-2"
+  "border-0 bg-teal-500/10 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
 
 export const customerActivityToneSurfaceClassName: Record<
   CustomerActivityTone,

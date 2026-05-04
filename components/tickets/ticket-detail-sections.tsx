@@ -1,12 +1,9 @@
 import {
-  IconChevronsLeft,
-  IconChevronsRight,
   IconChevronDown,
   IconMicrophone,
   IconMoodSmile,
   IconPaperclip,
   IconPhoto,
-  IconPlus,
   IconSearch,
   IconSend,
   IconUsers,
@@ -14,9 +11,13 @@ import {
 
 import {
   ActivityTimelineEventItem,
-  ActivityTimelineList,
   type ActivityTimelineItem,
 } from "@/components/activity/activity-timeline"
+import {
+  SharedActivityTabContent,
+  SharedInternalNotesTabContent,
+} from "@/components/detail-tabs/shared-activity-notes-tab-content"
+import { DetailRightPanelShell } from "@/components/detail-right-panel-shell"
 import {
   channelLabel,
   macroSuggestions,
@@ -170,21 +171,6 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
             </Badge>
           ) : null}
         </>
-      }
-    />
-  )
-}
-
-function NoteCard({ note }: { note: TicketNote }) {
-  return (
-    <TimelineEntry
-      author={note.author}
-      timestamp={note.timestamp}
-      body={note.body}
-      badges={
-        <Badge variant="outline" className="h-5 rounded-full px-2 text-[11px]">
-          Internal
-        </Badge>
       }
     />
   )
@@ -508,13 +494,7 @@ export function ActivityTabContent({
 }) {
   const mappedActivityItems = activityItems.map(mapTicketEventToActivityItem)
 
-  return (
-    <div className="scrollbar-hidden h-full overflow-y-auto px-6 py-6">
-      <div className="px-0">
-        <ActivityTimelineList items={mappedActivityItems} />
-      </div>
-    </div>
-  )
+  return <SharedActivityTabContent items={mappedActivityItems} />
 }
 
 export function NotesTabContent({
@@ -531,42 +511,13 @@ export function NotesTabContent({
   onAddNote: () => void
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
-      <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6">
-        <div className="space-y-8">
-          {notes.map((note) => (
-            <NoteCard key={note.id} note={note} />
-          ))}
-        </div>
-      </div>
-
-      <ComposerShell currentUser={currentUser}>
-        <textarea
-          value={noteDraft}
-          onChange={(event) => onNoteDraftChange(event.target.value)}
-          placeholder="Write an internal note..."
-          className="min-h-28 w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/70"
-        />
-
-        <div className="border-t px-3 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              Only the support team can see this note.
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-xl"
-              onClick={onAddNote}
-              disabled={!noteDraft.trim()}
-            >
-              Add note
-              <IconPlus className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </ComposerShell>
-    </div>
+    <SharedInternalNotesTabContent
+      notes={notes}
+      currentUser={currentUser}
+      noteDraft={noteDraft}
+      onNoteDraftChange={onNoteDraftChange}
+      onAddNote={onAddNote}
+    />
   )
 }
 
@@ -591,180 +542,128 @@ export function TicketDetailRightPanel({
   assignee: { name: string; avatarUrl?: string; email?: string }
   selectedReplyAccountLabel?: string
 }) {
-  const activeRightPanel = rightPanelSections.find(
-    (section) => section.value === activeSection
-  )
-
   return (
-    <aside className="hidden min-h-0 xl:block">
-      <div className="flex h-full min-h-0 overflow-hidden">
-        <div className="flex w-14 shrink-0 flex-col items-center gap-2 p-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="size-9 rounded-xl"
-            onClick={onToggleOpen}
-            aria-label={open ? "Collapse right panel" : "Expand right panel"}
-          >
-            {open ? (
-              <IconChevronsRight className="size-4" />
-            ) : (
-              <IconChevronsLeft className="size-4" />
-            )}
-          </Button>
+    <DetailRightPanelShell
+      open={open}
+      sections={rightPanelSections}
+      activeSection={activeSection}
+      onToggleOpen={onToggleOpen}
+      onSelectSection={onSelectSection}
+      renderSection={() => (
+        <>
+          {activeSection === "details" ? (
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              <DetailStat
+                label="Queue status"
+                value={
+                  <span className="inline-flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "size-2 rounded-full",
+                        queueStatus === "closed"
+                          ? "bg-zinc-500"
+                          : queueStatus === "resolved"
+                            ? "bg-emerald-500"
+                            : queueStatus === "pending"
+                              ? "bg-amber-500"
+                              : "bg-sky-500"
+                      )}
+                    />
+                    {statusLabel[queueStatus]}
+                  </span>
+                }
+              />
+              <DetailStat
+                label="Priority"
+                value={
+                  <span className="inline-flex items-center gap-2">
+                    <TicketPriorityIndicator priority={ticket.priority} />
+                    {priorityLabel[ticket.priority]}
+                  </span>
+                }
+              />
+              <DetailStat
+                label="Health"
+                value={<TicketTag tone={ticket.health} />}
+              />
+              <DetailStat
+                label="Channel"
+                value={channelLabel[ticket.channel]}
+              />
+              <DetailStat label="Opened" value={detail.openedAt} />
+              <DetailStat
+                label="SLA"
+                value={detail.responseSla}
+                className="col-span-2"
+              />
+              <DetailStat
+                label="Next due"
+                value={detail.nextDue}
+                className="col-span-2"
+              />
+              <DetailStat label="Assigned to" value={assignee.name} />
+            </div>
+          ) : null}
 
-          {rightPanelSections.map((section) => {
-            const SectionIcon = section.icon
-            const isActive = activeSection === section.value
-
-            return (
-              <Button
-                key={section.value}
-                type="button"
-                variant={isActive ? "secondary" : "ghost"}
-                size="icon-sm"
-                className="size-9 rounded-xl"
-                aria-label={section.label}
-                aria-pressed={isActive}
-                onClick={() => onSelectSection(section.value)}
-              >
-                <SectionIcon className="size-4" />
-              </Button>
-            )
-          })}
-        </div>
-
-        {open ? (
-          <div className={cn("min-h-0 flex-1 p-2", "border-l")}>
-            <div className="flex h-full min-h-0 flex-col">
-              <div className="shrink-0 px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {activeRightPanel?.label}
-                </h2>
+          {activeSection === "people" ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <TimelineAvatar person={detail.customer} />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">
+                    {detail.customer.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Requester</div>
+                </div>
               </div>
 
-              <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto p-4">
-                {activeSection === "details" ? (
-                  <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                    <DetailStat
-                      label="Queue status"
-                      value={
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className={cn(
-                              "size-2 rounded-full",
-                              queueStatus === "closed"
-                                ? "bg-zinc-500"
-                                : queueStatus === "resolved"
-                                  ? "bg-emerald-500"
-                                  : queueStatus === "pending"
-                                    ? "bg-amber-500"
-                                    : "bg-sky-500"
-                            )}
-                          />
-                          {statusLabel[queueStatus]}
-                        </span>
-                      }
-                    />
-                    <DetailStat
-                      label="Priority"
-                      value={
-                        <span className="inline-flex items-center gap-2">
-                          <TicketPriorityIndicator priority={ticket.priority} />
-                          {priorityLabel[ticket.priority]}
-                        </span>
-                      }
-                    />
-                    <DetailStat
-                      label="Health"
-                      value={<TicketTag tone={ticket.health} />}
-                    />
-                    <DetailStat
-                      label="Channel"
-                      value={channelLabel[ticket.channel]}
-                    />
-                    <DetailStat label="Opened" value={detail.openedAt} />
-                    <DetailStat
-                      label="SLA"
-                      value={detail.responseSla}
-                      className="col-span-2"
-                    />
-                    <DetailStat
-                      label="Next due"
-                      value={detail.nextDue}
-                      className="col-span-2"
-                    />
-                    <DetailStat label="Assigned to" value={assignee.name} />
+              <Separator />
+
+              <div className="flex items-center gap-3">
+                <TimelineAvatar person={assignee} />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">
+                    {assignee.name}
                   </div>
-                ) : null}
+                  <div className="text-sm text-muted-foreground">Assignee</div>
+                </div>
+              </div>
 
-                {activeSection === "people" ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <TimelineAvatar person={detail.customer} />
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-foreground">
-                          {detail.customer.name}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Requester
-                        </div>
-                      </div>
-                    </div>
+              <Separator />
 
-                    <Separator />
-
-                    <div className="flex items-center gap-3">
-                      <TimelineAvatar person={assignee} />
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-foreground">
-                          {assignee.name}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Assignee
-                        </div>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-start gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl border bg-muted text-muted-foreground">
-                        <IconUsers className="size-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-foreground">
-                          Support team
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Reply from {selectedReplyAccountLabel ?? "Support"}{" "}
-                          and keep the thread in sync.
-                        </div>
-                      </div>
-                    </div>
+              <div className="flex items-start gap-3">
+                <div className="flex size-10 items-center justify-center rounded-2xl border bg-muted text-muted-foreground">
+                  <IconUsers className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">
+                    Support team
                   </div>
-                ) : null}
-
-                {activeSection === "knowledge" ? (
-                  <div className="space-y-3">
-                    <h3 className="text-base font-semibold text-foreground">
-                      Knowledge Base
-                    </h3>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      This module is prepared for linked playbooks, known
-                      issues, and ticket-specific references.
-                    </p>
-                    <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                      Connect KB sources here in the next iteration.
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Reply from {selectedReplyAccountLabel ?? "Support"} and keep
+                    the thread in sync.
                   </div>
-                ) : null}
+                </div>
               </div>
             </div>
-          </div>
-        ) : null}
-      </div>
-    </aside>
+          ) : null}
+
+          {activeSection === "knowledge" ? (
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold text-foreground">
+                Knowledge Base
+              </h3>
+              <p className="text-sm leading-6 text-muted-foreground">
+                This module is prepared for linked playbooks, known issues, and
+                ticket-specific references.
+              </p>
+              <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
+                Connect KB sources here in the next iteration.
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
+    />
   )
 }

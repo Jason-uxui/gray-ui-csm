@@ -37,10 +37,12 @@ import { currentUser } from "@/lib/current-user"
 import { getRouteByPathname } from "@/lib/csm-routes"
 import { cn } from "@/lib/utils"
 
-type AppShellDisplayMode = "default" | "ticket-detail"
+type AppShellDisplayMode = "default" | "full-detail"
 
 function getShellDisplayMode(pathname: string): AppShellDisplayMode {
-  return /^\/tickets\/[^/]+$/.test(pathname) ? "ticket-detail" : "default"
+  return /^\/(tickets|customers)\/[^/]+$/.test(pathname)
+    ? "full-detail"
+    : "default"
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -51,21 +53,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
 
   React.useEffect(() => {
-    if (shellDisplayMode === "ticket-detail") {
+    if (shellDisplayMode === "full-detail") {
       setSidebarOpen(false)
     }
   }, [shellDisplayMode])
 
   const handleSidebarOpenChange = React.useCallback(
     (nextOpen: boolean) => {
-      setSidebarOpen(shellDisplayMode === "ticket-detail" ? false : nextOpen)
+      setSidebarOpen(shellDisplayMode === "full-detail" ? false : nextOpen)
     },
     [shellDisplayMode]
   )
 
   return (
     <SidebarProvider
-      open={shellDisplayMode === "ticket-detail" ? false : sidebarOpen}
+      open={shellDisplayMode === "full-detail" ? false : sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
       style={
         {
@@ -167,7 +169,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           className={cn(
             "mx-auto flex w-full min-w-0 flex-1 flex-col overflow-x-hidden",
-            shellDisplayMode === "ticket-detail"
+            shellDisplayMode === "full-detail"
               ? "h-svh min-h-0 max-w-none gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:px-8"
               : isTicketsListPage
                 ? "min-h-0 max-w-500 gap-4 overflow-hidden p-4 sm:p-6 lg:p-8"

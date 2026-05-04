@@ -41,10 +41,7 @@ import {
 } from "@/lib/csm-routes"
 import { cn } from "@/lib/utils"
 
-type SidebarItem = Pick<
-  CsmRoute,
-  "title" | "path" | "icon" | "sidebarPreview"
->
+type SidebarItem = Pick<CsmRoute, "title" | "path" | "icon" | "sidebarPreview">
 
 function matchByPathname(pathname: string) {
   return (getRouteByPathname(pathname) ?? csmRoutes[0]) as SidebarItem
@@ -63,7 +60,7 @@ function renderSidebarIcon(icon: CsmRouteIconKey) {
 }
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  displayMode?: "default" | "ticket-detail"
+  displayMode?: "default" | "full-detail"
 }
 
 export function AppSidebar({
@@ -80,7 +77,7 @@ export function AppSidebar({
   const isCustomersSection = matchedItem.path === "/customers"
   const isSidebarCollapsed = state === "collapsed"
   const shouldShowSecondaryPanel =
-    displayMode !== "ticket-detail" && !isSidebarCollapsed
+    displayMode !== "full-detail" && !isSidebarCollapsed
 
   return (
     <Sidebar

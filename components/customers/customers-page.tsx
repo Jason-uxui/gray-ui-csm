@@ -8,6 +8,7 @@ import {
   useState,
   type CSSProperties,
 } from "react"
+import { useRouter } from "next/navigation"
 
 import {
   CustomerCardGrid,
@@ -138,6 +139,7 @@ export function CustomersPage({
   initialView = "all",
   initialLayout = "table",
 }: CustomersPageProps) {
+  const router = useRouter()
   const activeView: CustomerViewKey = customerViewKeys.includes(
     initialView as CustomerViewKey
   )
@@ -410,8 +412,8 @@ export function CustomersPage({
   const handleViewCustomerProfile = useCallback(() => {
     if (!drawerCustomer) return
 
-    window.open(drawerCustomer.website, "_blank", "noopener,noreferrer")
-  }, [drawerCustomer])
+    router.push(`/customers/${drawerCustomer.id}`)
+  }, [drawerCustomer, router])
 
   return (
     <div
@@ -513,9 +515,6 @@ export function CustomersPage({
         onPrevious={() => openCustomerDrawerAtIndex(drawerCustomerIndex - 1)}
         onNext={() => openCustomerDrawerAtIndex(drawerCustomerIndex + 1)}
         onClose={closeCustomerDrawer}
-        onAssign={() => {
-          // Placeholder action for v1 drawer.
-        }}
         onViewProfile={handleViewCustomerProfile}
       />
     </div>

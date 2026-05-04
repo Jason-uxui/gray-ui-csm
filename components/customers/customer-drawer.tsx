@@ -23,15 +23,16 @@ import {
 } from "@/components/activity/activity-timeline"
 import { getCustomerBrandPresentation } from "@/components/customers/customer-brand"
 import { CustomerInitialAvatar } from "@/components/customers/customer-initial-avatar"
+import { CustomerMetricsGrid } from "@/components/customers/customer-metrics-grid"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { currentUser } from "@/lib/current-user"
+import { buildCustomerDetailMetrics } from "@/lib/customers/detail-view-model"
 import { customerDirectory } from "@/lib/customers/mock-data"
 import {
   getCustomerInitials,
-  customerPositiveTrendBadgeClassName,
   customerPresenceDotClassName,
   customerTicketPriorityDotClassName,
   customerTicketStatusToneClassName,
@@ -63,13 +64,6 @@ type CustomerDrawerProps = {
   onNext: () => void
   onClose: () => void
   onViewProfile: () => void
-}
-
-type CustomerMetricItem = {
-  label: string
-  value: string
-  helper?: string
-  tone?: "default" | "danger"
 }
 
 type CustomerNoteItem = {
@@ -109,18 +103,6 @@ const drawerSheetClassName =
   "overflow-hidden p-0 data-[side=right]:w-screen data-[side=right]:rounded-none data-[side=right]:border-l data-[side=right]:border-border/70 sm:shadow-2xl sm:data-[side=right]:top-3 sm:data-[side=right]:right-3 sm:data-[side=right]:bottom-3 sm:data-[side=right]:h-[calc(100dvh-1.5rem)] sm:data-[side=right]:w-[min(calc(100vw-1.5rem),54rem)] sm:data-[side=right]:max-w-none sm:data-[side=right]:rounded-3xl sm:data-[side=right]:border lg:data-[side=right]:w-[min(calc(100vw-1.5rem),62rem)]"
 const neutralOutlineBadgeClassName = "border-border/80 bg-background text-foreground"
 const drawerMetaLabelClassName = "text-xs tracking-wide text-muted-foreground uppercase"
-
-const OVERDUE_RATIO_BY_HEALTH = {
-  healthy: 0,
-  at_risk: 0.45,
-  watch: 0.25,
-} as const
-
-const AVERAGE_RESPONSE_SECONDS_BY_HEALTH = {
-  healthy: 2 * 60 + 15,
-  watch: 8 * 60 + 30,
-  at_risk: 25 * 60,
-} as const
 
 const languageCodeByName: Record<string, string> = {
   English: "EN",
@@ -223,15 +205,16 @@ export function CustomerDrawer({
 
     return customer.activityEvents.map((event) => ({
       id: event.id,
-      title: event.message,
-      timestamp: event.timestampLabel,
+      title: event.title,
+      detail: event.detail,
+      timestamp: event.timestamp,
       tone: event.tone,
     }))
   }, [customer])
 
   const metrics = useMemo(() => {
     if (!customer) return []
-    return buildMetricItems(customer)
+    return buildCustomerDetailMetrics(customer)
   }, [customer])
 
   const customerTier = customer ? getCustomerTierBadgeLabel(customer) : ""
@@ -498,40 +481,11 @@ export function CustomerDrawer({
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-border sm:grid-cols-4">
-                {metrics.map((metric, index) => (
-                  <article
-                    key={metric.label}
-                    className={cn(
-                      "bg-background px-4 py-3 text-center text-foreground sm:rounded-none",
-                      index >= 2 && "border-t border-border/70",
-                      index % 2 === 1 && "border-l border-border/70",
-                      index >= 1 && "sm:border-l sm:border-border/70",
-                      "sm:border-t-0"
-                    )}
-                  >
-                    <div className="text-xs text-muted-foreground">{metric.label}</div>
-                    <div
-                      className={cn(
-                        "mt-0.5 flex items-center justify-center gap-1 text-xl font-semibold text-foreground",
-                        metric.tone === "danger" && "text-destructive"
-                      )}
-                    >
-                      <span>{metric.value}</span>
-                      {metric.helper ? (
-                        <Badge
-                          className={cn(
-                            "h-auto border-0 px-1.5 py-0 text-xs",
-                            customerPositiveTrendBadgeClassName
-                          )}
-                        >
-                          {metric.helper}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <CustomerMetricsGrid
+                metrics={metrics}
+                valueAlign="center"
+                className="mt-4 border-border"
+              />
             </section>
 
             <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto border-b border-border/70 md:grid-cols-[20rem_minmax(0,1fr)] md:overflow-hidden md:border-b-0">
@@ -1111,68 +1065,6 @@ function getTicketType(subject: string, priority: Customer["recentTickets"][numb
   }
 
   return "Question"
-}
-
-function getEstimatedOverdueTickets(customer: Customer) {
-  if (customer.openTickets === 0) return 0
-
-  const overdueRatio = OVERDUE_RATIO_BY_HEALTH[customer.health]
-  if (overdueRatio > 0) {
-    return Math.max(1, Math.ceil(customer.openTickets * overdueRatio))
-  }
-
-  return customer.recentTickets.some((ticket) => ticket.priority === "high") ? 1 : 0
-}
-
-function getAverageResponseSeconds(customer: Customer) {
-  return AVERAGE_RESPONSE_SECONDS_BY_HEALTH[customer.health]
-}
-
-function formatResponseDuration(
-  totalSeconds: number,
-  options: { includeHours?: boolean } = {}
-) {
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (options.includeHours || hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-  }
-
-  return `${minutes}:${String(seconds).padStart(2, "0")}`
-}
-
-function buildMetricItems(customer: Customer): CustomerMetricItem[] {
-  const overdueTickets = getEstimatedOverdueTickets(customer)
-  const averageResponseSeconds = getAverageResponseSeconds(customer)
-  const totalResponseSeconds = Math.max(
-    averageResponseSeconds,
-    averageResponseSeconds * Math.max(customer.openTickets, 1)
-  )
-
-  return [
-    {
-      label: "Tickets",
-      value: numberFormatter.format(customer.openTickets),
-    },
-    {
-      label: "Overdue",
-      value: numberFormatter.format(overdueTickets),
-      tone: overdueTickets > 0 ? "danger" : "default",
-    },
-    {
-      label: "Avg resp.",
-      value: formatResponseDuration(averageResponseSeconds),
-      helper: `+${Math.max(1, Math.round((5 - customer.csat) * 3))}%`,
-    },
-    {
-      label: "Total",
-      value: formatResponseDuration(totalResponseSeconds, {
-        includeHours: true,
-      }),
-    },
-  ]
 }
 
 function formatLanguageCodes(customer: Customer) {
