@@ -334,7 +334,7 @@ function buildCustomerAttachments(
   customer: RawCustomer,
   tickets: CustomerRecentTicket[]
 ): CustomerAttachment[] {
-  return tickets.slice(0, 4).map((ticket, ticketIndex) => {
+  return tickets.map((ticket, ticketIndex) => {
     const seed = getTextSeed(`${customer.id}-${ticket.id}`)
     const inferredType = inferAttachmentTypeFromSubject(ticket.subject)
     const sizeMB = Number((0.8 + (seed % 42) / 10).toFixed(1))
@@ -559,6 +559,36 @@ const rawCustomerDirectory: RawCustomer[] = [
         id: "T-1440",
         subject: "Automation run history unavailable for compliance team",
         status: "open",
+        priority: "medium",
+      },
+      {
+        id: "T-1437",
+        subject: "Compliance dashboard export times out on large date ranges",
+        status: "open",
+        priority: "high",
+      },
+      {
+        id: "T-1433",
+        subject: "Queue ownership changes are not reflected in automation logs",
+        status: "pending",
+        priority: "medium",
+      },
+      {
+        id: "T-1428",
+        subject: "Missing locale fallback for Swedish system alerts",
+        status: "open",
+        priority: "medium",
+      },
+      {
+        id: "T-1421",
+        subject: "Ticket watcher updates are delayed after bulk reassignment",
+        status: "open",
+        priority: "low",
+      },
+      {
+        id: "T-1418",
+        subject: "Historical SLA trend widget fails to render for quarter view",
+        status: "pending",
         priority: "medium",
       },
     ],

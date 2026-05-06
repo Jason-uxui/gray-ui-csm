@@ -134,12 +134,7 @@ function buildActivityItems(customer: Customer): ActivityTimelineItem[] {
     title: event.title,
     detail: event.detail,
     timestamp: event.timestamp,
-    tone:
-      event.tone === "positive"
-        ? "positive"
-        : event.tone === "warning"
-          ? "warning"
-          : "neutral",
+    tone: "neutral",
   }))
 }
 
@@ -170,6 +165,25 @@ function parsePersistedCustomerAttachments(
   } catch {
     return null
   }
+}
+
+function mergeCustomerAttachments(
+  baseItems: CustomerAttachment[],
+  persistedItems: CustomerAttachment[]
+): CustomerAttachment[] {
+  const mergedById = new Map<string, CustomerAttachment>()
+
+  for (const item of persistedItems) {
+    mergedById.set(item.id, item)
+  }
+
+  for (const item of baseItems) {
+    if (!mergedById.has(item.id)) {
+      mergedById.set(item.id, item)
+    }
+  }
+
+  return Array.from(mergedById.values())
 }
 
 function formatCurrency(value: number) {
@@ -491,7 +505,9 @@ export function CustomerDetailPage({
 
     const frameId = window.requestAnimationFrame(() => {
       if (persistedItems) {
-        setAttachments(persistedItems)
+        setAttachments(
+          mergeCustomerAttachments(customer.attachments, persistedItems)
+        )
       } else {
         setAttachments(customer.attachments)
       }
@@ -865,7 +881,7 @@ export function CustomerDetailPage({
             onValueChange={(nextTab) =>
               replaceQuery({ tab: normalizeCustomerDetailTab(nextTab) })
             }
-            className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col"
+            className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col"
           >
             <div className="shrink-0 border-b px-4">
               <TabsList

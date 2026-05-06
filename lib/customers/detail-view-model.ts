@@ -203,14 +203,39 @@ export function buildCustomerInternalNotes(
   customer: Customer
 ): CustomerInternalNote[] {
   const seedBody = customer.notes.trim()
-  if (seedBody.length === 0) return []
+  const defaultBody =
+    seedBody.length > 0
+      ? seedBody
+      : `Account context: ${customer.summary}`
 
-  return [
-    {
-      id: `${customer.id}-internal-note-seed`,
-      author: customer.owner,
-      timestamp: customer.lastTouchLabel,
-      body: seedBody,
-    },
+  const noteBodies: string[] = [
+    defaultBody,
+    `Renewal watch: ${customer.riskSignals[0] ?? "Track renewal blockers and keep owners aligned."}`,
+    `Action plan: Review ${customer.openTickets} active tickets and publish owner + due date for each customer-facing update.`,
+    `Customer signal: ${customer.primaryContactName} asked for clearer weekly progress updates tied to business outcomes.`,
+    `Next check-in: Prepare a concise recap covering ${customer.productAreas.slice(0, 2).join(" + ")} before the next stakeholder sync.`,
   ]
+
+  const noteTimestamps = [
+    customer.lastTouchLabel,
+    "Yesterday",
+    "2 days ago",
+    "4 days ago",
+    "Last week",
+  ]
+
+  const noteAuthors = [
+    customer.owner,
+    { name: "Maya Patel", email: "maya@opensource-demo.dev" },
+    { name: "Sofia Nguyen", email: "sofia@opensource-demo.dev" },
+    customer.owner,
+    { name: "Devon Reed", email: "devon@opensource-demo.dev" },
+  ]
+
+  return noteBodies.map((body, index) => ({
+    id: `${customer.id}-internal-note-${index + 1}`,
+    author: noteAuthors[index] ?? customer.owner,
+    timestamp: noteTimestamps[index] ?? "Recently",
+    body,
+  }))
 }
