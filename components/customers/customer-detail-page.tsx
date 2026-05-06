@@ -18,6 +18,7 @@ import { CustomerAssetsFilesTab } from "@/components/customers/customer-assets-f
 import { CustomerInitialAvatar } from "@/components/customers/customer-initial-avatar"
 import { CustomerMetricsGrid } from "@/components/customers/customer-metrics-grid"
 import { getCustomerBrandPresentation } from "@/components/customers/customer-brand"
+import { TicketDrawer } from "@/components/tickets/ticket-drawer"
 import {
   SharedActivityTabContent,
   SharedInternalNotesTabContent,
@@ -75,6 +76,7 @@ import {
   normalizeCustomerTicketPriorityFilter,
   normalizeCustomerTicketTypeFilter,
   type CustomerDetailTab,
+  type CustomerTicketRow,
   type CustomerTicketPriorityFilter,
   type CustomerTicketTypeFilter,
 } from "@/lib/customers/detail-view-model"
@@ -84,6 +86,15 @@ import {
   customerTicketStatusToneClassName,
 } from "@/lib/customers/presentation"
 import { type Customer, type CustomerAttachment } from "@/lib/customers/types"
+import type {
+  Ticket,
+  TicketAssignee,
+  TicketDrawerOrigin,
+  TicketPerson,
+  TicketPriority,
+  TicketQueueStatus,
+  TicketSubmitAction,
+} from "@/lib/tickets/types"
 import { cn } from "@/lib/utils"
 
 type CustomerDetailPageProps = {
@@ -127,6 +138,124 @@ const responseToneClassName = {
   "Healthy cadence":
     "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
 } as const
+
+const CUSTOMER_NEW_TICKET_ID = "__customer-new-ticket__"
+
+function formatTodayRequestDateLabel() {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  }).format(new Date())
+}
+
+function extractCustomerTicketSequence(value: string) {
+  const matched = value.match(/(\d+)/)
+  if (!matched) return 0
+
+  const sequence = Number(matched[1])
+  return Number.isFinite(sequence) ? sequence : 0
+}
+
+function getNextCustomerTicketId(rows: CustomerTicketRow[]) {
+  const nextSequence =
+    rows.reduce((maxValue, row) => {
+      return Math.max(
+        maxValue,
+        extractCustomerTicketSequence(row.id),
+        extractCustomerTicketSequence(row.ticketNumber)
+      )
+    }, 0) + 1
+
+  return `T-${String(nextSequence).padStart(4, "0")}`
+}
+
+function toCustomerTicketPriority(priority: TicketPriority): "high" | "medium" | "low" {
+  if (priority === "urgent") return "high"
+  if (priority === "todo") return "low"
+  return priority
+}
+
+function toCustomerTicketStatus(status: TicketQueueStatus): "open" | "pending" | "resolved" {
+  if (status === "closed") return "resolved"
+  return status
+}
+
+function toCustomerTicketType(ticket: Ticket): "support" | "billing" | "technical" {
+  if (ticket.category === "billing") return "billing"
+  if (ticket.category === "technical") return "technical"
+  return "support"
+}
+
+function toQueueStatusAfterSubmit(
+  currentStatus: TicketQueueStatus,
+  action: TicketSubmitAction
+): TicketQueueStatus {
+  if (action === "resolved") return "resolved"
+  if (action === "pending") return "pending"
+  return currentStatus === "open" ? "pending" : currentStatus
+}
+
+function mapTicketToCustomerRow(ticket: Ticket, requestDate: string): CustomerTicketRow {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    subject: ticket.subject,
+    status: toCustomerTicketStatus(ticket.queueStatus),
+    priority: toCustomerTicketPriority(ticket.priority),
+    type: toCustomerTicketType(ticket),
+    requestDate,
+  }
+}
+
+function createCustomerDraftTicket({
+  customer,
+  nextTicketId,
+}: {
+  customer: Customer
+  nextTicketId: string
+}): Ticket {
+  return {
+    id: CUSTOMER_NEW_TICKET_ID,
+    ticketNumber: nextTicketId,
+    subject: "",
+    queueStatus: "open",
+    boardOrder: 0,
+    health:
+      customer.health === "at_risk"
+        ? "breached"
+        : customer.health === "watch"
+          ? "warning"
+          : "on-track",
+    channel: "email",
+    trend: "flat",
+    requester: {
+      name: customer.primaryContactName,
+      email: customer.primaryContactEmail,
+    },
+    assignee: {
+      name: customer.owner.name,
+      email: customer.owner.email,
+      avatarUrl: customer.owner.avatarUrl,
+    },
+    followers: [],
+    tags: customer.productAreas.slice(0, 3),
+    ticketType: "incident",
+    category: "other",
+    priority: "medium",
+    mine: customer.owner.email === currentUser.email,
+    escalated: customer.health === "at_risk",
+    pastDue: false,
+  }
+}
+
+function omitKey<TValue>(sourceRecord: Record<string, TValue>, keyToDelete: string) {
+  if (!(keyToDelete in sourceRecord)) return sourceRecord
+
+  const nextRecord = { ...sourceRecord }
+  delete nextRecord[keyToDelete]
+  return nextRecord
+}
 
 function buildActivityItems(customer: Customer): ActivityTimelineItem[] {
   return customer.activityEvents.map((event) => ({
@@ -487,6 +616,26 @@ export function CustomerDetailPage({
   const [languagesSpoken, setLanguagesSpoken] = useState(
     customer.languagesSpoken
   )
+  const [ticketRows, setTicketRows] = useState<CustomerTicketRow[]>(() =>
+    buildCustomerTicketRows(customer)
+  )
+  const [drawerTicketsById, setDrawerTicketsById] = useState<
+    Record<string, Ticket>
+  >({})
+  const [activeDrawerTicketId, setActiveDrawerTicketId] = useState<string | null>(
+    null
+  )
+  const [customerDrawerMode, setCustomerDrawerMode] = useState<"create" | "edit">(
+    "create"
+  )
+  const [customerDrawerOrigin, setCustomerDrawerOrigin] =
+    useState<TicketDrawerOrigin | null>(null)
+  const [drawerDraftsByTicketId, setDrawerDraftsByTicketId] = useState<
+    Record<string, string>
+  >({})
+  const [drawerReplyFromByTicketId, setDrawerReplyFromByTicketId] = useState<
+    Record<string, string>
+  >({})
   const [attachments, setAttachments] = useState<CustomerAttachment[]>(
     customer.attachments
   )
@@ -534,11 +683,97 @@ export function CustomerDetailPage({
     }
   }, [attachmentStorageKey, attachments])
 
+  useEffect(() => {
+    setTicketRows(buildCustomerTicketRows(customer))
+    setSelectedTicketIds([])
+    setDrawerTicketsById({})
+    setActiveDrawerTicketId(null)
+    setCustomerDrawerMode("create")
+    setCustomerDrawerOrigin(null)
+    setDrawerDraftsByTicketId({})
+    setDrawerReplyFromByTicketId({})
+  }, [customer.id])
+
   const activityItems = useMemo(() => buildActivityItems(customer), [customer])
-  const allTicketRows = useMemo(
-    () => buildCustomerTicketRows(customer),
-    [customer]
-  )
+  const allTicketRows = ticketRows
+  const activeDrawerTicket = activeDrawerTicketId
+    ? (drawerTicketsById[activeDrawerTicketId] ?? null)
+    : null
+  const activeDrawerDraft = activeDrawerTicketId
+    ? (drawerDraftsByTicketId[activeDrawerTicketId] ?? "")
+    : ""
+  const activeDrawerReplyFrom = activeDrawerTicketId
+    ? drawerReplyFromByTicketId[activeDrawerTicketId]
+    : undefined
+  const drawerAssigneeOptions = useMemo(() => {
+    const assigneeMap = new Map<string, TicketAssignee>()
+
+    const registerAssignee = (person?: TicketPerson) => {
+      if (!person?.name || assigneeMap.has(person.name)) return
+      assigneeMap.set(person.name, person)
+    }
+
+    registerAssignee({
+      name: customer.owner.name,
+      email: customer.owner.email,
+      avatarUrl: customer.owner.avatarUrl,
+    })
+    registerAssignee({
+      name: currentUser.name,
+      email: currentUser.email,
+      avatarUrl: currentUser.avatar,
+    })
+    Object.values(drawerTicketsById).forEach((ticket) =>
+      registerAssignee(ticket.assignee)
+    )
+
+    return Array.from(assigneeMap.values()).sort((left, right) =>
+      left.name.localeCompare(right.name)
+    )
+  }, [customer.owner.avatarUrl, customer.owner.email, customer.owner.name, drawerTicketsById])
+  const drawerPeopleOptions = useMemo(() => {
+    const peopleMap = new Map<string, TicketPerson>()
+
+    const registerPerson = (person?: TicketPerson) => {
+      if (!person?.name || peopleMap.has(person.name)) return
+      peopleMap.set(person.name, person)
+    }
+
+    registerPerson({
+      name: customer.primaryContactName,
+      email: customer.primaryContactEmail,
+    })
+    registerPerson({
+      name: customer.owner.name,
+      email: customer.owner.email,
+      avatarUrl: customer.owner.avatarUrl,
+    })
+    registerPerson({
+      name: currentUser.name,
+      email: currentUser.email,
+      avatarUrl: currentUser.avatar,
+    })
+
+    Object.values(drawerTicketsById).forEach((ticket) => {
+      registerPerson(ticket.requester)
+      registerPerson(ticket.assignee)
+      ;(ticket.followers ?? []).forEach((follower) => registerPerson(follower))
+    })
+
+    return Array.from(peopleMap.values()).sort((left, right) =>
+      left.name.localeCompare(right.name)
+    )
+  }, [
+    currentUser.avatar,
+    currentUser.email,
+    currentUser.name,
+    customer.owner.avatarUrl,
+    customer.owner.email,
+    customer.owner.name,
+    customer.primaryContactEmail,
+    customer.primaryContactName,
+    drawerTicketsById,
+  ])
   const requestDateOptions = useMemo(
     () => [
       "all",
@@ -667,6 +902,175 @@ export function CustomerDetailPage({
       requestDate: draftRequestDateFilter,
     })
     setIsMobileFilterOpen(false)
+  }
+
+  const closeCustomerTicketDrawer = () => {
+    if (activeDrawerTicketId === CUSTOMER_NEW_TICKET_ID) {
+      setDrawerTicketsById((currentTickets) =>
+        omitKey(currentTickets, CUSTOMER_NEW_TICKET_ID)
+      )
+      setDrawerDraftsByTicketId((currentDrafts) =>
+        omitKey(currentDrafts, CUSTOMER_NEW_TICKET_ID)
+      )
+      setDrawerReplyFromByTicketId((currentReplyFromMap) =>
+        omitKey(currentReplyFromMap, CUSTOMER_NEW_TICKET_ID)
+      )
+    }
+
+    setActiveDrawerTicketId(null)
+    setCustomerDrawerMode("create")
+    setCustomerDrawerOrigin(null)
+  }
+
+  const handleCreateTicket = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (event) {
+      const rect = event.currentTarget.getBoundingClientRect()
+      setCustomerDrawerOrigin({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      })
+    } else {
+      setCustomerDrawerOrigin(null)
+    }
+
+    const nextTicketId = getNextCustomerTicketId(allTicketRows)
+    const draftTicket = createCustomerDraftTicket({ customer, nextTicketId })
+    setDrawerTicketsById((currentTickets) => ({
+      ...currentTickets,
+      [CUSTOMER_NEW_TICKET_ID]: draftTicket,
+    }))
+    setCustomerDrawerMode("create")
+    setActiveDrawerTicketId(CUSTOMER_NEW_TICKET_ID)
+  }
+
+  const openCreatedTicketDrawer = (ticketId: string) => {
+    if (!drawerTicketsById[ticketId]) return
+
+    setCustomerDrawerMode("edit")
+    setCustomerDrawerOrigin(null)
+    setActiveDrawerTicketId(ticketId)
+  }
+
+  const handleDrawerTicketUpdate = (
+    ticketId: string,
+    updater: (ticket: Ticket) => Ticket
+  ) => {
+    let nextTicket: Ticket | null = null
+
+    setDrawerTicketsById((currentTickets) => {
+      const currentTicket = currentTickets[ticketId]
+      if (!currentTicket) return currentTickets
+
+      nextTicket = updater(currentTicket)
+      return {
+        ...currentTickets,
+        [ticketId]: nextTicket!,
+      }
+    })
+
+    if (!nextTicket || ticketId === CUSTOMER_NEW_TICKET_ID) return
+
+    setTicketRows((currentRows) =>
+      currentRows.map((row) =>
+        row.id === ticketId
+          ? mapTicketToCustomerRow(nextTicket!, row.requestDate)
+          : row
+      )
+    )
+  }
+
+  const handleDrawerDraftMessageChange = (nextDraft: string) => {
+    if (!activeDrawerTicketId) return
+
+    setDrawerDraftsByTicketId((currentDrafts) => ({
+      ...currentDrafts,
+      [activeDrawerTicketId]: nextDraft,
+    }))
+  }
+
+  const handleDrawerReplyFromAddressChange = (
+    ticketId: string,
+    nextAddress: string
+  ) => {
+    setDrawerReplyFromByTicketId((currentReplyFromMap) => ({
+      ...currentReplyFromMap,
+      [ticketId]: nextAddress,
+    }))
+  }
+
+  const handleDrawerSubmitMessage = (
+    ticketId: string,
+    action: TicketSubmitAction = "send"
+  ) => {
+    const currentTicket = drawerTicketsById[ticketId]
+    if (!currentTicket) return
+
+    if (ticketId === CUSTOMER_NEW_TICKET_ID || customerDrawerMode === "create") {
+      const subject = currentTicket.subject.trim()
+      if (!subject) return
+
+      const submittedTicketId = getNextCustomerTicketId(allTicketRows)
+      const requestDate = formatTodayRequestDateLabel()
+      const submittedTicket: Ticket = {
+        ...currentTicket,
+        id: submittedTicketId,
+        ticketNumber: submittedTicketId,
+        subject,
+        queueStatus: "open",
+        boardOrder: 0,
+      }
+
+      setTicketRows((currentRows) => [
+        mapTicketToCustomerRow(submittedTicket, requestDate),
+        ...currentRows,
+      ])
+      setDrawerTicketsById((currentTickets) => {
+        const withoutCreateDraft = omitKey(
+          currentTickets,
+          CUSTOMER_NEW_TICKET_ID
+        )
+        return {
+          ...withoutCreateDraft,
+          [submittedTicketId]: submittedTicket,
+        }
+      })
+      setDrawerDraftsByTicketId((currentDrafts) =>
+        omitKey(currentDrafts, CUSTOMER_NEW_TICKET_ID)
+      )
+      setDrawerReplyFromByTicketId((currentReplyFromMap) =>
+        omitKey(currentReplyFromMap, CUSTOMER_NEW_TICKET_ID)
+      )
+      closeCustomerTicketDrawer()
+      return
+    }
+
+    const draftMessage = drawerDraftsByTicketId[ticketId]?.trim()
+    if (!draftMessage) return
+
+    setDrawerDraftsByTicketId((currentDrafts) => ({
+      ...currentDrafts,
+      [ticketId]: "",
+    }))
+
+    const nextQueueStatus = toQueueStatusAfterSubmit(currentTicket.queueStatus, action)
+    const updatedTicket = {
+      ...currentTicket,
+      queueStatus: nextQueueStatus,
+    }
+
+    setDrawerTicketsById((currentTickets) => ({
+      ...currentTickets,
+      [ticketId]: updatedTicket,
+    }))
+    setTicketRows((currentRows) =>
+      currentRows.map((row) =>
+        row.id === ticketId
+          ? mapTicketToCustomerRow(updatedTicket, row.requestDate)
+          : row
+      )
+    )
   }
 
   const handleAddInternalNote = () => {
@@ -932,7 +1336,11 @@ export function CustomerDetailPage({
                           appliedRequestDateFilter
                         )}
                       </Button>
-                      <Button size="sm" className="h-9 rounded-xl">
+                      <Button
+                        size="sm"
+                        className="h-9 rounded-xl"
+                        onClick={handleCreateTicket}
+                      >
                         Add new ticket
                       </Button>
                       {appliedTypeFilter !== "all" ||
@@ -1011,9 +1419,14 @@ export function CustomerDetailPage({
                                       <TooltipTrigger
                                         type="button"
                                         className="min-w-0 truncate text-left font-medium text-foreground outline-none hover:underline focus-visible:underline"
-                                        onClick={() =>
+                                        onClick={() => {
+                                          if (drawerTicketsById[row.id]) {
+                                            openCreatedTicketDrawer(row.id)
+                                            return
+                                          }
+
                                           router.push(`/tickets/${row.id}`)
-                                        }
+                                        }}
                                       >
                                         {row.subject}
                                       </TooltipTrigger>
@@ -1300,6 +1713,26 @@ export function CustomerDetailPage({
           }}
         />
       </div>
+
+      <TicketDrawer
+        open={activeDrawerTicket !== null}
+        mode={customerDrawerMode}
+        ticket={activeDrawerTicket}
+        assigneeOptions={drawerAssigneeOptions}
+        peopleOptions={drawerPeopleOptions}
+        draftMessage={activeDrawerDraft}
+        replyFromAddress={activeDrawerReplyFrom}
+        origin={customerDrawerOrigin}
+        onDraftMessageChange={handleDrawerDraftMessageChange}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeCustomerTicketDrawer()
+          }
+        }}
+        onUpdateTicket={handleDrawerTicketUpdate}
+        onSubmitMessage={handleDrawerSubmitMessage}
+        onReplyFromAddressChange={handleDrawerReplyFromAddressChange}
+      />
 
       <Sheet open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
         <SheetContent
