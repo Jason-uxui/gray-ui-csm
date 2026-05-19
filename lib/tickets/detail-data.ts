@@ -11,6 +11,14 @@ export type TicketTimelineMessage = {
   author: TicketPerson
   channel: TicketChannel
   body: string
+  linkedArticle?: TicketLinkedArticle
+}
+
+export type TicketLinkedArticle = {
+  title: string
+  url: string
+  category: string
+  summary: string
 }
 
 export type TicketTimelineEvent = {

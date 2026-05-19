@@ -1,11 +1,19 @@
+import * as React from "react"
 import {
+  IconArrowLeft,
   IconChevronDown,
+  IconCopy,
+  IconFileText,
+  IconLink,
   IconMicrophone,
   IconMoodSmile,
   IconPaperclip,
   IconPhoto,
+  IconPlayerPlay,
+  IconPlus,
   IconSearch,
   IconSend,
+  IconSparkles,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -45,8 +53,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import {
+  getSuggestedKnowledgeArticles,
+  knowledgeArticles,
+} from "@/lib/knowledge-base/mock-data"
+import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 import type {
   TicketDetail,
+  TicketLinkedArticle,
   TicketNote,
   TicketTask,
   TicketTimelineEvent,
@@ -118,17 +132,52 @@ function mapTicketEventToActivityItem(
   }
 }
 
+function KnowledgeArticleLinkCard({
+  article,
+  className,
+}: {
+  article: TicketLinkedArticle
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border bg-background p-3 text-left shadow-sm",
+        className
+      )}
+    >
+      <div className="truncate text-xs font-medium text-primary">
+        {article.url}
+      </div>
+      <div className="mt-2 border-l-2 border-primary pl-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <IconFileText className="size-4 text-muted-foreground" />
+          <span className="truncate">{article.title}</span>
+        </div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          {article.category}
+        </div>
+        <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+          {article.summary}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function TimelineEntry({
   author,
   timestamp,
   badges,
   body,
+  linkedArticle,
   className,
 }: {
   author: PersonLike
   timestamp: string
   badges?: React.ReactNode
   body: string
+  linkedArticle?: TicketLinkedArticle
   className?: string
 }) {
   return (
@@ -141,6 +190,12 @@ function TimelineEntry({
           {badges}
         </div>
         <div className="mt-2 text-sm leading-6 text-foreground">{body}</div>
+        {linkedArticle ? (
+          <KnowledgeArticleLinkCard
+            article={linkedArticle}
+            className="mt-3 max-w-xl"
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -154,6 +209,7 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
       author={item.author}
       timestamp={item.timestamp}
       body={item.body}
+      linkedArticle={item.linkedArticle}
       badges={
         <>
           <Badge
@@ -213,6 +269,7 @@ export function ConversationTabContent({
   onManageAccounts,
   draftMessage,
   onDraftMessageChange,
+  linkedArticle,
   templateQuery,
   onTemplateQueryChange,
   onMacroInsert,
@@ -228,6 +285,7 @@ export function ConversationTabContent({
   onManageAccounts: () => void
   draftMessage: string
   onDraftMessageChange: (nextDraft: string) => void
+  linkedArticle?: KnowledgeArticle | null
   templateQuery: string
   onTemplateQueryChange: (nextValue: string) => void
   onMacroInsert: (macro: string) => void
@@ -325,6 +383,18 @@ export function ConversationTabContent({
           placeholder="Comment or type '/' for commands"
           className="min-h-40 w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/70"
         />
+        {linkedArticle ? (
+          <div className="border-t px-4 py-3">
+            <KnowledgeArticleLinkCard
+              article={{
+                title: linkedArticle.title,
+                url: getArticleUrl(linkedArticle),
+                category: getArticleCategoryLabel(linkedArticle),
+                summary: linkedArticle.summary,
+              }}
+            />
+          </div>
+        ) : null}
 
         <div className="border-t px-3 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -531,6 +601,8 @@ export function TicketDetailRightPanel({
   detail,
   assignee,
   selectedReplyAccountLabel,
+  onInsertKnowledgeArticle,
+  onCreateKnowledgeArticle,
 }: {
   open: boolean
   onToggleOpen: () => void
@@ -541,6 +613,8 @@ export function TicketDetailRightPanel({
   detail: TicketDetail
   assignee: { name: string; avatarUrl?: string; email?: string }
   selectedReplyAccountLabel?: string
+  onInsertKnowledgeArticle: (article: KnowledgeArticle) => void
+  onCreateKnowledgeArticle: () => void
 }) {
   return (
     <DetailRightPanelShell
@@ -649,21 +723,319 @@ export function TicketDetailRightPanel({
           ) : null}
 
           {activeSection === "knowledge" ? (
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-foreground">
-                Knowledge Base
-              </h3>
-              <p className="text-sm leading-6 text-muted-foreground">
-                This module is prepared for linked playbooks, known issues, and
-                ticket-specific references.
-              </p>
-              <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                Connect KB sources here in the next iteration.
-              </div>
-            </div>
+            <TicketKnowledgePanel
+              ticket={ticket}
+              onInsertArticle={onInsertKnowledgeArticle}
+              onCreateArticle={onCreateKnowledgeArticle}
+            />
           ) : null}
         </>
       )}
     />
+  )
+}
+
+function TicketKnowledgePanel({
+  ticket,
+  onInsertArticle,
+  onCreateArticle,
+}: {
+  ticket: Ticket
+  onInsertArticle: (article: KnowledgeArticle) => void
+  onCreateArticle: () => void
+}) {
+  const [selectedArticle, setSelectedArticle] =
+    React.useState<KnowledgeArticle | null>(null)
+  const [articleQuery, setArticleQuery] = React.useState("")
+  const suggestedArticles = React.useMemo(
+    () => getSuggestedKnowledgeArticles(ticket),
+    [ticket]
+  )
+  const suggestedArticleIds = React.useMemo(
+    () => new Set(suggestedArticles.map((article) => article.id)),
+    [suggestedArticles]
+  )
+  const moreArticles = React.useMemo(
+    () =>
+      knowledgeArticles.filter((article) => !suggestedArticleIds.has(article.id)),
+    [suggestedArticleIds]
+  )
+  const normalizedQuery = articleQuery.trim().toLowerCase()
+  const filterArticle = (article: KnowledgeArticle) => {
+    if (!normalizedQuery) return true
+
+    return [article.title, article.summary, article.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedQuery)
+  }
+  const filteredSuggestedArticles = suggestedArticles.filter(filterArticle)
+  const filteredMoreArticles = moreArticles.filter(filterArticle)
+
+  if (selectedArticle) {
+    return (
+      <KnowledgeArticlePreview
+        article={selectedArticle}
+        onBack={() => setSelectedArticle(null)}
+        onInsertArticle={onInsertArticle}
+      />
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="relative">
+        <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={articleQuery}
+          onChange={(event) => setArticleQuery(event.target.value)}
+          placeholder="Search articles..."
+          className="h-11 rounded-xl border-border/70 bg-background pl-9 text-sm"
+        />
+      </div>
+
+      <KnowledgeArticleGroup
+        title="Suggested"
+        count={filteredSuggestedArticles.length}
+        articles={filteredSuggestedArticles}
+        onPreviewArticle={setSelectedArticle}
+      />
+
+      <KnowledgeArticleGroup
+        title="Recently updated"
+        articles={filteredMoreArticles}
+        onPreviewArticle={setSelectedArticle}
+      />
+
+      <div className="space-y-3">
+        <div className="text-sm font-semibold text-foreground">
+          Can&apos;t find what you&apos;re looking for?
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 rounded-xl px-3 text-sm"
+          onClick={onCreateArticle}
+        >
+          <IconPlus className="size-4" />
+          Create new article
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function getArticleCategoryLabel(article: KnowledgeArticle) {
+  if (article.category === "subscription") return "Tickets & workflows"
+  if (article.category === "technical") return "Tickets & workflows"
+  if (article.category === "billing") return "Billing"
+  if (article.category === "account-login") return "Settings"
+  return "Help center"
+}
+
+function getArticleUrl(article: KnowledgeArticle) {
+  return `https://help.graycsm.local/articles/${article.id}`
+}
+
+function KnowledgeArticleGroup({
+  title,
+  count,
+  articles,
+  onPreviewArticle,
+}: {
+  title: string
+  count?: number
+  articles: KnowledgeArticle[]
+  onPreviewArticle: (article: KnowledgeArticle) => void
+}) {
+  if (articles.length === 0) {
+    return (
+      <section className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          {title}
+          {typeof count === "number" ? (
+            <Badge variant="secondary" className="h-5 rounded-full px-2">
+              {count}
+            </Badge>
+          ) : null}
+        </div>
+        <div className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
+          No matching articles.
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        {title === "Suggested" ? (
+          <IconSparkles className="size-3.5 text-primary" />
+        ) : null}
+        {title}
+        {typeof count === "number" ? (
+          <Badge variant="secondary" className="h-5 rounded-full px-2">
+            {count}
+          </Badge>
+        ) : null}
+      </div>
+      <div className="space-y-1">
+        {articles.map((article) => (
+          <button
+            key={article.id}
+            type="button"
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            onClick={() => onPreviewArticle(article)}
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border bg-muted text-muted-foreground">
+              <IconFileText className="size-4" />
+            </span>
+            <span className="min-w-0 flex-1 pr-1">
+              <span className="block truncate text-sm font-semibold text-foreground">
+                {article.title}
+              </span>
+              <span className="mt-0.5 flex min-w-0 items-center gap-1 text-xs">
+                <span className="truncate text-muted-foreground">
+                  {getArticleCategoryLabel(article)}
+                </span>
+                <span className="text-muted-foreground">·</span>
+                <span className="shrink-0 text-muted-foreground">
+                  {article.updatedAt.replace("Updated ", "")}
+                </span>
+              </span>
+            </span>
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                article.status === "published" ? "bg-emerald-500" : "bg-amber-500"
+              )}
+              aria-label={article.status}
+            />
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function KnowledgeArticlePreview({
+  article,
+  onBack,
+  onInsertArticle,
+}: {
+  article: KnowledgeArticle
+  onBack: () => void
+  onInsertArticle: (article: KnowledgeArticle) => void
+}) {
+  const previewSteps = [
+    article.quickPath ? `Go to ${article.quickPath}` : null,
+    ...article.sections.map((section) => `${section.title}: ${section.body}`),
+  ].filter(Boolean)
+
+  return (
+    <div className="space-y-4">
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-8 rounded-xl px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+        onClick={onBack}
+      >
+        <IconArrowLeft className="size-4" />
+        Back
+      </Button>
+
+      <div className="flex items-start gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border bg-muted text-muted-foreground">
+          <IconFileText className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base font-semibold tracking-tight text-foreground">
+            {article.title}
+          </h3>
+          <div className="mt-1 flex min-w-0 items-center gap-1 text-xs">
+            <span className="truncate text-muted-foreground">
+              {getArticleCategoryLabel(article)}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="shrink-0 text-muted-foreground">
+              {article.updatedAt.replace("Updated ", "")}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      <p className="text-sm leading-6 text-foreground/80">
+        {article.summary}
+      </p>
+
+      {article.media?.length ? (
+        <div className="space-y-3">
+          {article.media.map((media) =>
+            media.type === "image" ? (
+              <div
+                key={media.title}
+                className="overflow-hidden rounded-xl border bg-muted/30"
+              >
+                <div className="flex aspect-video items-center justify-center bg-muted">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <IconPhoto className="size-7" />
+                    <span className="text-xs font-medium">{media.title}</span>
+                  </div>
+                </div>
+                <div className="px-3 py-2 text-xs leading-5 text-muted-foreground">
+                  {media.caption}
+                </div>
+              </div>
+            ) : (
+              <div
+                key={media.title}
+                className="flex items-center gap-3 rounded-xl border bg-background p-3"
+              >
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600">
+                  <IconPlayerPlay className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-foreground">
+                    {media.title}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    YouTube embed · {media.duration}
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      ) : null}
+
+      <ol className="space-y-3">
+        {previewSteps.slice(0, 5).map((step, index) => (
+          <li key={step} className="flex gap-3 text-sm leading-6">
+            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+              {index + 1}
+            </span>
+            <span className="text-foreground/80">{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="grid grid-cols-2 gap-2 pt-1">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 rounded-xl"
+          onClick={() => onInsertArticle(article)}
+        >
+          <IconLink className="size-4" />
+          Suggest article
+        </Button>
+        <Button type="button" variant="outline" className="h-10 rounded-xl">
+          <IconCopy className="size-4" />
+          Copy link
+        </Button>
+      </div>
+    </div>
   )
 }

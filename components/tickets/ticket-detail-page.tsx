@@ -36,6 +36,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { currentUser, replyFromAccounts } from "@/lib/current-user"
+import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 import type {
   Ticket,
   TicketPerson,
@@ -89,6 +90,8 @@ export function TicketDetailPage({
   const [tasks, setTasks] = useState<TicketTask[]>(detail.tasks)
   const [notes, setNotes] = useState(detail.notes)
   const [draftMessage, setDraftMessage] = useState("")
+  const [draftLinkedArticle, setDraftLinkedArticle] =
+    useState<KnowledgeArticle | null>(null)
   const [noteDraft, setNoteDraft] = useState("")
   const [isDesktopRightPanelOpen, setIsDesktopRightPanelOpen] = useState(true)
   const [activeRightPanelSection, setActiveRightPanelSection] =
@@ -201,8 +204,17 @@ export function TicketDetailPage({
         author: agent,
         channel: ticket.channel,
         body: trimmedDraft,
+        linkedArticle: draftLinkedArticle
+          ? {
+              title: draftLinkedArticle.title,
+              url: getKnowledgeArticleUrl(draftLinkedArticle),
+              category: getKnowledgeArticleCategoryLabel(draftLinkedArticle),
+              summary: draftLinkedArticle.summary,
+            }
+          : undefined,
       })
       setDraftMessage("")
+      setDraftLinkedArticle(null)
     }
 
     if (nextStatus) {
@@ -247,6 +259,17 @@ export function TicketDetailPage({
     setDraftMessage((currentDraft) =>
       [currentDraft.trim(), macro].filter(Boolean).join("\n\n")
     )
+  }
+
+  const handleInsertKnowledgeArticle = (article: KnowledgeArticle) => {
+    setDraftMessage((currentDraft) =>
+      [currentDraft.trim(), article.customerReply].filter(Boolean).join("\n\n")
+    )
+    setDraftLinkedArticle(article)
+  }
+
+  const handleCreateKnowledgeArticle = () => {
+    router.push(`/knowledge-base?sourceTicket=${ticket.id}`)
   }
 
   const handleToggleTask = (taskId: string) => {
@@ -529,6 +552,7 @@ export function TicketDetailPage({
                 onManageAccounts={() => router.push("/accounts")}
                 draftMessage={draftMessage}
                 onDraftMessageChange={setDraftMessage}
+                linkedArticle={draftLinkedArticle}
                 templateQuery={templateQuery}
                 onTemplateQueryChange={setTemplateQuery}
                 onMacroInsert={handleMacroInsert}
@@ -592,8 +616,22 @@ export function TicketDetailPage({
           detail={detail}
           assignee={assignee}
           selectedReplyAccountLabel={selectedReplyAccount?.label}
+          onInsertKnowledgeArticle={handleInsertKnowledgeArticle}
+          onCreateKnowledgeArticle={handleCreateKnowledgeArticle}
         />
       </div>
     </div>
   )
+}
+
+function getKnowledgeArticleUrl(article: KnowledgeArticle) {
+  return `https://help.graycsm.local/articles/${article.id}`
+}
+
+function getKnowledgeArticleCategoryLabel(article: KnowledgeArticle) {
+  if (article.category === "subscription") return "Tickets & workflows"
+  if (article.category === "technical") return "Tickets & workflows"
+  if (article.category === "billing") return "Billing"
+  if (article.category === "account-login") return "Settings"
+  return "Help center"
 }
