@@ -1,4 +1,5 @@
 import * as React from "react"
+import Image from "next/image"
 import {
   IconArrowLeft,
   IconChevronDown,
@@ -9,7 +10,6 @@ import {
   IconMoodSmile,
   IconPaperclip,
   IconPhoto,
-  IconPlayerPlay,
   IconPlus,
   IconSearch,
   IconSend,
@@ -927,10 +927,8 @@ function KnowledgeArticlePreview({
   onBack: () => void
   onInsertArticle: (article: KnowledgeArticle) => void
 }) {
-  const previewSteps = [
-    article.quickPath ? `Go to ${article.quickPath}` : null,
-    ...article.sections.map((section) => `${section.title}: ${section.body}`),
-  ].filter(Boolean)
+  const imageMedia =
+    article.media?.filter((media) => media.type === "image") ?? []
 
   return (
     <div className="space-y-4">
@@ -970,56 +968,67 @@ function KnowledgeArticlePreview({
         {article.summary}
       </p>
 
-      {article.media?.length ? (
+      {imageMedia.length ? (
         <div className="space-y-3">
-          {article.media.map((media) =>
-            media.type === "image" ? (
+          {imageMedia.map((media) => (
               <div
                 key={media.title}
-                className="overflow-hidden rounded-xl border bg-muted/30"
+                className="overflow-hidden rounded bg-background"
               >
-                <div className="flex aspect-video items-center justify-center bg-muted">
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <IconPhoto className="size-7" />
-                    <span className="text-xs font-medium">{media.title}</span>
-                  </div>
-                </div>
-                <div className="px-3 py-2 text-xs leading-5 text-muted-foreground">
-                  {media.caption}
-                </div>
+                {media.src ? (
+                  <Image
+                    src={media.src}
+                    alt={media.title}
+                    width={720}
+                    height={405}
+                    className="aspect-video w-full object-cover"
+                  />
+                ) : (
+                  <div className="aspect-video bg-muted" />
+                )}
               </div>
-            ) : (
-              <div
-                key={media.title}
-                className="flex items-center gap-3 rounded-xl border bg-background p-3"
-              >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600">
-                  <IconPlayerPlay className="size-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-foreground">
-                    {media.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    YouTube embed · {media.duration}
-                  </div>
-                </div>
-              </div>
-            )
-          )}
+          ))}
         </div>
       ) : null}
 
-      <ol className="space-y-3">
-        {previewSteps.slice(0, 5).map((step, index) => (
-          <li key={step} className="flex gap-3 text-sm leading-6">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-              {index + 1}
-            </span>
-            <span className="text-foreground/80">{step}</span>
-          </li>
-        ))}
-      </ol>
+      <div className="space-y-3">
+        {article.quickPath ? (
+          <div className="rounded-xl border bg-muted/30 p-3 text-sm leading-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Path
+            </div>
+            <div className="mt-1 text-foreground/85">{article.quickPath}</div>
+          </div>
+        ) : null}
+
+        {article.sections.map((section, index) => {
+          const isReply = section.title
+            .toLowerCase()
+            .includes("suggested customer reply")
+
+          return (
+            <section key={section.title} className="flex gap-3 text-sm leading-6">
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                {index + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-semibold text-foreground">
+                  {section.title}
+                </h4>
+                <p
+                  className={cn(
+                    "mt-1 text-foreground/75",
+                    isReply &&
+                      "rounded-xl border bg-muted/30 px-3 py-2 text-foreground/80"
+                  )}
+                >
+                  {section.body}
+                </p>
+              </div>
+            </section>
+          )
+        })}
+      </div>
 
       <div className="grid grid-cols-2 gap-2 pt-1">
         <Button

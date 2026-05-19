@@ -24,6 +24,7 @@ export type KnowledgeArticle = {
         type: "image"
         title: string
         caption: string
+        src?: string
       }
     | {
         type: "video"

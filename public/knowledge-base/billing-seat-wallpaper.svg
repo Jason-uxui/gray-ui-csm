@@ -1,0 +1,63 @@
+<svg width="720" height="405" viewBox="0 0 720 405" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="405" fill="#F6B52B"/>
+  <rect width="720" height="142" fill="url(#sky)"/>
+  <path d="M0 141H720V405H0V141Z" fill="url(#base)"/>
+  <path d="M181 -29L67 184L180 301L303 118L229 -35L181 -29Z" fill="url(#glassLeft)" opacity=".84"/>
+  <path d="M67 184H378L466 118H303L180 301L67 184Z" fill="url(#topPlane)" opacity=".78"/>
+  <path d="M303 118H720V212H378L303 118Z" fill="url(#topBand)" opacity=".72"/>
+  <path d="M378 212H720V405H468L378 212Z" fill="url(#rightPlane)" opacity=".85"/>
+  <path d="M180 301L378 212L468 405H114L180 301Z" fill="url(#frontPlane)" opacity=".68"/>
+  <path d="M378 212L468 405" stroke="url(#edgeWarm)" stroke-width="1.6" opacity=".45"/>
+  <path d="M114 405L180 301" stroke="url(#edgeWarm)" stroke-width="1.2" opacity=".35"/>
+  <path d="M67 184L378 212" stroke="#FFE6A5" stroke-width="1.4" opacity=".2"/>
+  <path d="M505 206L670 405" stroke="#F8C15F" stroke-width="1.2" opacity=".24"/>
+  <path d="M548 220L694 405" stroke="#F8C15F" stroke-width=".9" opacity=".18"/>
+  <path d="M236 405L378 212" stroke="#FFF0BC" stroke-width=".9" opacity=".16"/>
+  <rect width="720" height="405" fill="url(#vignette)" opacity=".62"/>
+  <defs>
+    <linearGradient id="sky" x1="87" y1="0" x2="651" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DAAB5"/>
+      <stop offset=".45" stop-color="#E6E1D1"/>
+      <stop offset="1" stop-color="#F9EDD5"/>
+    </linearGradient>
+    <linearGradient id="base" x1="89" y1="123" x2="465" y2="423" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD863"/>
+      <stop offset=".47" stop-color="#F7A72A"/>
+      <stop offset="1" stop-color="#B7431D"/>
+    </linearGradient>
+    <linearGradient id="glassLeft" x1="129" y1="-18" x2="266" y2="306" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F1F8F6" stop-opacity=".58"/>
+      <stop offset=".45" stop-color="#FFFFFF" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#F06B1A" stop-opacity=".5"/>
+    </linearGradient>
+    <linearGradient id="topPlane" x1="79" y1="159" x2="408" y2="287" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4CD" stop-opacity=".54"/>
+      <stop offset=".52" stop-color="#FFC846" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#EF7C1E" stop-opacity=".34"/>
+    </linearGradient>
+    <linearGradient id="topBand" x1="343" y1="112" x2="668" y2="219" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1C9" stop-opacity=".38"/>
+      <stop offset=".6" stop-color="#FFD06B" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#BF5626" stop-opacity=".24"/>
+    </linearGradient>
+    <linearGradient id="rightPlane" x1="417" y1="207" x2="672" y2="433" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8BA3B" stop-opacity=".58"/>
+      <stop offset=".58" stop-color="#E66F23" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#8F2E1D"/>
+    </linearGradient>
+    <linearGradient id="frontPlane" x1="154" y1="268" x2="378" y2="444" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7C457" stop-opacity=".5"/>
+      <stop offset=".56" stop-color="#F39A26" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#8D2E1D" stop-opacity=".48"/>
+    </linearGradient>
+    <linearGradient id="edgeWarm" x1="290" y1="220" x2="540" y2="405" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1BE"/>
+      <stop offset="1" stop-color="#CF5524"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(414 257) rotate(58) scale(286 397)">
+      <stop stop-color="#FFE899" stop-opacity=".18"/>
+      <stop offset=".56" stop-color="#502412" stop-opacity=".06"/>
+      <stop offset="1" stop-color="#1A0B06" stop-opacity=".58"/>
+    </radialGradient>
+  </defs>
+</svg>

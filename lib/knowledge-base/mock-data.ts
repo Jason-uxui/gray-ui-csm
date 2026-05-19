@@ -124,27 +124,44 @@ export const knowledgeArticles: KnowledgeArticle[] = [
     media: [
       {
         type: "image",
-        title: "Subscription seats table",
-        caption: "Shows active seats, available seats, and prorated cost.",
-      },
-      {
-        type: "video",
-        title: "Adding seats from billing settings",
-        duration: "3:08",
+        title: "Billing workspace overview",
+        caption:
+          "Gradient mock showing the subscription workspace, seat allocation, and invoice preview area.",
+        src: "/knowledge-base/billing-seat-wallpaper.png",
       },
     ],
     sections: [
       {
-        title: "Who can add seats",
-        body: "Only account admins and billing owners can add seats to a paid subscription.",
+        title: "When to use this article",
+        body: "Use this when a customer needs more paid seats, asks why the invoice changed after adding teammates, or wants confirmation before the next renewal. The flow applies to active paid subscriptions only.",
       },
       {
-        title: "Billing impact",
-        body: "New seats are prorated for the current billing cycle and included in the next invoice summary.",
+        title: "Who can add seats",
+        body: "Only account admins and billing owners can add seats to a paid subscription. If the requester is a workspace member, ask them to contact an admin or add the current billing owner to the thread.",
+      },
+      {
+        title: "Add seats from billing",
+        body: "Open Admin Center > Account > Billing > Subscription, choose Add seats, enter the number of additional seats, and review the updated seat count before continuing.",
+      },
+      {
+        title: "Review prorated cost",
+        body: "The checkout preview shows the prorated cost for the current billing cycle, the next renewal amount, tax if applicable, and the payment method that will be charged.",
+      },
+      {
+        title: "Confirm invoice changes",
+        body: "After confirmation, the new seats become available immediately. The prorated charge appears on the next invoice summary and the account activity log records the admin who approved the change.",
+      },
+      {
+        title: "Troubleshooting",
+        body: "If Add seats is disabled, check whether the account is on a trial, has an unpaid invoice, uses reseller billing, or has a pending subscription change. Escalate to Billing Operations when the invoice preview fails to load.",
+      },
+      {
+        title: "Suggested customer reply",
+        body: "An account admin can add seats from Admin Center > Account > Billing > Subscription. Before confirming, they will see the prorated charge for this billing cycle and the updated renewal amount.",
       },
     ],
     customerReply:
-      "An account admin can add seats from Admin Center > Account > Billing > Subscription. The additional seats are prorated for the current billing cycle.",
+      "An account admin can add seats from Admin Center > Account > Billing > Subscription. Before confirming, they will see the prorated charge for this billing cycle and the updated renewal amount.",
   },
   {
     id: "kb-login-reset",
