@@ -46,6 +46,19 @@ Install them once per local clone:
 pnpm install:git-hooks
 ```
 
+## CI Checks
+
+GitHub Actions also runs the same baseline validation on pull requests:
+
+- `pnpm check:guardrails`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm build`
+
+The workflow lives at [`.github/workflows/pr-guardrails.yml`](./.github/workflows/pr-guardrails.yml).
+
+If you want CI to block merges, enable branch protection in GitHub and require the `Guardrails, Lint, Typecheck, Build` check to pass before merging.
+
 ## Coding Guidelines
 
 - Keep changes focused and minimal

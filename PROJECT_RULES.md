@@ -337,6 +337,10 @@ The intended workflow is:
 - `pre-push`: `pnpm check:guardrails`, `pnpm lint`, `pnpm typecheck`
 - before merge: `pnpm check:guardrails`, `pnpm typecheck`, `pnpm lint`, `pnpm build`
 
+CI enforcement is defined in `.github/workflows/pr-guardrails.yml`.
+
+If merge blocking is desired, require the `Guardrails, Lint, Typecheck, Build` GitHub check in branch protection settings.
+
 ## Change Policy
 
 These rules are intentionally strict by default. If a change should break one of them, that decision should be explicit and documented in the diff or PR summary.
