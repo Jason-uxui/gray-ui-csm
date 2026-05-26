@@ -692,9 +692,8 @@ export function CustomerDrawer({
                       ) : null}
 
                       {noteViewState === "composer" ? (
-                        <div className="p-5">
-                          <div className="rounded-2xl border border-border/80 bg-background">
-                            <div className="relative flex flex-wrap items-center gap-2 border-b border-border/80 px-3 py-2.5">
+                        <>
+                            <div className="relative flex flex-wrap items-center gap-2 border-b border-border/80 px-5 py-2.5">
                               <Button
                                 type="button"
                                 variant="outline"
@@ -740,7 +739,7 @@ export function CustomerDrawer({
                               </Button>
 
                               {composerState.showMentions ? (
-                                <div className="absolute top-[calc(100%+0.4rem)] left-3 z-20 max-h-44 w-56 overflow-y-auto rounded-xl border border-border/80 bg-popover p-1.5 shadow-xl">
+                                <div className="absolute top-[calc(100%+0.4rem)] left-5 z-20 max-h-44 w-56 overflow-y-auto rounded-xl border border-border/80 bg-popover p-1.5 shadow-xl">
                                   {mentionCandidates.map((candidate) => (
                                     <button
                                       key={candidate.id}
@@ -762,7 +761,7 @@ export function CustomerDrawer({
                               ref={noteInputRef}
                               value={composerState.draft}
                               placeholder="Write a note... Use @ to mention a teammate."
-                              className="min-h-32 w-full resize-none border-0 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/90"
+                              className="min-h-32 w-full resize-none border-0 bg-transparent px-5 py-3 text-sm outline-none placeholder:text-muted-foreground/90"
                               onChange={handleComposerInputChange}
                               onKeyDown={(event) => {
                                 if (event.key === "Escape" && composerState.showMentions) {
@@ -775,7 +774,7 @@ export function CustomerDrawer({
                               }}
                             />
 
-                            <div className="flex items-center justify-between gap-3 border-t border-border/80 bg-muted/40 px-4 py-2.5">
+                            <div className="flex items-center justify-between gap-3 border-t border-border/80 bg-muted/40 px-5 py-2.5">
                               <span className="text-sm text-muted-foreground">
                                 @ to mention
                               </span>
@@ -801,8 +800,7 @@ export function CustomerDrawer({
                                 </Button>
                               </div>
                             </div>
-                          </div>
-                        </div>
+                        </>
                       ) : null}
 
                       {noteViewState === "list" ? (
