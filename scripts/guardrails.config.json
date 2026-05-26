@@ -1,0 +1,24 @@
+{
+  "allowedColorLiteralMatches": {
+    "app/layout.tsx": ["#f59e0b"],
+    "components/app-sidebar.tsx": [
+      "rgba(255, 255, 255, 0.12)",
+      "rgba(0, 0, 0, 0.20)",
+      "rgba(255, 255, 255, 0.10)",
+      "rgba(42, 42, 42, 0.1)",
+      "rgba(42, 42, 42, 0.08)"
+    ],
+    "components/tickets/ticket-drawer.tsx": ["rgba(15,23,42,0.28)"],
+    "components/tickets/ticket-detail-sections.tsx": [
+      "rgba(15,23,42,0.14)",
+      "rgba(0,0,0,0.42)"
+    ],
+    "components/ui/sidebar.tsx": [
+      "hsl(var(--sidebar-border))",
+      "hsl(var(--sidebar-accent))"
+    ]
+  },
+  "routeThinness": {
+    "maxNonEmptyLines": 110
+  }
+}

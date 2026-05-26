@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gray UI CSM Design Review"
+  short_description: "Review UI against Gray UI CSM rules."
+  default_prompt: "Use $gray-ui-csm-design-system-review to review UI changes in gray-ui-csm for design-system compliance, token usage, responsive behavior, and theme consistency."

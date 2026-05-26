@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gray UI CSM Maintainability Review"
+  short_description: "Review maintainability and scale risk."
+  default_prompt: "Use $gray-ui-csm-maintainability-review to review gray-ui-csm changes for maintainability, scaling risk, layering issues, hardcoding, and drift from repo patterns."

@@ -9,7 +9,11 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:design-tokens": "node scripts/check-design-token-drift.mjs",
+    "check:routes": "node scripts/check-route-thinness.mjs",
+    "check:guardrails": "pnpm check:design-tokens && pnpm check:routes",
+    "install:git-hooks": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

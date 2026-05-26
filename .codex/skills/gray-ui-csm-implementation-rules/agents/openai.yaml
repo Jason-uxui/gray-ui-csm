@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gray UI CSM Implementation Rules"
+  short_description: "Implement within Gray UI CSM rules."
+  default_prompt: "Use $gray-ui-csm-implementation-rules to implement or modify code in gray-ui-csm while following PROJECT_RULES.md, existing repo patterns, and proper layer boundaries."

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+
+echo "Running pre-commit guardrails..."
+pnpm check:guardrails
