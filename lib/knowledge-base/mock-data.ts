@@ -191,6 +191,202 @@ export const knowledgeArticles: KnowledgeArticle[] = [
     customerReply:
       "For access issues, start with Forgot password on the sign-in screen. If you no longer have access to that email, an account admin can request recovery.",
   },
+  {
+    id: "kb-2fa-recovery-codes",
+    title: "Recover account with backup codes",
+    summary:
+      "Guide customers through two-factor recovery when their authenticator device is lost or unavailable.",
+    category: "account-login",
+    status: "published",
+    updatedAt: "Updated 2 days ago",
+    author: { name: "Liam Chen" },
+    matchScore: "high",
+    views: 154,
+    helpfulRate: 81,
+    linkedTickets: 11,
+    matchReasons: ["2fa", "backup code", "authenticator", "recovery"],
+    quickPath: "Profile > Security > Backup codes",
+    sections: [
+      {
+        title: "Use backup codes first",
+        body: "If the customer saved recovery codes, they can use one code to sign in and then enroll a new authenticator app.",
+      },
+      {
+        title: "No backup code available",
+        body: "Verify account ownership through the support checklist, then trigger a temporary 2FA bypass valid for one sign-in session.",
+      },
+    ],
+    customerReply:
+      "If you still have your backup codes, use one to sign in and set up a new authenticator device. If not, we can help after account verification.",
+  },
+  {
+    id: "kb-card-charge-failed",
+    title: "Payment failed during renewal",
+    summary:
+      "Troubleshoot failed card charges, retry windows, and what happens to seat access during payment grace periods.",
+    category: "billing",
+    status: "published",
+    updatedAt: "Updated 8 days ago",
+    author: { name: "Nina Flores" },
+    matchScore: "medium",
+    views: 208,
+    helpfulRate: 76,
+    linkedTickets: 14,
+    matchReasons: ["payment failed", "renewal", "card", "invoice"],
+    quickPath: "Admin Center > Billing > Invoices",
+    sections: [
+      {
+        title: "Common reasons",
+        body: "Cards may fail due to issuer declines, expired expiration dates, missing 3DS confirmation, or temporary bank limits.",
+      },
+      {
+        title: "Retry behavior",
+        body: "The system retries charges automatically across several days. Billing owners also receive email reminders with a direct payment link.",
+      },
+    ],
+    customerReply:
+      "We were unable to complete the renewal charge. Please update your payment method in Billing > Invoices and retry the outstanding invoice.",
+  },
+  {
+    id: "kb-download-invoice-pdf",
+    title: "Download VAT-compliant invoices",
+    summary:
+      "Where to find invoice PDFs, tax IDs, and localized billing details from the admin billing workspace.",
+    category: "billing",
+    status: "published",
+    updatedAt: "Updated 5 days ago",
+    author: { name: "Arlene McCoy" },
+    matchScore: "medium",
+    views: 131,
+    helpfulRate: 72,
+    linkedTickets: 8,
+    matchReasons: ["invoice", "vat", "tax id", "pdf"],
+    quickPath: "Admin Center > Billing > Invoices > Download PDF",
+    sections: [
+      {
+        title: "Invoice availability",
+        body: "Invoices become available immediately after successful payment and remain downloadable for all billing owners.",
+      },
+      {
+        title: "Tax information",
+        body: "Tax IDs and company legal names can be updated from Billing profile and appear on future invoices.",
+      },
+    ],
+    customerReply:
+      "You can download the invoice PDF from Admin Center > Billing > Invoices. If your tax details changed, update the billing profile for future invoices.",
+  },
+  {
+    id: "kb-api-rate-limit",
+    title: "API rate limit and retry strategy",
+    summary:
+      "Explains request limits, burst windows, response headers, and safe backoff guidance for integration stability.",
+    category: "technical",
+    status: "published",
+    updatedAt: "Updated 9 days ago",
+    author: { name: "Jerome Bell" },
+    matchScore: "high",
+    views: 267,
+    helpfulRate: 83,
+    linkedTickets: 19,
+    matchReasons: ["api", "rate limit", "429", "retry"],
+    quickPath: "Developer docs > API limits",
+    sections: [
+      {
+        title: "Limit model",
+        body: "Each workspace has per-minute quotas and short burst ceilings. Exceeding either returns HTTP 429 with reset hints.",
+      },
+      {
+        title: "Backoff pattern",
+        body: "Use exponential backoff with jitter and honor Retry-After when present. Avoid synchronized retries from multiple workers.",
+      },
+    ],
+    customerReply:
+      "Your integration is hitting API limits. Please apply exponential backoff and Retry-After handling to reduce repeated 429 responses.",
+  },
+  {
+    id: "kb-webhook-signature-failed",
+    title: "Webhook signature verification failed",
+    summary:
+      "Diagnose invalid webhook signatures caused by raw body parsing, secret mismatches, or replayed delivery payloads.",
+    category: "technical",
+    status: "draft",
+    updatedAt: "Updated 11 days ago",
+    author: { name: "Amina Rahman" },
+    matchScore: "medium",
+    views: 88,
+    helpfulRate: 69,
+    linkedTickets: 6,
+    matchReasons: ["webhook", "signature", "invalid", "secret"],
+    quickPath: "Developer docs > Webhooks > Security",
+    sections: [
+      {
+        title: "Raw payload requirement",
+        body: "Signature checks must use the exact raw request body bytes before JSON parsing or middleware mutation.",
+      },
+      {
+        title: "Secret management",
+        body: "Verify the endpoint secret in production and staging separately. A wrong environment secret is the most common mismatch.",
+      },
+    ],
+    customerReply:
+      "Webhook signatures usually fail when the raw request body is altered or the endpoint secret does not match. Please verify both first.",
+  },
+  {
+    id: "kb-change-plan-annual-monthly",
+    title: "Switch from annual to monthly plan",
+    summary:
+      "How billing owners can change billing cadence, review effective dates, and understand credit treatment.",
+    category: "subscription",
+    status: "published",
+    updatedAt: "Updated 12 days ago",
+    author: { name: "Santi Cazorla" },
+    matchScore: "low",
+    views: 119,
+    helpfulRate: 67,
+    linkedTickets: 5,
+    matchReasons: ["plan", "annual", "monthly", "downgrade"],
+    quickPath: "Admin Center > Billing > Subscription > Change plan",
+    sections: [
+      {
+        title: "Effective date",
+        body: "Cadence changes usually take effect at the next renewal unless a billing admin confirms immediate proration.",
+      },
+      {
+        title: "Credit handling",
+        body: "Unused annual value is prorated and applied as a credit to upcoming monthly invoices when eligible.",
+      },
+    ],
+    customerReply:
+      "You can change billing cadence from Billing > Subscription. We will show whether the change applies now or at the next renewal.",
+  },
+  {
+    id: "kb-transfer-workspace-ownership",
+    title: "Transfer workspace ownership",
+    summary:
+      "Required steps to move workspace ownership to another admin without interrupting billing or API access.",
+    category: "subscription",
+    status: "published",
+    updatedAt: "Updated 10 days ago",
+    author: { name: "Liam Chen" },
+    matchScore: "medium",
+    views: 143,
+    helpfulRate: 79,
+    linkedTickets: 10,
+    matchReasons: ["owner", "transfer", "admin", "workspace"],
+    quickPath: "Admin Center > Members > Roles",
+    sections: [
+      {
+        title: "Prerequisites",
+        body: "The target user must already be an active admin. Ownership transfer cannot be completed to pending invites.",
+      },
+      {
+        title: "Post-transfer checks",
+        body: "Confirm billing contact, API tokens, and security notifications are assigned to the new owner profile.",
+      },
+    ],
+    customerReply:
+      "To transfer ownership, promote the recipient to admin first, then complete the transfer in Members > Roles and verify billing contact details.",
+  },
 ]
 
 const categoryFallbackOrder = [

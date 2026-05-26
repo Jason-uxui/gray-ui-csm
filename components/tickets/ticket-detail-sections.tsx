@@ -4,8 +4,8 @@ import {
   IconArrowLeft,
   IconChevronDown,
   IconCopy,
+  IconDots,
   IconFileText,
-  IconLink,
   IconMicrophone,
   IconMoodSmile,
   IconPaperclip,
@@ -13,7 +13,6 @@ import {
   IconPlus,
   IconSearch,
   IconSend,
-  IconSparkles,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -53,10 +52,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  getSuggestedKnowledgeArticles,
-  knowledgeArticles,
-} from "@/lib/knowledge-base/mock-data"
+import { knowledgeArticles } from "@/lib/knowledge-base/mock-data"
 import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 import type {
   TicketDetail,
@@ -736,7 +732,7 @@ export function TicketDetailRightPanel({
 }
 
 function TicketKnowledgePanel({
-  ticket,
+  ticket: _ticket,
   onInsertArticle,
   onCreateArticle,
 }: {
@@ -747,19 +743,6 @@ function TicketKnowledgePanel({
   const [selectedArticle, setSelectedArticle] =
     React.useState<KnowledgeArticle | null>(null)
   const [articleQuery, setArticleQuery] = React.useState("")
-  const suggestedArticles = React.useMemo(
-    () => getSuggestedKnowledgeArticles(ticket),
-    [ticket]
-  )
-  const suggestedArticleIds = React.useMemo(
-    () => new Set(suggestedArticles.map((article) => article.id)),
-    [suggestedArticles]
-  )
-  const moreArticles = React.useMemo(
-    () =>
-      knowledgeArticles.filter((article) => !suggestedArticleIds.has(article.id)),
-    [suggestedArticleIds]
-  )
   const normalizedQuery = articleQuery.trim().toLowerCase()
   const filterArticle = (article: KnowledgeArticle) => {
     if (!normalizedQuery) return true
@@ -769,8 +752,7 @@ function TicketKnowledgePanel({
       .toLowerCase()
       .includes(normalizedQuery)
   }
-  const filteredSuggestedArticles = suggestedArticles.filter(filterArticle)
-  const filteredMoreArticles = moreArticles.filter(filterArticle)
+  const filteredArticles = knowledgeArticles.filter(filterArticle)
 
   if (selectedArticle) {
     return (
@@ -784,43 +766,33 @@ function TicketKnowledgePanel({
 
   return (
     <div className="space-y-5">
-      <div className="relative">
-        <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={articleQuery}
-          onChange={(event) => setArticleQuery(event.target.value)}
-          placeholder="Search articles..."
-          className="h-11 rounded-xl border-border/70 bg-background pl-9 text-sm"
-        />
-      </div>
-
-      <KnowledgeArticleGroup
-        title="Suggested"
-        count={filteredSuggestedArticles.length}
-        articles={filteredSuggestedArticles}
-        onPreviewArticle={setSelectedArticle}
-      />
-
-      <KnowledgeArticleGroup
-        title="Recently updated"
-        articles={filteredMoreArticles}
-        onPreviewArticle={setSelectedArticle}
-      />
-
-      <div className="space-y-3">
-        <div className="text-sm font-semibold text-foreground">
-          Can&apos;t find what you&apos;re looking for?
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={articleQuery}
+            onChange={(event) => setArticleQuery(event.target.value)}
+            placeholder="Search articles..."
+            className="h-11 rounded-xl border-border/70 bg-background pl-9 text-sm"
+          />
         </div>
         <Button
           type="button"
-          variant="outline"
-          className="h-9 rounded-xl px-3 text-sm"
+          variant="default"
+          size="icon-lg"
+          className="size-11 shrink-0 rounded-xl"
           onClick={onCreateArticle}
+          aria-label="Create new article"
         >
           <IconPlus className="size-4" />
-          Create new article
         </Button>
       </div>
+
+      <KnowledgeArticleList
+        articles={filteredArticles}
+        onPreviewArticle={setSelectedArticle}
+        onInsertArticle={onInsertArticle}
+      />
     </div>
   )
 }
@@ -837,28 +809,18 @@ function getArticleUrl(article: KnowledgeArticle) {
   return `https://help.graycsm.local/articles/${article.id}`
 }
 
-function KnowledgeArticleGroup({
-  title,
-  count,
+function KnowledgeArticleList({
   articles,
   onPreviewArticle,
+  onInsertArticle,
 }: {
-  title: string
-  count?: number
   articles: KnowledgeArticle[]
   onPreviewArticle: (article: KnowledgeArticle) => void
+  onInsertArticle: (article: KnowledgeArticle) => void
 }) {
   if (articles.length === 0) {
     return (
-      <section className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          {title}
-          {typeof count === "number" ? (
-            <Badge variant="secondary" className="h-5 rounded-full px-2">
-              {count}
-            </Badge>
-          ) : null}
-        </div>
+      <section>
         <div className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
           No matching articles.
         </div>
@@ -867,51 +829,60 @@ function KnowledgeArticleGroup({
   }
 
   return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-        {title === "Suggested" ? (
-          <IconSparkles className="size-3.5 text-primary" />
-        ) : null}
-        {title}
-        {typeof count === "number" ? (
-          <Badge variant="secondary" className="h-5 rounded-full px-2">
-            {count}
-          </Badge>
-        ) : null}
-      </div>
+    <section>
       <div className="space-y-1">
         {articles.map((article) => (
-          <button
+          <article
             key={article.id}
-            type="button"
-            className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            onClick={() => onPreviewArticle(article)}
+            className="rounded-xl px-2 py-2 transition hover:bg-muted/50"
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border bg-muted text-muted-foreground">
-              <IconFileText className="size-4" />
-            </span>
-            <span className="min-w-0 flex-1 pr-1">
-              <span className="block truncate text-sm font-semibold text-foreground">
-                {article.title}
-              </span>
-              <span className="mt-0.5 flex min-w-0 items-center gap-1 text-xs">
-                <span className="truncate text-muted-foreground">
-                  {getArticleCategoryLabel(article)}
+            <div className="flex items-start gap-3">
+              <div className="grid min-w-0 flex-1 grid-cols-[auto_1fr] items-start gap-x-3">
+                <span className="pt-0.5 text-muted-foreground">
+                  <IconFileText className="size-4" />
                 </span>
-                <span className="text-muted-foreground">·</span>
-                <span className="shrink-0 text-muted-foreground">
-                  {article.updatedAt.replace("Updated ", "")}
-                </span>
-              </span>
-            </span>
-            <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                article.status === "published" ? "bg-emerald-500" : "bg-amber-500"
-              )}
-              aria-label={article.status}
-            />
-          </button>
+                <div className="min-w-0 pr-1">
+                  <button
+                    type="button"
+                    className="min-w-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    onClick={() => onPreviewArticle(article)}
+                  >
+                    <span className="block truncate text-sm font-semibold leading-5 text-foreground">
+                      {article.title}
+                    </span>
+                    <span className="mt-0.5 flex min-w-0 items-center gap-1 text-xs">
+                      <span className="truncate text-muted-foreground">
+                        {getArticleCategoryLabel(article)}
+                      </span>
+                      <span className="text-muted-foreground">·</span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {article.updatedAt.replace("Updated ", "")}
+                      </span>
+                    </span>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="mt-1 h-6 px-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
+                    onClick={() => onInsertArticle(article)}
+                  >
+                    <IconPlus className="size-3.5" />
+                    <span className="underline underline-offset-2">Suggest article</span>
+                  </Button>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="mt-0.5 shrink-0 text-muted-foreground"
+                aria-label={`More actions for ${article.title}`}
+              >
+                <IconDots className="size-4" />
+              </Button>
+            </div>
+          </article>
         ))}
       </div>
     </section>
@@ -994,7 +965,7 @@ function KnowledgeArticlePreview({
       <div className="space-y-3">
         {article.quickPath ? (
           <div className="rounded-xl border bg-muted/30 p-3 text-sm leading-6">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="text-xs font-semibold tracking-wide text-muted-foreground">
               Path
             </div>
             <div className="mt-1 text-foreground/85">{article.quickPath}</div>
@@ -1037,8 +1008,8 @@ function KnowledgeArticlePreview({
           className="h-10 rounded-xl"
           onClick={() => onInsertArticle(article)}
         >
-          <IconLink className="size-4" />
-          Suggest article
+          <IconPlus className="size-4" />
+          <span className="underline underline-offset-2">Suggest article</span>
         </Button>
         <Button type="button" variant="outline" className="h-10 rounded-xl">
           <IconCopy className="size-4" />
