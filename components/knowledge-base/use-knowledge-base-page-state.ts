@@ -68,6 +68,9 @@ export function useKnowledgeBasePageState() {
   const [editOnMountArticleId, setEditOnMountArticleId] = React.useState<
     string | null
   >(null)
+  const [pendingSelectedArticleId, setPendingSelectedArticleId] = React.useState<
+    string | null
+  >(null)
   const previousSelectedArticleIdRef = React.useRef<string | null>(null)
 
   const articleGroups = React.useMemo(
@@ -77,10 +80,20 @@ export function useKnowledgeBasePageState() {
   const articleIds = articleGroups.flatMap((group) =>
     group.articles.map((article) => article.id)
   )
-  const selectedArticleId = normalizeSelectedArticleId(
+  const querySelectedArticleId = normalizeSelectedArticleId(
     searchParams.get("article"),
     articleIds
   )
+  const selectedArticleId = React.useMemo(() => {
+    if (
+      pendingSelectedArticleId &&
+      articles.some((article) => article.id === pendingSelectedArticleId)
+    ) {
+      return pendingSelectedArticleId
+    }
+
+    return querySelectedArticleId
+  }, [articles, pendingSelectedArticleId, querySelectedArticleId])
   const selectedArticle = getKnowledgeArticleById(selectedArticleId, articles)
   const activeArticleTab = normalizeArticleDetailTab(
     searchParams.get("articleTab")
@@ -102,6 +115,16 @@ export function useKnowledgeBasePageState() {
       groups: groupDefinitions,
     })
   }, [articles, groupDefinitions, hasHydrated])
+
+  React.useEffect(() => {
+    const articleFromQuery = searchParams.get("article")
+    if (
+      pendingSelectedArticleId &&
+      articleFromQuery === pendingSelectedArticleId
+    ) {
+      setPendingSelectedArticleId(null)
+    }
+  }, [pendingSelectedArticleId, searchParams])
 
   React.useEffect(() => {
     if (previousSelectedArticleIdRef.current === selectedArticleId) return
@@ -149,6 +172,7 @@ export function useKnowledgeBasePageState() {
 
   const navigateToArticle = React.useCallback(
     (articleId: string) => {
+      setPendingSelectedArticleId(articleId)
       replaceQuery({ article: articleId, articleTab: "content" })
     },
     [replaceQuery]
