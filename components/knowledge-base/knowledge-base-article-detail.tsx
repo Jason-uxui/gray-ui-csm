@@ -438,7 +438,7 @@ export function KnowledgeBaseArticleDetail({
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8">
               {isEditing && !isPreviewingDraft ? (
                 <KnowledgeArticleEditor
-                  articleId={article.id}
+                  article={article}
                   value={draftDocument}
                   onChange={setDraftDocument}
                 />

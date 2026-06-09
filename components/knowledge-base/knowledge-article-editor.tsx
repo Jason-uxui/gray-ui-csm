@@ -17,6 +17,8 @@ import {
 } from "@tabler/icons-react"
 import {
   EditorContent,
+  mergeAttributes,
+  Node,
   useEditor,
   type Editor,
   type JSONContent,
@@ -46,11 +48,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { normalizeSafeArticleHref } from "@/lib/knowledge-base/content"
+import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 import { cn } from "@/lib/utils"
 
 const articleHeadingLevels = [2, 3, 4, 5, 6] as const
 
 type ArticleHeadingLevel = (typeof articleHeadingLevels)[number]
+type KnowledgeArticleImageMedia = NonNullable<KnowledgeArticle["media"]>[number] & {
+  type: "image"
+}
 
 const articleHeadingLevelOptions: Array<{
   level: ArticleHeadingLevel
@@ -63,12 +69,56 @@ const articleHeadingLevelOptions: Array<{
     { level: 6, label: knowledgeBasePageCopy.articleToolbarHeadingSixLabel },
   ]
 
+const articleMediaNodeName = "articleMedia"
+
+const ArticleMediaNode = Node.create({
+  name: articleMediaNodeName,
+  group: "block",
+  atom: true,
+  selectable: false,
+
+  addAttributes() {
+    return {
+      caption: {
+        default: "",
+      },
+      src: {
+        default: "",
+      },
+      title: {
+        default: "",
+      },
+    }
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const caption = String(HTMLAttributes.caption ?? "")
+    const src = String(HTMLAttributes.src ?? "")
+    const title = String(HTMLAttributes.title ?? "")
+
+    if (!src) {
+      return ["div", mergeAttributes(HTMLAttributes)]
+    }
+
+    return [
+      "figure",
+      mergeAttributes(HTMLAttributes, {
+        class: "article-media-node",
+        contenteditable: "false",
+      }),
+      ["img", { alt: title, src }],
+      caption ? ["figcaption", caption] : ["figcaption"],
+    ]
+  },
+})
+
 const editorExtensions = [
   StarterKit.configure({
     heading: {
       levels: [...articleHeadingLevels],
     },
   }),
+  ArticleMediaNode,
   Underline,
   Link.configure({
     openOnClick: false,
@@ -233,11 +283,71 @@ function ArticleLinkDialog({
   )
 }
 
+function getMediaInsertIndex(document: JSONContent) {
+  const blocks = document.content ?? []
+  return Math.min(3, Math.max(blocks.length - 1, 0))
+}
+
+function isArticleImageMedia(
+  media: NonNullable<KnowledgeArticle["media"]>[number]
+): media is KnowledgeArticleImageMedia {
+  return media.type === "image" && Boolean(media.src)
+}
+
+function getArticleImageMedia(article: KnowledgeArticle) {
+  return article.media?.find(isArticleImageMedia)
+}
+
+function removeArticleMediaNodes(node: JSONContent): JSONContent {
+  const content = node.content
+    ?.filter((child) => child.type !== articleMediaNodeName)
+    .map(removeArticleMediaNodes)
+
+  return {
+    ...node,
+    ...(content ? { content } : {}),
+  }
+}
+
+function createEditorDocumentWithMedia(
+  document: JSONContent,
+  article: KnowledgeArticle
+): JSONContent {
+  const media = getArticleImageMedia(article)
+  const blocks = removeArticleMediaNodes(document).content ?? []
+
+  if (!media?.src) {
+    return {
+      ...document,
+      content: blocks,
+    }
+  }
+
+  const insertAfterIndex = getMediaInsertIndex({ ...document, content: blocks })
+  const mediaNode: JSONContent = {
+    type: articleMediaNodeName,
+    attrs: {
+      caption: media.caption,
+      src: media.src,
+      title: media.title,
+    },
+  }
+
+  return {
+    ...document,
+    content: [
+      ...blocks.slice(0, insertAfterIndex + 1),
+      mediaNode,
+      ...blocks.slice(insertAfterIndex + 1),
+    ],
+  }
+}
+
 const editorMenuSurfaceClassName =
   "flex flex-wrap items-center gap-1 rounded-2xl border border-border bg-muted p-1 inset-shadow-surface dark:bg-background shadow-md"
 
 const articleEditorProseClassName =
-  "min-h-[360px] text-base leading-8 text-foreground/85 [&_.ProseMirror_blockquote]:my-4 [&_.ProseMirror_blockquote]:rounded-xl [&_.ProseMirror_blockquote]:bg-muted [&_.ProseMirror_blockquote]:px-5 [&_.ProseMirror_blockquote]:py-4 [&_.ProseMirror_blockquote]:not-italic [&_.ProseMirror_blockquote]:text-base [&_.ProseMirror_blockquote]:leading-8 [&_.ProseMirror_blockquote]:text-muted-foreground [&_.ProseMirror_blockquote_p]:my-0 [&_.ProseMirror_blockquote_p]:border-l-2 [&_.ProseMirror_blockquote_p]:border-foreground/50 [&_.ProseMirror_blockquote_p]:pl-5 [&_.ProseMirror_blockquote_p]:font-medium [&_.ProseMirror_blockquote_p]:tracking-tight [&_.ProseMirror_blockquote_p]:text-foreground/80 [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:py-0.5 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-sm [&_.ProseMirror_h2]:mt-6 [&_.ProseMirror_h2]:mb-3 [&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:leading-tight [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:tracking-tight [&_.ProseMirror_h3]:mt-5 [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_h3]:text-xl [&_.ProseMirror_h3]:leading-tight [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_h3]:tracking-tight [&_.ProseMirror_h4]:mt-4 [&_.ProseMirror_h4]:mb-2 [&_.ProseMirror_h4]:text-lg [&_.ProseMirror_h4]:leading-tight [&_.ProseMirror_h4]:font-semibold [&_.ProseMirror_h4]:tracking-tight [&_.ProseMirror_h5]:mt-4 [&_.ProseMirror_h5]:mb-2 [&_.ProseMirror_h5]:text-base [&_.ProseMirror_h5]:leading-tight [&_.ProseMirror_h5]:font-semibold [&_.ProseMirror_h5]:tracking-tight [&_.ProseMirror_h6]:mt-3 [&_.ProseMirror_h6]:mb-2 [&_.ProseMirror_h6]:text-sm [&_.ProseMirror_h6]:leading-tight [&_.ProseMirror_h6]:font-semibold [&_.ProseMirror_h6]:tracking-tight [&_.ProseMirror_hr]:my-6 [&_.ProseMirror_hr]:border-foreground/50 [&_.ProseMirror_ol]:my-3 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_p]:my-3 [&_.ProseMirror_ul]:my-3 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6"
+  "min-h-[360px] text-base leading-8 text-foreground/85 [&_.ProseMirror_blockquote]:my-4 [&_.ProseMirror_blockquote]:rounded-xl [&_.ProseMirror_blockquote]:bg-muted [&_.ProseMirror_blockquote]:px-5 [&_.ProseMirror_blockquote]:py-4 [&_.ProseMirror_blockquote]:not-italic [&_.ProseMirror_blockquote]:text-base [&_.ProseMirror_blockquote]:leading-8 [&_.ProseMirror_blockquote]:text-muted-foreground [&_.ProseMirror_blockquote_p]:my-0 [&_.ProseMirror_blockquote_p]:border-l-2 [&_.ProseMirror_blockquote_p]:border-foreground/50 [&_.ProseMirror_blockquote_p]:pl-5 [&_.ProseMirror_blockquote_p]:font-medium [&_.ProseMirror_blockquote_p]:tracking-tight [&_.ProseMirror_blockquote_p]:text-foreground/80 [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:py-0.5 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-sm [&_.ProseMirror_h2]:mt-6 [&_.ProseMirror_h2]:mb-3 [&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:leading-tight [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:tracking-tight [&_.ProseMirror_h3]:mt-5 [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_h3]:text-xl [&_.ProseMirror_h3]:leading-tight [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_h3]:tracking-tight [&_.ProseMirror_h4]:mt-4 [&_.ProseMirror_h4]:mb-2 [&_.ProseMirror_h4]:text-lg [&_.ProseMirror_h4]:leading-tight [&_.ProseMirror_h4]:font-semibold [&_.ProseMirror_h5]:mt-4 [&_.ProseMirror_h5]:mb-2 [&_.ProseMirror_h5]:text-base [&_.ProseMirror_h5]:leading-tight [&_.ProseMirror_h5]:font-semibold [&_.ProseMirror_h5]:tracking-tight [&_.ProseMirror_h6]:mt-3 [&_.ProseMirror_h6]:mb-2 [&_.ProseMirror_h6]:text-sm [&_.ProseMirror_h6]:leading-tight [&_.ProseMirror_h6]:font-semibold [&_.ProseMirror_h6]:tracking-tight [&_.ProseMirror_hr]:my-6 [&_.ProseMirror_hr]:border-foreground/50 [&_.ProseMirror_ol]:my-3 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_p]:my-3 [&_.ProseMirror_ul]:my-3 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6 [&_.article-media-node]:my-6 [&_.article-media-node]:flex [&_.article-media-node]:flex-col [&_.article-media-node]:gap-3 [&_.article-media-node_figcaption]:text-sm [&_.article-media-node_figcaption]:leading-6 [&_.article-media-node_figcaption]:text-muted-foreground [&_.article-media-node_img]:w-full [&_.article-media-node_img]:object-cover"
 
 function KnowledgeArticleInlineToolbar({
   editor,
@@ -388,20 +498,24 @@ function KnowledgeArticleBlockToolbar({ editor }: { editor: Editor }) {
 }
 
 export function KnowledgeArticleEditor({
-  articleId,
+  article,
   value,
   onChange,
 }: {
-  articleId: string
+  article: KnowledgeArticle
   value: JSONContent
   onChange: (value: JSONContent) => void
 }) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = React.useState(false)
   const [linkDraft, setLinkDraft] = React.useState("")
+  const editorContent = React.useMemo(
+    () => createEditorDocumentWithMedia(value, article),
+    [article, value]
+  )
 
   const editor = useEditor({
     extensions: editorExtensions,
-    content: value,
+    content: editorContent,
     editorProps: {
       attributes: {
         class: "min-h-[320px] outline-none",
@@ -409,7 +523,7 @@ export function KnowledgeArticleEditor({
     },
     immediatelyRender: false,
     onUpdate: ({ editor: currentEditor }) => {
-      onChange(currentEditor.getJSON())
+      onChange(removeArticleMediaNodes(currentEditor.getJSON()))
     },
   })
 
@@ -440,15 +554,15 @@ export function KnowledgeArticleEditor({
   const syncedArticleIdRef = React.useRef<string | null>(null)
 
   React.useEffect(() => {
-    if (!editor || syncedArticleIdRef.current === articleId) return
+    if (!editor || syncedArticleIdRef.current === article.id) return
 
     const isInitialMount = syncedArticleIdRef.current === null
-    syncedArticleIdRef.current = articleId
+    syncedArticleIdRef.current = article.id
 
     if (!isInitialMount) {
-      editor.commands.setContent(value, { emitUpdate: false })
+      editor.commands.setContent(editorContent, { emitUpdate: false })
     }
-  }, [articleId, editor, value])
+  }, [article.id, editor, editorContent])
 
   return (
     <TooltipProvider>
