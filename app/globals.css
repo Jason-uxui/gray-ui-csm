@@ -45,6 +45,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --inset-shadow-surface: var(--shadow-inset-surface);
 }
 
 :root {
@@ -81,6 +82,9 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
   --motion-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-inset-surface:
+    0 0 0 2px color-mix(in oklch, white 50%, transparent) inset,
+    0 4px 4px 0 color-mix(in oklch, white 12%, transparent) inset;
 }
 
 .dark {
@@ -115,6 +119,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+  --shadow-inset-surface:
+    0 2px 4px 0 color-mix(in oklch, white 5%, transparent) inset;
 }
 
 @layer components {
@@ -143,9 +149,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
