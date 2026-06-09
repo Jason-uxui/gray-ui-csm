@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             shellDisplayMode === "full-detail"
               ? "h-svh min-h-0 max-w-none gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:px-8"
               : isTicketsListPage || isKnowledgeBasePage
-                ? "min-h-0 max-w-500 gap-4 overflow-hidden p-4 sm:p-6 lg:p-8"
+                ? "min-h-0 max-w-500 gap-4 overflow-hidden p-0 sm:p-6 lg:p-0"
                 : "min-h-0 max-w-500 gap-4 overflow-y-auto p-4 sm:p-6 lg:p-8"
           )}
         >

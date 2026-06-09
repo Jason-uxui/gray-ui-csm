@@ -4,6 +4,21 @@ import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 
 export const suggestedCustomerReplyHeading = "Suggested customer reply"
 
+export function normalizeSafeArticleHref(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined
+
+  try {
+    const url = new URL(value)
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return undefined
+    }
+
+    return url.toString()
+  } catch {
+    return undefined
+  }
+}
+
 function textNode(text: string): JSONContent {
   return {
     type: "text",

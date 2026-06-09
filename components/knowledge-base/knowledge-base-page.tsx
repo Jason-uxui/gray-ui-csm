@@ -51,7 +51,7 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
       <section className="flex min-h-0 flex-1 flex-col">
         <div
           className={cn(
-            "grid min-h-0 flex-1 overflow-hidden border",
+            "grid min-h-0 flex-1 overflow-hidden border-t border-border",
             isGroupPanelOpen
               ? "lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
               : "lg:grid-cols-[3.5rem_minmax(0,1fr)]"
