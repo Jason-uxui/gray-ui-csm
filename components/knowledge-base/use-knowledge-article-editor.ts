@@ -11,6 +11,9 @@ import type {
   KnowledgeArticleSavePatch,
   KnowledgeArticleStatus,
 } from "@/lib/knowledge-base/types"
+
+export type KnowledgeArticleChangedField = "content" | "status" | "title"
+
 type UseKnowledgeArticleEditorArgs = {
   article: KnowledgeArticle
   startInEditMode?: boolean
@@ -57,6 +60,24 @@ export function useKnowledgeArticleEditor({
     [draftDocument, draftTitle, draftStatus]
   )
   const hasUnsavedChanges = draftSnapshotKey !== savedSnapshotKey
+  const changedFields = React.useMemo(() => {
+    const fields: KnowledgeArticleChangedField[] = []
+
+    if (draftTitle !== article.title) fields.push("title")
+    if (draftStatus !== article.status) fields.push("status")
+    if (JSON.stringify(draftDocument) !== JSON.stringify(articleDocument)) {
+      fields.push("content")
+    }
+
+    return fields
+  }, [
+    article.status,
+    article.title,
+    articleDocument,
+    draftDocument,
+    draftStatus,
+    draftTitle,
+  ])
 
   const resetDraftState = React.useCallback(() => {
     setDraftDocument(articleDocument)
@@ -116,6 +137,12 @@ export function useKnowledgeArticleEditor({
   }, [showSaveSuccess])
 
   const handleSave = React.useCallback(() => {
+    if (!hasUnsavedChanges) {
+      setIsEditing(false)
+      setIsPreviewingDraft(false)
+      return
+    }
+
     const customerReply =
       extractCustomerReplyFromDocument(draftDocument) ?? article.customerReply
 
@@ -135,6 +162,7 @@ export function useKnowledgeArticleEditor({
     draftDocument,
     draftStatus,
     draftTitle,
+    hasUnsavedChanges,
     onSaveArticle,
   ])
 
@@ -171,6 +199,7 @@ export function useKnowledgeArticleEditor({
     draftStatus,
     setDraftStatus: (value: KnowledgeArticleStatus) => setDraftStatus(value),
     hasUnsavedChanges,
+    changedFields,
     discardEdits,
     handleSave,
     handleCancel,

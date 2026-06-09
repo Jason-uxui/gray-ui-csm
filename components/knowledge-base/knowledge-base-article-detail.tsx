@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   IconActivity,
   IconChartBar,
+  IconChevronDown,
   IconDots,
   IconEye,
   IconFileText,
@@ -18,24 +19,21 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useKnowledgeArticleEditor } from "@/components/knowledge-base/use-knowledge-article-editor"
+import {
+  useKnowledgeArticleEditor,
+  type KnowledgeArticleChangedField,
+} from "@/components/knowledge-base/use-knowledge-article-editor"
 import type {
   KnowledgeArticle,
   KnowledgeArticleSavePatch,
@@ -109,8 +107,138 @@ function getArticleStatusClassName(status: KnowledgeArticleStatus) {
   return articleStatusClassNames[status]
 }
 
+const articleChangedFieldLabels: Record<KnowledgeArticleChangedField, string> = {
+  content: knowledgeBasePageCopy.articleChangeContentLabel,
+  status: knowledgeBasePageCopy.articleChangeStatusLabel,
+  title: knowledgeBasePageCopy.articleChangeTitleLabel,
+}
+
+function formatArticleChangesLabel(fields: KnowledgeArticleChangedField[]) {
+  if (fields.length === 1) {
+    return `${articleChangedFieldLabels[fields[0]]} ${knowledgeBasePageCopy.articleSingleChangeSuffix}`
+  }
+
+  return `${fields.length} ${knowledgeBasePageCopy.articleMultipleChangesSuffix}`
+}
+
 function getCategoryLabel(category: string) {
   return category.replaceAll("-", " ")
+}
+
+function ArticleStatusPill({
+  editable,
+  status,
+  onStatusChange,
+}: {
+  editable: boolean
+  status: KnowledgeArticleStatus
+  onStatusChange?: (status: KnowledgeArticleStatus) => void
+}) {
+  const statusLabel = getArticleStatusLabel(status)
+  const statusClassName = cn(
+    "h-6 rounded-full px-2 text-xs",
+    getArticleStatusClassName(status)
+  )
+
+  if (!editable) {
+    return (
+      <Badge variant="outline" className={statusClassName}>
+        {statusLabel}
+      </Badge>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn("h-7 rounded-full px-2.5 text-xs", statusClassName)}
+          />
+        }
+      >
+        {statusLabel}
+        <IconChevronDown className="size-3.5 opacity-75" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            {knowledgeBasePageCopy.articleStatusLabel}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={status}
+            onValueChange={(value) =>
+              onStatusChange?.(value as KnowledgeArticleStatus)
+            }
+          >
+            {articleStatusOptions.map((option) => (
+              <DropdownMenuRadioItem key={option.value} value={option.value}>
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function KnowledgeArticleSaveBar({
+  changesLabel,
+  isPreviewingDraft,
+  onDiscard,
+  onPreviewToggle,
+  onSave,
+}: {
+  changesLabel: string
+  isPreviewingDraft: boolean
+  onDiscard: () => void
+  onPreviewToggle: () => void
+  onSave: () => void
+}) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+      <div className="pointer-events-auto flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl border border-border bg-background/85 px-3 py-2 shadow-xl shadow-foreground/10 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+        <p className="min-w-0 truncate text-sm text-muted-foreground">
+          {changesLabel}
+        </p>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="rounded-xl"
+            onClick={onPreviewToggle}
+          >
+            <IconEye className="size-4" />
+            {isPreviewingDraft
+              ? knowledgeBasePageCopy.articleBackToEditorLabel
+              : knowledgeBasePageCopy.articlePreviewDraftLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="rounded-xl"
+            onClick={onDiscard}
+          >
+            {knowledgeBasePageCopy.articleDiscardLabel}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="rounded-xl"
+            onClick={onSave}
+          >
+            {knowledgeBasePageCopy.articleSaveLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function KnowledgeBaseArticleDetail({
@@ -138,6 +266,7 @@ export function KnowledgeBaseArticleDetail({
     draftStatus,
     setDraftStatus,
     hasUnsavedChanges,
+    changedFields,
     discardEdits,
     handleSave,
     handleCancel,
@@ -176,6 +305,8 @@ export function KnowledgeBaseArticleDetail({
     }
   }
 
+  const changesLabel = formatArticleChangesLabel(changedFields)
+
   return (
     <>
       <Tabs
@@ -196,7 +327,7 @@ export function KnowledgeBaseArticleDetail({
                     value={draftTitle}
                     onChange={(event) => setDraftTitle(event.target.value)}
                     placeholder={knowledgeBasePageCopy.articleTitlePlaceholder}
-                    className="h-10 rounded-xl text-xl font-semibold tracking-tight"
+                    className="h-auto rounded-none border-transparent bg-transparent p-0 text-2xl leading-tight font-semibold tracking-tight text-foreground shadow-none focus-visible:border-transparent focus-visible:ring-0 sm:text-3xl md:text-3xl"
                   />
                 ) : (
                   <p className="min-w-0 text-2xl leading-tight font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -204,51 +335,11 @@ export function KnowledgeBaseArticleDetail({
                   </p>
                 )}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <Label
-                        htmlFor="article-status"
-                        className="text-sm text-muted-foreground"
-                      >
-                        {knowledgeBasePageCopy.articleStatusLabel}
-                      </Label>
-                      <Select
-                        value={draftStatus}
-                        onValueChange={(value) =>
-                          setDraftStatus(value as KnowledgeArticleStatus)
-                        }
-                      >
-                        <SelectTrigger
-                          id="article-status"
-                          className="h-8 w-[10.5rem] rounded-full text-xs"
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {articleStatusOptions.map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "h-6 rounded-full px-2 text-xs",
-                        getArticleStatusClassName(article.status)
-                      )}
-                    >
-                      {getArticleStatusLabel(article.status)}
-                    </Badge>
-                  )}
+                  <ArticleStatusPill
+                    editable={isEditing}
+                    status={isEditing ? draftStatus : article.status}
+                    onStatusChange={setDraftStatus}
+                  />
                   <span className="text-sm text-muted-foreground">
                     {knowledgeBasePageCopy.articleLastEditedPrefix}{" "}
                     {article.updatedAt.replace(/^Updated\s+/i, "")} by{" "}
@@ -268,50 +359,8 @@ export function KnowledgeBaseArticleDetail({
                     {knowledgeBasePageCopy.articleLinkCopiedLabel}
                   </span>
                 ) : null}
-                {isEditing && hasUnsavedChanges ? (
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {knowledgeBasePageCopy.articleUnsavedLabel}
-                  </span>
-                ) : null}
-                {isEditing && !hasUnsavedChanges ? (
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {knowledgeBasePageCopy.articleNoChangesLabel}
-                  </span>
-                ) : null}
 
-                {isEditing ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 rounded-xl px-3"
-                      onClick={() =>
-                        setIsPreviewingDraft((isPreviewing) => !isPreviewing)
-                      }
-                    >
-                      <IconEye className="size-4" />
-                      {knowledgeBasePageCopy.articlePreviewLabel}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-xl px-3"
-                      onClick={handleCancel}
-                    >
-                      {knowledgeBasePageCopy.articleCancelLabel}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-9 rounded-xl px-3"
-                      onClick={handleSave}
-                    >
-                      {knowledgeBasePageCopy.articleSaveLabel}
-                    </Button>
-                  </>
-                ) : (
+                {!isEditing ? (
                   <Button
                     type="button"
                     size="sm"
@@ -321,7 +370,7 @@ export function KnowledgeBaseArticleDetail({
                     <IconPencil className="size-4" />
                     {knowledgeBasePageCopy.articleEditLabel}
                   </Button>
-                )}
+                ) : null}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -401,6 +450,9 @@ export function KnowledgeBaseArticleDetail({
                   showBodyHeading={false}
                 />
               )}
+              {isEditing && hasUnsavedChanges ? (
+                <div className="h-20" aria-hidden />
+              ) : null}
             </div>
           </div>
         </TabsContent>
@@ -513,6 +565,17 @@ export function KnowledgeBaseArticleDetail({
         confirmVariant="destructive"
         onConfirm={discardEdits}
       />
+      {isEditing && hasUnsavedChanges ? (
+        <KnowledgeArticleSaveBar
+          changesLabel={changesLabel}
+          isPreviewingDraft={isPreviewingDraft}
+          onDiscard={handleCancel}
+          onPreviewToggle={() =>
+            setIsPreviewingDraft((isPreviewing) => !isPreviewing)
+          }
+          onSave={handleSave}
+        />
+      ) : null}
     </>
   )
 }
