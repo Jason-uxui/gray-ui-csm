@@ -33,7 +33,10 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
     searchValue,
     setSearchValue,
     setHasUnsavedArticleChanges,
+    hasLocalChanges,
     pendingNavigationAction,
+    isResetDialogOpen,
+    setIsResetDialogOpen,
     editOnMountArticleId,
     clearEditOnMountArticleId,
     replaceQuery,
@@ -42,13 +45,15 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
     handleCreateArticle,
     handleCreateGroup,
     handleSaveArticle,
+    handleRequestResetKnowledgeBase,
+    handleConfirmResetKnowledgeBase,
     handleConfirmPendingNavigation,
     handleDismissPendingNavigation,
   } = useKnowledgeBasePageState()
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <section className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <section className="flex min-h-0 flex-1 flex-col -m-4 sm:-m-6 lg:-m-8">
         <div
           className={cn(
             "grid min-h-0 flex-1 overflow-hidden border-t border-border",
@@ -69,6 +74,8 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
             onSelectArticle={handleSelectArticle}
             onCreateGroup={handleCreateGroup}
             onCreateArticle={handleCreateArticle}
+            hasLocalChanges={hasLocalChanges}
+            onResetContent={handleRequestResetKnowledgeBase}
           />
 
           <section className="flex min-h-0 flex-col overflow-hidden">
@@ -106,6 +113,17 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
         cancelLabel={knowledgeBasePageCopy.articleCancelLabel}
         confirmVariant="destructive"
         onConfirm={handleConfirmPendingNavigation}
+      />
+
+      <ConfirmDialog
+        open={isResetDialogOpen}
+        onOpenChange={setIsResetDialogOpen}
+        title={knowledgeBasePageCopy.resetDemoContentTitle}
+        description={knowledgeBasePageCopy.resetDemoContentDescription}
+        confirmLabel={knowledgeBasePageCopy.resetDemoContentConfirmLabel}
+        cancelLabel={knowledgeBasePageCopy.articleCancelLabel}
+        confirmVariant="destructive"
+        onConfirm={handleConfirmResetKnowledgeBase}
       />
     </div>
   )
