@@ -2,16 +2,13 @@
 
 import * as React from "react"
 import {
-  IconActivity,
-  IconChartBar,
   IconChevronDown,
   IconDots,
   IconEye,
-  IconFileText,
-  IconMessage,
   IconPencil,
 } from "@tabler/icons-react"
 
+import { KnowledgeArticleInsights } from "@/components/knowledge-base/knowledge-article-insights"
 import { KnowledgeArticleContentView } from "@/components/knowledge-base/knowledge-article-content-view"
 import { KnowledgeArticleEditor } from "@/components/knowledge-base/knowledge-article-editor"
 import { knowledgeBasePageCopy } from "@/components/knowledge-base/knowledge-base-page.copy"
@@ -56,45 +53,38 @@ export type ArticleDetailTab = "content" | "insights" | "comments" | "activity"
 export const articleDetailTabs: Array<{
   value: ArticleDetailTab
   label: string
-  icon: React.ComponentType<{ className?: string }>
 }> = [
-    {
-      value: "content",
-      label: knowledgeBasePageCopy.contentTab,
-      icon: IconFileText,
-    },
-    {
-      value: "insights",
-      label: knowledgeBasePageCopy.insightsTab,
-      icon: IconChartBar,
-    },
-    {
-      value: "comments",
-      label: knowledgeBasePageCopy.commentsTab,
-      icon: IconMessage,
-    },
-    {
-      value: "activity",
-      label: knowledgeBasePageCopy.activityTab,
-      icon: IconActivity,
-    },
-  ]
+  {
+    value: "content",
+    label: knowledgeBasePageCopy.contentTab,
+  },
+  {
+    value: "insights",
+    label: knowledgeBasePageCopy.insightsTab,
+  },
+  {
+    value: "comments",
+    label: knowledgeBasePageCopy.commentsTab,
+  },
+  {
+    value: "activity",
+    label: knowledgeBasePageCopy.activityTab,
+  },
+]
 
 const articleStatusOptions: Array<{
   value: KnowledgeArticleStatus
   label: string
 }> = [
-    { value: "published", label: knowledgeBasePageCopy.statusPublished },
-    { value: "draft", label: knowledgeBasePageCopy.statusDraft },
-    { value: "needs-review", label: knowledgeBasePageCopy.statusNeedsReview },
-  ]
+  { value: "published", label: knowledgeBasePageCopy.statusPublished },
+  { value: "draft", label: knowledgeBasePageCopy.statusDraft },
+  { value: "needs-review", label: knowledgeBasePageCopy.statusNeedsReview },
+]
 
 const articleStatusClassNames: Record<KnowledgeArticleStatus, string> = {
-  published:
-    " bg-teal-600 text-white",
+  published: " bg-teal-600 text-white",
   draft: " bg-secondary text-muted-foreground",
-  "needs-review":
-    " bg-amber-600 text-white",
+  "needs-review": " bg-amber-600 text-white",
 }
 
 function getArticleStatusLabel(status: KnowledgeArticleStatus) {
@@ -107,11 +97,12 @@ function getArticleStatusClassName(status: KnowledgeArticleStatus) {
   return articleStatusClassNames[status]
 }
 
-const articleChangedFieldLabels: Record<KnowledgeArticleChangedField, string> = {
-  content: knowledgeBasePageCopy.articleChangeContentLabel,
-  status: knowledgeBasePageCopy.articleChangeStatusLabel,
-  title: knowledgeBasePageCopy.articleChangeTitleLabel,
-}
+const articleChangedFieldLabels: Record<KnowledgeArticleChangedField, string> =
+  {
+    content: knowledgeBasePageCopy.articleChangeContentLabel,
+    status: knowledgeBasePageCopy.articleChangeStatusLabel,
+    title: knowledgeBasePageCopy.articleChangeTitleLabel,
+  }
 
 function formatArticleChangesLabel(fields: KnowledgeArticleChangedField[]) {
   if (fields.length === 1) {
@@ -119,10 +110,6 @@ function formatArticleChangesLabel(fields: KnowledgeArticleChangedField[]) {
   }
 
   return `${fields.length} ${knowledgeBasePageCopy.articleMultipleChangesSuffix}`
-}
-
-function getCategoryLabel(category: string) {
-  return category.replaceAll("-", " ")
 }
 
 function ArticleStatusPill({
@@ -403,8 +390,6 @@ export function KnowledgeBaseArticleDetail({
               className="w-full justify-start gap-1 rounded-none p-0"
             >
               {articleDetailTabs.map((tab) => {
-                const TabIcon = tab.icon
-
                 return (
                   <TabsTrigger
                     key={tab.value}
@@ -412,7 +397,6 @@ export function KnowledgeBaseArticleDetail({
                     disabled={isEditing && tab.value !== "content"}
                     className="flex-none gap-2 px-4"
                   >
-                    <TabIcon className="size-4" />
                     {tab.value === "comments" ? (
                       <>
                         <span>{tab.label}</span>
@@ -462,63 +446,7 @@ export function KnowledgeBaseArticleDetail({
           className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-8">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-3xl border bg-card/50 p-5">
-                  <div className="text-sm text-muted-foreground">
-                    {knowledgeBasePageCopy.insightsViewsLabel}
-                  </div>
-                  <div className="mt-2 text-3xl font-semibold tracking-tight">
-                    {article.views}
-                  </div>
-                </div>
-                <div className="rounded-3xl border bg-card/50 p-5">
-                  <div className="text-sm text-muted-foreground">
-                    {knowledgeBasePageCopy.insightsHelpfulRateLabel}
-                  </div>
-                  <div className="mt-2 text-3xl font-semibold tracking-tight">
-                    {article.helpfulRate}%
-                  </div>
-                </div>
-                <div className="rounded-3xl border bg-card/50 p-5">
-                  <div className="text-sm text-muted-foreground">
-                    {knowledgeBasePageCopy.insightsLinkedTicketsLabel}
-                  </div>
-                  <div className="mt-2 text-3xl font-semibold tracking-tight">
-                    {article.linkedTickets}
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border bg-card/50 p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-semibold tracking-tight">
-                    {knowledgeBasePageCopy.insightsMatchSignalsLabel}
-                  </h2>
-                  <Badge
-                    variant="outline"
-                    className="h-7 rounded-full px-3 capitalize"
-                  >
-                    {knowledgeBasePageCopy.insightsCategoryLabel}:{" "}
-                    {getCategoryLabel(article.category)}
-                  </Badge>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {article.matchReasons.map((reason) => (
-                    <Badge
-                      key={reason}
-                      variant="outline"
-                      className="h-7 rounded-full px-3"
-                    >
-                      {reason}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  {knowledgeBasePageCopy.insightsEmptyDescription}
-                </p>
-              </div>
-            </div>
+            <KnowledgeArticleInsights article={article} />
           </div>
         </TabsContent>
 

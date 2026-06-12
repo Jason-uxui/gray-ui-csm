@@ -17,6 +17,11 @@ export const knowledgeBasePageCopy = {
   createGroupSubmitLabel: "Add group",
   createGroupCancelLabel: "Cancel",
   createGroupEmptyNameLabel: "Enter a group name",
+  resetDemoContentTriggerLabel: "Reset demo content",
+  resetDemoContentTitle: "Reset demo content?",
+  resetDemoContentDescription:
+    "This will restore the original article groups and articles for the demo workspace.",
+  resetDemoContentConfirmLabel: "Reset content",
   groupArticlesLabel: "Articles",
   groupEmptyTitle: "No articles yet",
   groupEmptyDescription: "New articles can be added to this group later.",

@@ -9,6 +9,7 @@ import {
   IconFileText,
   IconPlug,
   IconPlus,
+  IconRefresh,
   IconSearch,
   IconShieldLock,
   IconTool,
@@ -55,6 +56,8 @@ type KnowledgeBaseGroupPanelProps = {
     icon: KnowledgeArticleGroupIcon
   }) => void
   onCreateArticle: () => void
+  hasLocalChanges: boolean
+  onResetContent: () => void
 }
 
 type GroupIconOption = {
@@ -188,10 +191,10 @@ function KnowledgeScrollingLabel({
         style={
           isScrolling && scrollDistance > 0
             ? {
-              transform: `translateX(calc(-${scrollDistance}px - ${LABEL_SCROLL_GAP_PX}px))`,
-              transition: `transform ${animationDuration}s linear`,
-              willChange: "transform",
-            }
+                transform: `translateX(calc(-${scrollDistance}px - ${LABEL_SCROLL_GAP_PX}px))`,
+                transition: `transform ${animationDuration}s linear`,
+                willChange: "transform",
+              }
             : undefined
         }
       >
@@ -213,6 +216,8 @@ export function KnowledgeBaseGroupPanel({
   onSelectArticle,
   onCreateGroup,
   onCreateArticle,
+  hasLocalChanges,
+  onResetContent,
 }: KnowledgeBaseGroupPanelProps) {
   const [isCreatingGroup, setIsCreatingGroup] = React.useState(false)
   const [groupName, setGroupName] = React.useState("")
@@ -356,9 +361,7 @@ export function KnowledgeBaseGroupPanel({
           {isPanelOpen ? (
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <div className="flex min-h-14 min-w-0 shrink-0 items-center gap-2 overflow-hidden px-6 py-3.5">
-                <KnowledgeScrollingLabel
-                  className="flex-1 text-sm font-semibold text-foreground"
-                >
+                <KnowledgeScrollingLabel className="flex-1 text-sm font-semibold text-foreground">
                   {activeGroup?.label ?? knowledgeBasePageCopy.groupPanelLabel}
                 </KnowledgeScrollingLabel>
                 {activeGroup ? (
@@ -382,7 +385,10 @@ export function KnowledgeBaseGroupPanel({
 
               <div className="scrollbar-hidden min-h-0 min-w-0 flex-1 overflow-y-auto px-3 pb-3">
                 {isCreatingGroup ? (
-                  <form className="mb-2 border-b px-1 py-3" onSubmit={handleCreateSubmit}>
+                  <form
+                    className="mb-2 border-b px-1 py-3"
+                    onSubmit={handleCreateSubmit}
+                  >
                     <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="knowledge-base-group-name">
@@ -408,7 +414,9 @@ export function KnowledgeBaseGroupPanel({
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label>{knowledgeBasePageCopy.createGroupIconLabel}</Label>
+                        <Label>
+                          {knowledgeBasePageCopy.createGroupIconLabel}
+                        </Label>
                         <Select
                           value={groupIcon}
                           onValueChange={(nextIcon) =>
@@ -454,7 +462,11 @@ export function KnowledgeBaseGroupPanel({
                         >
                           {knowledgeBasePageCopy.createGroupCancelLabel}
                         </Button>
-                        <Button type="submit" size="sm" className="h-8 rounded-xl">
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="h-8 rounded-xl"
+                        >
                           {knowledgeBasePageCopy.createGroupSubmitLabel}
                         </Button>
                       </div>
@@ -516,6 +528,22 @@ export function KnowledgeBaseGroupPanel({
                     {knowledgeBasePageCopy.createArticle}
                   </span>
                 </Button>
+
+                {hasLocalChanges ? (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-9 w-full min-w-0 justify-start gap-2.5 rounded-xl px-3.5 text-left text-muted-foreground"
+                      onClick={onResetContent}
+                    >
+                      <IconRefresh className="size-4 shrink-0" />
+                      <span className="truncate text-sm">
+                        {knowledgeBasePageCopy.resetDemoContentTriggerLabel}
+                      </span>
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

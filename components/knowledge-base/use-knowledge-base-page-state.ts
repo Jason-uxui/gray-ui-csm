@@ -28,7 +28,10 @@ type PendingNavigationAction =
   | { type: "select-article"; articleId: string }
   | { type: "create-article" }
 
-function normalizeSelectedArticleId(value: string | null, articleIds: string[]) {
+function normalizeSelectedArticleId(
+  value: string | null,
+  articleIds: string[]
+) {
   if (value && articleIds.includes(value)) return value
   return articleIds[0] ?? null
 }
@@ -49,7 +52,10 @@ function normalizeArticleDetailTab(value: string | null): ArticleDetailTab {
 export function useKnowledgeBasePageState() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const defaultSnapshot = React.useMemo(() => getDefaultKnowledgeBaseSnapshot(), [])
+  const defaultSnapshot = React.useMemo(
+    () => getDefaultKnowledgeBaseSnapshot(),
+    []
+  )
 
   const [articles, setArticles] = React.useState(() => defaultSnapshot.articles)
   const [groupDefinitions, setGroupDefinitions] = React.useState<
@@ -65,12 +71,12 @@ export function useKnowledgeBasePageState() {
     React.useState(false)
   const [pendingNavigationAction, setPendingNavigationAction] =
     React.useState<PendingNavigationAction | null>(null)
+  const [isResetDialogOpen, setIsResetDialogOpen] = React.useState(false)
   const [editOnMountArticleId, setEditOnMountArticleId] = React.useState<
     string | null
   >(null)
-  const [pendingSelectedArticleId, setPendingSelectedArticleId] = React.useState<
-    string | null
-  >(null)
+  const [pendingSelectedArticleId, setPendingSelectedArticleId] =
+    React.useState<string | null>(null)
   const previousSelectedArticleIdRef = React.useRef<string | null>(null)
 
   const articleGroups = React.useMemo(
@@ -98,6 +104,16 @@ export function useKnowledgeBasePageState() {
   const activeArticleTab = normalizeArticleDetailTab(
     searchParams.get("articleTab")
   )
+  const hasLocalChanges = React.useMemo(() => {
+    if (!hasHydrated) return false
+
+    return (
+      JSON.stringify({
+        articles,
+        groups: groupDefinitions,
+      }) !== JSON.stringify(defaultSnapshot)
+    )
+  }, [articles, defaultSnapshot, groupDefinitions, hasHydrated])
 
   React.useEffect(() => {
     const snapshot = loadKnowledgeBaseSnapshot(defaultSnapshot)
@@ -163,9 +179,12 @@ export function useKnowledgeBasePageState() {
       }
 
       const nextQuery = nextSearchParams.toString()
-      router.replace(nextQuery ? `/knowledge-base?${nextQuery}` : "/knowledge-base", {
-        scroll: false,
-      })
+      router.replace(
+        nextQuery ? `/knowledge-base?${nextQuery}` : "/knowledge-base",
+        {
+          scroll: false,
+        }
+      )
     },
     [router, searchParams]
   )
@@ -249,13 +268,7 @@ export function useKnowledgeBasePageState() {
   }, [])
 
   const handleCreateGroup = React.useCallback(
-    ({
-      label,
-      icon,
-    }: {
-      label: string
-      icon: KnowledgeArticleGroupIcon
-    }) => {
+    ({ label, icon }: { label: string; icon: KnowledgeArticleGroupIcon }) => {
       const nextGroup = createKnowledgeExplorerGroup({
         label,
         icon,
@@ -293,6 +306,23 @@ export function useKnowledgeBasePageState() {
     []
   )
 
+  const handleRequestResetKnowledgeBase = React.useCallback(() => {
+    setIsResetDialogOpen(true)
+  }, [])
+
+  const handleConfirmResetKnowledgeBase = React.useCallback(() => {
+    const firstArticleId = defaultSnapshot.groups[0]?.articleIds[0] ?? null
+
+    setArticles(defaultSnapshot.articles)
+    setGroupDefinitions(defaultSnapshot.groups)
+    setActiveGroupId(defaultSnapshot.groups[0]?.id ?? null)
+    setHasUnsavedArticleChanges(false)
+    setPendingNavigationAction(null)
+    setPendingSelectedArticleId(firstArticleId)
+    setIsResetDialogOpen(false)
+    replaceQuery({ article: firstArticleId, articleTab: "content" })
+  }, [defaultSnapshot, replaceQuery])
+
   const clearEditOnMountArticleId = React.useCallback(() => {
     setEditOnMountArticleId(null)
   }, [])
@@ -307,9 +337,12 @@ export function useKnowledgeBasePageState() {
     setIsGroupPanelOpen,
     searchValue,
     setSearchValue,
+    hasLocalChanges,
     hasUnsavedArticleChanges,
     setHasUnsavedArticleChanges,
     pendingNavigationAction,
+    isResetDialogOpen,
+    setIsResetDialogOpen,
     editOnMountArticleId,
     clearEditOnMountArticleId,
     replaceQuery,
@@ -318,6 +351,8 @@ export function useKnowledgeBasePageState() {
     handleCreateArticle,
     handleCreateGroup,
     handleSaveArticle,
+    handleRequestResetKnowledgeBase,
+    handleConfirmResetKnowledgeBase,
     handleConfirmPendingNavigation,
     handleDismissPendingNavigation,
   }
