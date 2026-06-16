@@ -24,6 +24,7 @@ import {
 import { getCustomerBrandPresentation } from "@/components/customers/customer-brand"
 import { CustomerInitialAvatar } from "@/components/customers/customer-initial-avatar"
 import { CustomerMetricsGrid } from "@/components/customers/customer-metrics-grid"
+import { TicketPriorityLabel } from "@/components/ticket-priority-label"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,7 +35,6 @@ import { customerDirectory } from "@/lib/customers/mock-data"
 import {
   getCustomerInitials,
   customerPresenceDotClassName,
-  customerTicketPriorityDotClassName,
   customerTicketStatusToneClassName,
   isVipCustomerTier,
 } from "@/lib/customers/presentation"
@@ -602,13 +602,7 @@ export function CustomerDrawer({
                           <div className="grid grid-cols-3 border-t border-border/70">
                             <MetaCell label="Type">{getTicketType(ticket.subject, ticket.priority)}</MetaCell>
                             <MetaCell label="Priority">
-                              <span
-                                className={cn(
-                                  "size-2 rounded-full",
-                                  customerTicketPriorityDotClassName[ticket.priority]
-                                )}
-                              />
-                              <span className="capitalize">{ticket.priority}</span>
+                              <TicketPriorityLabel priority={ticket.priority} />
                             </MetaCell>
                             <MetaCell
                               label={ticket.status === "resolved" ? "Closed" : "Assigned"}

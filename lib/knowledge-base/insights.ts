@@ -1,4 +1,12 @@
 import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
+import { knowledgeArticleInsightFixtures } from "@/lib/knowledge-base/insight-mock-data"
+import { tickets } from "@/lib/tickets/mock-data"
+import type {
+  Ticket,
+  TicketPriority,
+  TicketQueueStatus,
+  TicketType,
+} from "@/lib/tickets/types"
 
 export type KnowledgeInsightTrend = "up" | "down" | "flat"
 
@@ -19,6 +27,7 @@ export type KnowledgeInsightChartPoint = {
 }
 
 export type KnowledgeInsightSignalSource = "manual" | "auto" | "suggested"
+export type KnowledgeInsightSignalAction = "mute" | "remove" | "add"
 
 export type KnowledgeInsightSignal = {
   id: string
@@ -27,6 +36,10 @@ export type KnowledgeInsightSignal = {
   matches30d: number
   openRate: number | null
   status: string
+  action?: KnowledgeInsightSignalAction
+  isMuted?: boolean
+  matchTerms?: string[]
+  missedSearchesLabel?: string
 }
 
 export type KnowledgeLinkedTicketContext =
@@ -35,9 +48,12 @@ export type KnowledgeLinkedTicketContext =
 
 export type KnowledgeLinkedTicket = {
   id: string
+  ticketId: string
   ticketNumber: string
   subject: string
-  type: "problem" | "question" | "incident" | "task"
+  type: TicketType
+  status: TicketQueueStatus
+  priority: TicketPriority
   context: KnowledgeLinkedTicketContext
   customer: string
 }
@@ -48,6 +64,16 @@ export type KnowledgeFeedbackComment = {
   age: string
   body: string
   source: string
+  authorName: string
+  authorInitials: string
+  rating: number
+}
+
+export type KnowledgeSearchDiscoveryQuery = {
+  id: string
+  query: string
+  ctr: number
+  views: number
 }
 
 export type KnowledgeArticleInsightsViewModel = {
@@ -82,12 +108,24 @@ export type KnowledgeArticleInsightsViewModel = {
     rows: KnowledgeLinkedTicket[]
   }
   feedback: {
+    averageRating: number
+    reviewCount: number
     helpfulVotes: number
     notHelpfulVotes: number
     negativeComments: KnowledgeFeedbackComment[]
     helpfulComments: KnowledgeFeedbackComment[]
   }
+  searchDiscovery: {
+    queries: KnowledgeSearchDiscoveryQuery[]
+  }
 }
+
+export type KnowledgeArticleInsightFixture = Partial<
+  Pick<
+    KnowledgeArticleInsightsViewModel,
+    "matching" | "linkedTickets" | "feedback" | "searchDiscovery"
+  >
+>
 
 const categoryLabels: Record<KnowledgeArticle["category"], string> = {
   billing: "Billing",
@@ -97,162 +135,14 @@ const categoryLabels: Record<KnowledgeArticle["category"], string> = {
   other: "Other",
 }
 
-const articleInsightFixtures: Record<
-  string,
-  Partial<
-    Pick<
-      KnowledgeArticleInsightsViewModel,
-      "matching" | "linkedTickets" | "feedback"
-    >
-  >
-> = {
-  "kb-billing-seat-update": {
-    matching: {
-      categoryLabel: "Subscription",
-      testQuery: "how do i add a user to my plan",
-      testResult: "Matches via seat",
-      signals: [
-        {
-          id: "seat",
-          signal: "seat",
-          source: "manual",
-          matches30d: 140,
-          openRate: 71,
-          status: "Strong match",
-        },
-        {
-          id: "subscription",
-          signal: "subscription",
-          source: "manual",
-          matches30d: 88,
-          openRate: 64,
-          status: "Healthy",
-        },
-        {
-          id: "add-team-member",
-          signal: "add team member",
-          source: "auto",
-          matches30d: 54,
-          openRate: 74,
-          status: "Emerging phrase",
-        },
-        {
-          id: "billing",
-          signal: "billing",
-          source: "manual",
-          matches30d: 19,
-          openRate: 31,
-          status: "Low intent",
-        },
-        {
-          id: "how-to-add-user",
-          signal: "how to add user",
-          source: "suggested",
-          matches30d: 31,
-          openRate: null,
-          status: "Missed search",
-        },
-      ],
-    },
-    linkedTickets: {
-      summary: "21 tickets - latest 12 days ago",
-      rows: [
-        {
-          id: "kb-ticket-192",
-          ticketNumber: "#TC-192",
-          subject: "Charged twice after adding 3 seats",
-          type: "problem",
-          context: "read-still-filed",
-          customer: "Santi Cazorla",
-        },
-        {
-          id: "kb-ticket-188",
-          ticketNumber: "#TC-188",
-          subject: "Can't find where to add a seat",
-          type: "question",
-          context: "read-still-filed",
-          customer: "Jerome Bell",
-        },
-        {
-          id: "kb-ticket-186",
-          ticketNumber: "#TC-186",
-          subject: "Seat price prorated incorrectly",
-          type: "incident",
-          context: "linked-by-agent",
-          customer: "Courtney Henry",
-        },
-        {
-          id: "kb-ticket-181",
-          ticketNumber: "#TC-181",
-          subject: "Invoice missing new seats",
-          type: "question",
-          context: "linked-by-agent",
-          customer: "Esther Howard",
-        },
-      ],
-    },
-    feedback: {
-      helpfulVotes: 188,
-      notHelpfulVotes: 22,
-      negativeComments: [
-        {
-          id: "neg-billing-cycle",
-          vote: "not-helpful",
-          age: "8 days ago",
-          body: "Doesn't explain what happens to billing mid-cycle. I still don't know if I get charged now or next month.",
-          source: "Help center",
-        },
-        {
-          id: "neg-old-ui",
-          vote: "not-helpful",
-          age: "12 days ago",
-          body: "Screenshots are from the old UI, the Seats button isn't where the article says.",
-          source: "In-ticket suggestion",
-        },
-      ],
-      helpfulComments: [
-        {
-          id: "pos-clear",
-          vote: "helpful",
-          age: "15 days ago",
-          body: "Clear and quick, solved it in 2 minutes.",
-          source: "Widget",
-        },
-      ],
-    },
-  },
-  "kb-card-charge-failed": {
-    feedback: {
-      helpfulVotes: 125,
-      notHelpfulVotes: 42,
-      negativeComments: [
-        {
-          id: "neg-retry-window",
-          vote: "not-helpful",
-          age: "3 days ago",
-          body: "The retry timing is still unclear. I need to know exactly when the next card attempt happens.",
-          source: "Help center",
-        },
-        {
-          id: "neg-grace-period",
-          vote: "not-helpful",
-          age: "6 days ago",
-          body: "It mentions grace periods but does not say what customers see when access is limited.",
-          source: "In-ticket suggestion",
-        },
-      ],
-      helpfulComments: [
-        {
-          id: "pos-card-fix",
-          vote: "helpful",
-          age: "5 days ago",
-          body: "The card decline checklist helped me fix the renewal before support had to step in.",
-          source: "Widget",
-        },
-      ],
-    },
-  },
-}
+const ticketsById = new Map(tickets.map((ticket) => [ticket.id, ticket]))
+
+const fallbackLinkedTicketCustomers = [
+  "Arlene McCoy",
+  "Liam Chen",
+  "Amina Rahman",
+  "Lam Tran",
+]
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -266,6 +156,64 @@ function formatSignedPercent(value: number) {
 function formatSignedPoints(value: number) {
   if (value === 0) return "No change"
   return `${value > 0 ? "+" : ""}${value}pp`
+}
+
+function getTicketNumberLabel(ticket: Ticket) {
+  return ticket.ticketNumber.startsWith("#-")
+    ? `#TC-${ticket.ticketNumber.slice(2)}`
+    : ticket.ticketNumber
+}
+
+function getTicketType(ticket: Ticket): TicketType {
+  if (ticket.ticketType) return ticket.ticketType
+  if (ticket.category === "billing" || ticket.category === "subscription") {
+    return "question"
+  }
+  if (ticket.category === "technical") return "incident"
+  return "task"
+}
+
+function createLinkedTicketRow(
+  ticketId: string,
+  context: KnowledgeLinkedTicketContext,
+  customer?: string
+): KnowledgeLinkedTicket {
+  const ticket = ticketsById.get(ticketId)
+
+  if (!ticket) {
+    throw new Error(`Unknown linked ticket id: ${ticketId}`)
+  }
+
+  return {
+    id: `${ticketId}-${context}`,
+    ticketId: ticket.id,
+    ticketNumber: getTicketNumberLabel(ticket),
+    subject: ticket.subject,
+    type: getTicketType(ticket),
+    status: ticket.queueStatus,
+    priority: ticket.priority,
+    context,
+    customer: customer ?? ticket.requester?.name ?? "Unassigned account",
+  }
+}
+
+function getFallbackTicketPool(article: KnowledgeArticle) {
+  const categoryMatches = tickets.filter(
+    (ticket) => ticket.category === article.category
+  )
+
+  return categoryMatches.length > 0 ? categoryMatches : tickets
+}
+
+function getArticleStableIndex(article: KnowledgeArticle, modulo: number) {
+  if (modulo <= 0) return 0
+
+  return (
+    Array.from(article.id).reduce(
+      (total, character) => total + character.charCodeAt(0),
+      0
+    ) % modulo
+  )
 }
 
 function scaleSeries(
@@ -335,6 +283,7 @@ function getFallbackSignals(
       matches30d,
       openRate: clamp(article.helpfulRate - index * 6, 18, 86),
       status: index === 0 ? "Primary signal" : "Healthy",
+      action: "mute",
     }
   })
 }
@@ -343,17 +292,16 @@ function getFallbackLinkedTickets(
   article: KnowledgeArticle
 ): KnowledgeLinkedTicket[] {
   const ticketCount = Math.min(Math.max(article.linkedTickets, 2), 4)
+  const pool = getFallbackTicketPool(article)
+  const startIndex = getArticleStableIndex(article, pool.length)
 
   return Array.from({ length: ticketCount }, (_, index) => ({
+    ...createLinkedTicketRow(
+      pool[(startIndex + index) % pool.length].id,
+      index % 2 === 0 ? "read-still-filed" : "linked-by-agent",
+      fallbackLinkedTicketCustomers[index]
+    ),
     id: `${article.id}-ticket-${index + 1}`,
-    ticketNumber: `#KB-${String(index + 1).padStart(3, "0")}`,
-    subject:
-      index % 2 === 0
-        ? article.summary
-        : `Follow-up question about ${article.matchReasons[index % article.matchReasons.length] ?? article.title}`,
-    type: index % 3 === 0 ? "question" : index % 3 === 1 ? "problem" : "task",
-    context: index % 2 === 0 ? "read-still-filed" : "linked-by-agent",
-    customer: ["Arlene McCoy", "Liam Chen", "Amina Rahman", "Lam Tran"][index],
   }))
 }
 
@@ -365,6 +313,8 @@ function getFallbackFeedback(
   const notHelpfulVotes = Math.max(totalVotes - helpfulVotes, 0)
 
   return {
+    averageRating: clamp(Math.round((article.helpfulRate / 20) * 10) / 10, 2.4, 4.9),
+    reviewCount: 3,
     helpfulVotes,
     notHelpfulVotes,
     negativeComments: [
@@ -374,6 +324,9 @@ function getFallbackFeedback(
         age: "6 days ago",
         body: "The answer points in the right direction, but I needed one more concrete next step before contacting support.",
         source: "Help center",
+        authorName: "Maya Chen",
+        authorInitials: "MC",
+        rating: 2,
       },
       {
         id: `${article.id}-negative-context`,
@@ -381,6 +334,9 @@ function getFallbackFeedback(
         age: "10 days ago",
         body: "The article did not match my exact account state, so I still opened a ticket.",
         source: "In-ticket suggestion",
+        authorName: "Ethan Park",
+        authorInitials: "EP",
+        rating: 3,
       },
     ],
     helpfulComments: [
@@ -390,9 +346,30 @@ function getFallbackFeedback(
         age: "14 days ago",
         body: "Short, clear, and easy to share with my admin.",
         source: "Widget",
+        authorName: "Nina Ross",
+        authorInitials: "NR",
+        rating: 4,
       },
     ],
   }
+}
+
+function getFallbackSearchDiscovery(
+  article: KnowledgeArticle
+): KnowledgeSearchDiscoveryQuery[] {
+  const baseViews = Math.max(article.views, 24)
+
+  return article.matchReasons.slice(0, 5).map((reason, index) => ({
+    id: `${article.id}-query-${index + 1}`,
+    query:
+      index === 0
+        ? `how to ${reason}`
+        : index === 1
+          ? `${reason} ${categoryLabels[article.category].toLowerCase()}`
+          : `${reason} ${article.title.toLowerCase().split(" ").slice(0, 2).join(" ")}`,
+    ctr: clamp(article.helpfulRate - index * 7, 18, 54),
+    views: Math.max(18, Math.round(baseViews / (index + 1.6))),
+  }))
 }
 
 export function getKnowledgeArticleInsights(
@@ -413,7 +390,7 @@ export function getKnowledgeArticleInsights(
     1,
     Math.round(article.linkedTickets * 0.38)
   )
-  const fixture = articleInsightFixtures[article.id]
+  const fixture = knowledgeArticleInsightFixtures[article.id]
   const feedback = fixture?.feedback ?? getFallbackFeedback(article)
   const matching = fixture?.matching ?? {
     categoryLabel: categoryLabels[article.category],
@@ -425,6 +402,10 @@ export function getKnowledgeArticleInsights(
     summary: `${article.linkedTickets} tickets - latest 7 days ago`,
     rows: getFallbackLinkedTickets(article),
   }
+  const searchDiscovery =
+    fixture?.searchDiscovery ?? {
+      queries: getFallbackSearchDiscovery(article),
+    }
   const overviewHelpfulVotes = feedback.helpfulVotes ?? helpfulVotes
   const overviewNotHelpfulVotes = feedback.notHelpfulVotes ?? notHelpfulVotes
   const unreviewedViews = Math.max(
@@ -504,5 +485,6 @@ export function getKnowledgeArticleInsights(
     matching,
     linkedTickets,
     feedback,
+    searchDiscovery,
   }
 }

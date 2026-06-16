@@ -21,6 +21,35 @@ export type KnowledgeArticleCreateInput = {
   status?: KnowledgeArticleStatus
 }
 
+export type KnowledgeArticleComment = {
+  id: string
+  articleId: string
+  author: {
+    name: string
+    avatarUrl?: string
+    email?: string
+  }
+  timestamp: string
+  body: string
+  badge?: string
+  status?: "open" | "resolved"
+}
+
+export type KnowledgeArticleActivityTone =
+  | "neutral"
+  | "warning"
+  | "success"
+  | "positive"
+
+export type KnowledgeArticleActivity = {
+  id: string
+  articleId: string
+  title: string
+  timestamp: string
+  detail?: string
+  tone?: KnowledgeArticleActivityTone
+}
+
 export type KnowledgeBaseStorageSnapshot = {
   version: 1
   articles: KnowledgeArticle[]
@@ -63,7 +92,9 @@ export type KnowledgeArticle = {
   }>
   content?: KnowledgeArticleContent
   customerReply: string
+  comments?: KnowledgeArticleComment[]
   commentsCount?: number
+  activity?: KnowledgeArticleActivity[]
   activityCount?: number
 }
 

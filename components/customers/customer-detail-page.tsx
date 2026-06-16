@@ -19,6 +19,7 @@ import { CustomerInitialAvatar } from "@/components/customers/customer-initial-a
 import { CustomerMetricsGrid } from "@/components/customers/customer-metrics-grid"
 import { getCustomerBrandPresentation } from "@/components/customers/customer-brand"
 import { TicketDrawer } from "@/components/tickets/ticket-drawer"
+import { TicketPriorityLabel } from "@/components/ticket-priority-label"
 import {
   SharedActivityTabContent,
   SharedInternalNotesTabContent,
@@ -89,7 +90,6 @@ import {
 } from "@/lib/customers/detail-view-model"
 import {
   customerTicketPriorityDotClassName,
-  customerTicketPriorityToneClassName,
   customerTicketStatusToneClassName,
 } from "@/lib/customers/presentation"
 import { type Customer, type CustomerAttachment } from "@/lib/customers/types"
@@ -1717,16 +1717,7 @@ export function CustomerDetailPage({
                                 </TooltipProvider>
                               </TableCell>
                               <TableCell className="px-2 py-3.5">
-                                <Badge
-                                  className={cn(
-                                    "border-0 capitalize",
-                                    customerTicketPriorityToneClassName[
-                                      row.priority
-                                    ]
-                                  )}
-                                >
-                                  {row.priority}
-                                </Badge>
+                                <TicketPriorityLabel priority={row.priority} />
                               </TableCell>
                               <TableCell className="px-2 py-3.5">
                                 <Badge

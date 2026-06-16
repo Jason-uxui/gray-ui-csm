@@ -19,6 +19,7 @@ import {
   saveKnowledgeBaseSnapshot,
 } from "@/lib/knowledge-base/storage"
 import type {
+  KnowledgeArticleComment,
   KnowledgeArticleExplorerGroup,
   KnowledgeArticleGroupIcon,
   KnowledgeArticleSavePatch,
@@ -71,7 +72,6 @@ export function useKnowledgeBasePageState() {
     React.useState(false)
   const [pendingNavigationAction, setPendingNavigationAction] =
     React.useState<PendingNavigationAction | null>(null)
-  const [isResetDialogOpen, setIsResetDialogOpen] = React.useState(false)
   const [editOnMountArticleId, setEditOnMountArticleId] = React.useState<
     string | null
   >(null)
@@ -104,17 +104,6 @@ export function useKnowledgeBasePageState() {
   const activeArticleTab = normalizeArticleDetailTab(
     searchParams.get("articleTab")
   )
-  const hasLocalChanges = React.useMemo(() => {
-    if (!hasHydrated) return false
-
-    return (
-      JSON.stringify({
-        articles,
-        groups: groupDefinitions,
-      }) !== JSON.stringify(defaultSnapshot)
-    )
-  }, [articles, defaultSnapshot, groupDefinitions, hasHydrated])
-
   React.useEffect(() => {
     const snapshot = loadKnowledgeBaseSnapshot(defaultSnapshot)
     setArticles(snapshot.articles)
@@ -306,22 +295,22 @@ export function useKnowledgeBasePageState() {
     []
   )
 
-  const handleRequestResetKnowledgeBase = React.useCallback(() => {
-    setIsResetDialogOpen(true)
-  }, [])
-
-  const handleConfirmResetKnowledgeBase = React.useCallback(() => {
-    const firstArticleId = defaultSnapshot.groups[0]?.articleIds[0] ?? null
-
-    setArticles(defaultSnapshot.articles)
-    setGroupDefinitions(defaultSnapshot.groups)
-    setActiveGroupId(defaultSnapshot.groups[0]?.id ?? null)
-    setHasUnsavedArticleChanges(false)
-    setPendingNavigationAction(null)
-    setPendingSelectedArticleId(firstArticleId)
-    setIsResetDialogOpen(false)
-    replaceQuery({ article: firstArticleId, articleTab: "content" })
-  }, [defaultSnapshot, replaceQuery])
+  const handleSaveArticleComments = React.useCallback(
+    (articleId: string, comments: KnowledgeArticleComment[]) => {
+      setArticles((currentArticles) =>
+        currentArticles.map((article) =>
+          article.id === articleId
+            ? {
+                ...article,
+                comments,
+                commentsCount: comments.length,
+              }
+            : article
+        )
+      )
+    },
+    []
+  )
 
   const clearEditOnMountArticleId = React.useCallback(() => {
     setEditOnMountArticleId(null)
@@ -337,12 +326,9 @@ export function useKnowledgeBasePageState() {
     setIsGroupPanelOpen,
     searchValue,
     setSearchValue,
-    hasLocalChanges,
     hasUnsavedArticleChanges,
     setHasUnsavedArticleChanges,
     pendingNavigationAction,
-    isResetDialogOpen,
-    setIsResetDialogOpen,
     editOnMountArticleId,
     clearEditOnMountArticleId,
     replaceQuery,
@@ -351,8 +337,7 @@ export function useKnowledgeBasePageState() {
     handleCreateArticle,
     handleCreateGroup,
     handleSaveArticle,
-    handleRequestResetKnowledgeBase,
-    handleConfirmResetKnowledgeBase,
+    handleSaveArticleComments,
     handleConfirmPendingNavigation,
     handleDismissPendingNavigation,
   }

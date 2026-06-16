@@ -19,6 +19,13 @@ import {
   SharedActivityTabContent,
   SharedInternalNotesTabContent,
 } from "@/components/detail-tabs/shared-activity-notes-tab-content"
+import {
+  DiscussionAvatar,
+  DiscussionComposerShell,
+  DiscussionMessageEntry,
+  DiscussionThreadContent,
+  type DiscussionPerson,
+} from "@/components/detail-tabs/shared-discussion-tab-content"
 import { DetailRightPanelShell } from "@/components/detail-right-panel-shell"
 import {
   channelLabel,
@@ -29,9 +36,8 @@ import {
   statusLabel,
 } from "@/components/tickets/ticket-detail-helpers"
 import { TicketTaskInlineList } from "@/components/tickets/ticket-task-inline-list"
-import { TicketPriorityIndicator } from "@/components/tickets/ticket-priority-indicator"
+import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
 import { TicketTag } from "@/components/tickets/ticket-tag"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -62,14 +68,13 @@ import type {
   TicketQueueStatus,
 } from "@/lib/tickets/types"
 import { cn } from "@/lib/utils"
-import { getInitials } from "./ticket-detail-helpers"
 import { TicketKnowledgePanel } from "./ticket-knowledge-panel"
 import {
   getKnowledgeArticleCategoryLabel,
   getKnowledgeArticleUrl,
 } from "./ticket-knowledge-helpers"
 
-type PersonLike = { name: string; avatarUrl?: string; email?: string }
+type PersonLike = DiscussionPerson
 
 type ReplyAccount = {
   address: string
@@ -78,25 +83,6 @@ type ReplyAccount = {
 }
 
 const PENDING_REPLY_REVEAL_DELAY_MS = 180
-
-export function TimelineAvatar({
-  person,
-  className,
-}: {
-  person?: PersonLike
-  className?: string
-}) {
-  return (
-    <Avatar className={cn("border bg-background", className)} size="lg">
-      {person?.avatarUrl ? (
-        <AvatarImage src={person.avatarUrl} alt={person.name} />
-      ) : null}
-      <AvatarFallback className="text-xs">
-        {getInitials(person?.name)}
-      </AvatarFallback>
-    </Avatar>
-  )
-}
 
 function DetailStat({
   label,
@@ -162,51 +148,19 @@ function KnowledgeArticleLinkCard({
   )
 }
 
-function TimelineEntry({
-  author,
-  timestamp,
-  badges,
-  body,
-  linkedArticle,
-  className,
-}: {
-  author: PersonLike
-  timestamp: string
-  badges?: React.ReactNode
-  body: string
-  linkedArticle?: TicketLinkedArticle
-  className?: string
-}) {
-  return (
-    <div className={cn("flex gap-3", className)}>
-      <TimelineAvatar person={author} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold text-foreground">{author.name}</span>
-          <span className="text-muted-foreground">{timestamp}</span>
-          {badges}
-        </div>
-        <div className="mt-2 text-sm leading-6 text-foreground">{body}</div>
-        {linkedArticle ? (
-          <KnowledgeArticleLinkCard
-            article={linkedArticle}
-            className="mt-3 max-w-xl"
-          />
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
 function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
   const isOutbound = item.direction === "outbound"
 
   return (
-    <TimelineEntry
+    <DiscussionMessageEntry
       author={item.author}
       timestamp={item.timestamp}
       body={item.body}
-      linkedArticle={item.linkedArticle}
+      attachment={
+        item.linkedArticle ? (
+          <KnowledgeArticleLinkCard article={item.linkedArticle} />
+        ) : null
+      }
       badges={
         <>
           <Badge
@@ -226,32 +180,6 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
         </>
       }
     />
-  )
-}
-
-function ComposerShell({
-  currentUser,
-  header,
-  children,
-}: {
-  currentUser: PersonLike
-  header?: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <div className="shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl">
-      <div className="flex items-start gap-3">
-        <TimelineAvatar person={currentUser} />
-        <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border bg-background shadow-sm">
-          {header ? (
-            <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm">
-              {header}
-            </div>
-          ) : null}
-          {children}
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -359,51 +287,11 @@ export function ConversationTabContent({
   }, [visiblePendingReply, conversationItems.length])
 
   return (
-    <>
-      <div
-        ref={scrollContainerRef}
-        className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-6"
-      >
-        <div className="space-y-8">
-          {conversationItems.map((item) => {
-            if (item.kind === "message") {
-              return <TimelineMessageCard key={item.id} item={item} />
-            }
-
-            return (
-              <ActivityTimelineEventItem
-                key={item.id}
-                item={mapTicketEventToActivityItem(item)}
-              />
-            )
-          })}
-          {visiblePendingReply ? (
-            <div
-              key={visiblePendingReply.id}
-              className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            >
-              <TimelineEntry
-                author={currentUser}
-                timestamp="Sending..."
-                body={visiblePendingReply.body}
-                linkedArticle={visiblePendingReply.linkedArticle}
-                className="opacity-72 transition-opacity"
-                badges={
-                  <Badge
-                    variant="secondary"
-                    className="h-5 rounded-full px-2 text-[11px]"
-                  >
-                    Sending
-                  </Badge>
-                }
-              />
-            </div>
-          ) : null}
-          <div ref={bottomAnchorRef} className="h-px" />
-        </div>
-      </div>
-
-      <ComposerShell
+    <DiscussionThreadContent
+      scrollContainerRef={scrollContainerRef}
+      bottomAnchorRef={bottomAnchorRef}
+      composer={
+        <DiscussionComposerShell
         currentUser={currentUser}
         header={
           <>
@@ -606,8 +494,50 @@ export function ConversationTabContent({
             </div>
           </div>
         </div>
-      </ComposerShell>
-    </>
+      </DiscussionComposerShell>
+      }
+    >
+      {conversationItems.map((item) => {
+        if (item.kind === "message") {
+          return <TimelineMessageCard key={item.id} item={item} />
+        }
+
+        return (
+          <ActivityTimelineEventItem
+            key={item.id}
+            item={mapTicketEventToActivityItem(item)}
+          />
+        )
+      })}
+      {visiblePendingReply ? (
+        <div
+          key={visiblePendingReply.id}
+          className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+        >
+          <DiscussionMessageEntry
+            author={currentUser}
+            timestamp="Sending..."
+            body={visiblePendingReply.body}
+            attachment={
+              visiblePendingReply.linkedArticle ? (
+                <KnowledgeArticleLinkCard
+                  article={visiblePendingReply.linkedArticle}
+                />
+              ) : null
+            }
+            className="opacity-72 transition-opacity"
+            badges={
+              <Badge
+                variant="secondary"
+                className="h-5 rounded-full px-2 text-[11px]"
+              >
+                Sending
+              </Badge>
+            }
+          />
+        </div>
+      ) : null}
+    </DiscussionThreadContent>
   )
 }
 
@@ -777,7 +707,7 @@ export function TicketDetailRightPanel({
           {activeSection === "people" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <TimelineAvatar person={detail.customer} />
+                <DiscussionAvatar person={detail.customer} />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-foreground">
                     {detail.customer.name}
@@ -789,7 +719,7 @@ export function TicketDetailRightPanel({
               <Separator />
 
               <div className="flex items-center gap-3">
-                <TimelineAvatar person={assignee} />
+                <DiscussionAvatar person={assignee} />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-foreground">
                     {assignee.name}

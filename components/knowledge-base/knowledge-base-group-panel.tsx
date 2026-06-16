@@ -9,7 +9,6 @@ import {
   IconFileText,
   IconPlug,
   IconPlus,
-  IconRefresh,
   IconSearch,
   IconShieldLock,
   IconTool,
@@ -56,8 +55,6 @@ type KnowledgeBaseGroupPanelProps = {
     icon: KnowledgeArticleGroupIcon
   }) => void
   onCreateArticle: () => void
-  hasLocalChanges: boolean
-  onResetContent: () => void
 }
 
 type GroupIconOption = {
@@ -216,8 +213,6 @@ export function KnowledgeBaseGroupPanel({
   onSelectArticle,
   onCreateGroup,
   onCreateArticle,
-  hasLocalChanges,
-  onResetContent,
 }: KnowledgeBaseGroupPanelProps) {
   const [isCreatingGroup, setIsCreatingGroup] = React.useState(false)
   const [groupName, setGroupName] = React.useState("")
@@ -528,22 +523,6 @@ export function KnowledgeBaseGroupPanel({
                     {knowledgeBasePageCopy.createArticle}
                   </span>
                 </Button>
-
-                {hasLocalChanges ? (
-                  <div className="mt-2 border-t border-border pt-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-9 w-full min-w-0 justify-start gap-2.5 rounded-xl px-3.5 text-left text-muted-foreground"
-                      onClick={onResetContent}
-                    >
-                      <IconRefresh className="size-4 shrink-0" />
-                      <span className="truncate text-sm">
-                        {knowledgeBasePageCopy.resetDemoContentTriggerLabel}
-                      </span>
-                    </Button>
-                  </div>
-                ) : null}
               </div>
             </div>
           ) : null}

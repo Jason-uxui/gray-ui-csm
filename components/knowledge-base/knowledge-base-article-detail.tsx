@@ -8,8 +8,10 @@ import {
   IconPencil,
 } from "@tabler/icons-react"
 
+import { KnowledgeArticleActivityTab } from "@/components/knowledge-base/knowledge-article-activity"
 import { KnowledgeArticleInsights } from "@/components/knowledge-base/knowledge-article-insights"
 import { KnowledgeArticleContentView } from "@/components/knowledge-base/knowledge-article-content-view"
+import { KnowledgeArticleComments } from "@/components/knowledge-base/knowledge-article-comments"
 import { KnowledgeArticleEditor } from "@/components/knowledge-base/knowledge-article-editor"
 import { knowledgeBasePageCopy } from "@/components/knowledge-base/knowledge-base-page.copy"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +35,7 @@ import {
 } from "@/components/knowledge-base/use-knowledge-article-editor"
 import type {
   KnowledgeArticle,
+  KnowledgeArticleComment,
   KnowledgeArticleSavePatch,
   KnowledgeArticleStatus,
 } from "@/lib/knowledge-base/types"
@@ -45,6 +48,10 @@ type KnowledgeBaseArticleDetailProps = {
   onEditModeStarted?: () => void
   onTabChange: (tab: ArticleDetailTab) => void
   onSaveArticle: (articleId: string, patch: KnowledgeArticleSavePatch) => void
+  onSaveArticleComments: (
+    articleId: string,
+    comments: KnowledgeArticleComment[]
+  ) => void
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void
 }
 
@@ -235,9 +242,13 @@ export function KnowledgeBaseArticleDetail({
   onEditModeStarted,
   onTabChange,
   onSaveArticle,
+  onSaveArticleComments,
   onUnsavedChangesChange,
 }: KnowledgeBaseArticleDetailProps) {
   const [showLinkCopied, setShowLinkCopied] = React.useState(false)
+  const [articleComments, setArticleComments] = React.useState(
+    () => article.comments ?? []
+  )
   const {
     isEditing,
     setIsEditing,
@@ -270,6 +281,10 @@ export function KnowledgeBaseArticleDetail({
   })
 
   React.useEffect(() => {
+    setArticleComments(article.comments ?? [])
+  }, [article.id, article.comments])
+
+  React.useEffect(() => {
     if (!showLinkCopied) return
 
     const timeoutId = window.setTimeout(() => {
@@ -292,7 +307,23 @@ export function KnowledgeBaseArticleDetail({
     }
   }
 
+  const handleCommentsChange = (comments: KnowledgeArticleComment[]) => {
+    setArticleComments(comments)
+    onSaveArticleComments(article.id, comments)
+  }
+
   const changesLabel = formatArticleChangesLabel(changedFields)
+  const hasCommentRecords =
+    article.comments !== undefined || articleComments.length > 0
+  const commentsCount =
+    hasCommentRecords
+      ? articleComments.length
+      : (article.commentsCount ??
+        Number(knowledgeBasePageCopy.commentsTabCountFallback))
+  const hasActivityRecords = article.activity !== undefined
+  const activityCount = hasActivityRecords
+    ? (article.activity?.length ?? 0)
+    : (article.activityCount ?? 0)
 
   return (
     <>
@@ -397,11 +428,13 @@ export function KnowledgeBaseArticleDetail({
                     disabled={isEditing && tab.value !== "content"}
                     className="flex-none gap-2 px-4"
                   >
-                    {tab.value === "comments" ? (
+                    {tab.value === "comments" || tab.value === "activity" ? (
                       <>
                         <span>{tab.label}</span>
                         <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                          {article.commentsCount ?? 3}
+                          {tab.value === "comments"
+                            ? commentsCount
+                            : activityCount}
                         </span>
                       </>
                     ) : (
@@ -454,32 +487,17 @@ export function KnowledgeBaseArticleDetail({
           value="comments"
           className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-8">
-            <div className="mx-auto max-w-4xl rounded-3xl border border-dashed bg-card/50 p-6">
-              <h2 className="text-xl font-semibold tracking-tight">
-                {knowledgeBasePageCopy.commentsEmptyTitle}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {knowledgeBasePageCopy.commentsEmptyDescription}
-              </p>
-            </div>
-          </div>
+          <KnowledgeArticleComments
+            article={{ ...article, comments: articleComments }}
+            onCommentsChange={handleCommentsChange}
+          />
         </TabsContent>
 
         <TabsContent
           value="activity"
           className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-6 py-8">
-            <div className="mx-auto max-w-4xl rounded-3xl border border-dashed bg-card/50 p-6">
-              <h2 className="text-xl font-semibold tracking-tight">
-                {knowledgeBasePageCopy.activityEmptyTitle}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {knowledgeBasePageCopy.activityEmptyDescription}
-              </p>
-            </div>
-          </div>
+          <KnowledgeArticleActivityTab article={article} />
         </TabsContent>
       </Tabs>
 

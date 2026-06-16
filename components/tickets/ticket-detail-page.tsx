@@ -23,7 +23,7 @@ import {
   TaskTabContent,
   TicketDetailRightPanel,
 } from "@/components/tickets/ticket-detail-sections"
-import { TicketPriorityIndicator } from "@/components/tickets/ticket-priority-indicator"
+import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
 import { useTicketReplyFlow } from "@/components/tickets/use-ticket-reply-flow"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

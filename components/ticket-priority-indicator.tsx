@@ -7,8 +7,8 @@ import {
 import type { ComponentType } from "react"
 
 import { ticketPriorityIndicatorToneClassName } from "@/lib/tickets/presentation"
-import { cn } from "@/lib/utils"
 import type { TicketPriority } from "@/lib/tickets/types"
+import { cn } from "@/lib/utils"
 
 type TicketPriorityIndicatorProps = {
   priority: TicketPriority

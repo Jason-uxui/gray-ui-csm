@@ -25,10 +25,11 @@ import {
   type DataGridColumn,
   type DataGridToolbarRenderProps,
 } from "@/components/data-grid"
-import { TicketPriorityIndicator } from "@/components/tickets/ticket-priority-indicator"
+import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
+import { TicketPriorityLabel } from "@/components/ticket-priority-label"
+import { TicketStatusBadge } from "@/components/ticket-status-badge"
 import { TicketTag } from "@/components/tickets/ticket-tag"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,6 @@ import {
   ticketChannelLabel as channelLabel,
   ticketHealthLabel as healthLabel,
   ticketStatusLabel as statusLabel,
-  ticketStatusToneClassName as statusToneClassName,
 } from "@/lib/tickets/presentation"
 import type {
   Ticket,
@@ -328,20 +328,6 @@ function TicketChannelCell({ channel }: { channel: TicketChannel }) {
   )
 }
 
-function TicketStatusBadge({ status }: { status: TicketQueueStatus }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "h-5 rounded-full px-2 text-xs font-medium",
-        statusToneClassName[status]
-      )}
-    >
-      {statusLabel[status]}
-    </Badge>
-  )
-}
-
 function renderStaticTicketCell(ticket: Ticket, columnId: TicketColumnId) {
   if (columnId === "ticketNumber") {
     return (
@@ -364,12 +350,7 @@ function renderStaticTicketCell(ticket: Ticket, columnId: TicketColumnId) {
   }
 
   if (columnId === "priority") {
-    return (
-      <span className="inline-flex items-center gap-2">
-        <TicketPriorityIndicator priority={ticket.priority} />
-        <span className="capitalize">{ticket.priority}</span>
-      </span>
-    )
+    return <TicketPriorityLabel priority={ticket.priority} />
   }
 
   if (columnId === "assignee") {
@@ -571,10 +552,7 @@ export function TicketTable({
                 <DropdownMenuTrigger
                   render={<CellMenuButton className="justify-start" />}
                 >
-                  <span className="inline-flex items-center gap-2">
-                    <TicketPriorityIndicator priority={ticket.priority} />
-                    <span className="capitalize">{ticket.priority}</span>
-                  </span>
+                  <TicketPriorityLabel priority={ticket.priority} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="min-w-40">
                   <DropdownMenuGroup>

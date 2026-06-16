@@ -50,6 +50,33 @@ function isKnowledgeBaseStorageSnapshot(
   )
 }
 
+function mergeArticleDefaults(
+  articles: KnowledgeArticle[],
+  fallbackArticles: KnowledgeArticle[]
+) {
+  return articles.map((article) => {
+    const fallbackArticle = fallbackArticles.find(
+      (candidate) => candidate.id === article.id
+    )
+
+    if (!fallbackArticle) return article
+
+    return {
+      ...article,
+      comments: article.comments ?? fallbackArticle.comments,
+      commentsCount:
+        article.comments?.length ??
+        fallbackArticle.comments?.length ??
+        article.commentsCount,
+      activity: article.activity ?? fallbackArticle.activity,
+      activityCount:
+        article.activity?.length ??
+        fallbackArticle.activity?.length ??
+        article.activityCount,
+    }
+  })
+}
+
 function migrateLegacyArticleStorage(
   articles: KnowledgeArticle[],
   fallbackGroups: KnowledgeBaseStorageSnapshot["groups"]
@@ -71,7 +98,10 @@ export function loadKnowledgeBaseSnapshot(
     if (rawSnapshot) {
       const parsed = JSON.parse(rawSnapshot) as unknown
       if (isKnowledgeBaseStorageSnapshot(parsed)) {
-        return parsed
+        return {
+          ...parsed,
+          articles: mergeArticleDefaults(parsed.articles, fallback.articles),
+        }
       }
     }
 
@@ -79,7 +109,10 @@ export function loadKnowledgeBaseSnapshot(
     if (rawLegacyArticles) {
       const parsedLegacy = JSON.parse(rawLegacyArticles) as unknown
       if (isKnowledgeArticleArray(parsedLegacy)) {
-        const migrated = migrateLegacyArticleStorage(parsedLegacy, fallback.groups)
+        const migrated = migrateLegacyArticleStorage(
+          mergeArticleDefaults(parsedLegacy, fallback.articles),
+          fallback.groups
+        )
         try {
           window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
           window.localStorage.removeItem(LEGACY_ARTICLES_KEY)

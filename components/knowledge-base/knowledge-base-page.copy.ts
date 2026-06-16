@@ -17,11 +17,6 @@ export const knowledgeBasePageCopy = {
   createGroupSubmitLabel: "Add group",
   createGroupCancelLabel: "Cancel",
   createGroupEmptyNameLabel: "Enter a group name",
-  resetDemoContentTriggerLabel: "Reset demo content",
-  resetDemoContentTitle: "Reset demo content?",
-  resetDemoContentDescription:
-    "This will restore the original article groups and articles for the demo workspace.",
-  resetDemoContentConfirmLabel: "Reset content",
   groupArticlesLabel: "Articles",
   groupEmptyTitle: "No articles yet",
   groupEmptyDescription: "New articles can be added to this group later.",
@@ -85,6 +80,11 @@ export const knowledgeBasePageCopy = {
   articleLastEditedPrefix: "Last edited",
   articleBylineSeparator: "·",
   commentsTabCountFallback: "0",
+  commentsComposerPlaceholder: "Comment or type '/' for commands",
+  commentsComposerSubmitLabel: "Comment",
+  commentsEmptyTitle: "No comments yet",
+  commentsEmptyDescription:
+    "Start an editorial discussion when this article needs review, clarification, or follow-up.",
   bodyCustomerReplyTitle: "Suggested customer reply",
   insightsViewsLabel: "Views",
   insightsHelpfulRateLabel: "Helpful rate",
@@ -93,10 +93,7 @@ export const knowledgeBasePageCopy = {
   insightsEmptyTitle: "Insight modules coming next",
   insightsEmptyDescription:
     "This area can expand into article performance, deflection quality, and usage context after the detail view is locked in.",
-  commentsEmptyTitle: "Comments shell goes here",
-  commentsEmptyDescription:
-    "Inline review notes, editorial discussion, and content feedback can plug into this tab later.",
-  activityEmptyTitle: "Activity shell goes here",
+  activityEmptyTitle: "No activity yet",
   activityEmptyDescription:
-    "Version history, article changes, and related publishing events can be surfaced here next.",
+    "Publishing, review, and article edit events will appear here.",
 }

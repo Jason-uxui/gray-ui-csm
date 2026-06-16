@@ -2,9 +2,7 @@
 
 import * as React from "react"
 
-import {
-  KnowledgeBaseArticleDetail,
-} from "@/components/knowledge-base/knowledge-base-article-detail"
+import { KnowledgeBaseArticleDetail } from "@/components/knowledge-base/knowledge-base-article-detail"
 import { KnowledgeBaseGroupPanel } from "@/components/knowledge-base/knowledge-base-group-panel"
 import { KnowledgeBaseContentPlaceholder } from "@/components/knowledge-base/knowledge-base-page-sections"
 import { knowledgeBasePageCopy } from "@/components/knowledge-base/knowledge-base-page.copy"
@@ -33,10 +31,7 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
     searchValue,
     setSearchValue,
     setHasUnsavedArticleChanges,
-    hasLocalChanges,
     pendingNavigationAction,
-    isResetDialogOpen,
-    setIsResetDialogOpen,
     editOnMountArticleId,
     clearEditOnMountArticleId,
     replaceQuery,
@@ -45,15 +40,14 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
     handleCreateArticle,
     handleCreateGroup,
     handleSaveArticle,
-    handleRequestResetKnowledgeBase,
-    handleConfirmResetKnowledgeBase,
+    handleSaveArticleComments,
     handleConfirmPendingNavigation,
     handleDismissPendingNavigation,
   } = useKnowledgeBasePageState()
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <section className="flex min-h-0 flex-1 flex-col -m-4 sm:-m-6 lg:-m-8">
+      <section className="-m-4 flex min-h-0 flex-1 flex-col sm:-m-6 lg:-m-8">
         <div
           className={cn(
             "grid min-h-0 flex-1 overflow-hidden border-t border-border",
@@ -74,8 +68,6 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
             onSelectArticle={handleSelectArticle}
             onCreateGroup={handleCreateGroup}
             onCreateArticle={handleCreateArticle}
-            hasLocalChanges={hasLocalChanges}
-            onResetContent={handleRequestResetKnowledgeBase}
           />
 
           <section className="flex min-h-0 flex-col overflow-hidden">
@@ -87,6 +79,7 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
                 onEditModeStarted={clearEditOnMountArticleId}
                 onTabChange={(nextTab) => replaceQuery({ articleTab: nextTab })}
                 onSaveArticle={handleSaveArticle}
+                onSaveArticleComments={handleSaveArticleComments}
                 onUnsavedChangesChange={setHasUnsavedArticleChanges}
               />
             ) : (
@@ -113,17 +106,6 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
         cancelLabel={knowledgeBasePageCopy.articleCancelLabel}
         confirmVariant="destructive"
         onConfirm={handleConfirmPendingNavigation}
-      />
-
-      <ConfirmDialog
-        open={isResetDialogOpen}
-        onOpenChange={setIsResetDialogOpen}
-        title={knowledgeBasePageCopy.resetDemoContentTitle}
-        description={knowledgeBasePageCopy.resetDemoContentDescription}
-        confirmLabel={knowledgeBasePageCopy.resetDemoContentConfirmLabel}
-        cancelLabel={knowledgeBasePageCopy.articleCancelLabel}
-        confirmVariant="destructive"
-        onConfirm={handleConfirmResetKnowledgeBase}
       />
     </div>
   )

@@ -90,17 +90,21 @@ function ComposerShell({
 export function SharedActivityTabContent({
   items,
   emptyMessage = "No recent activity.",
+  contentClassName,
 }: {
   items: ActivityTimelineItem[]
   emptyMessage?: string
+  contentClassName?: string
 }) {
   return (
     <div className="scrollbar-hidden h-full overflow-y-auto px-6 py-6">
-      {items.length > 0 ? (
-        <ActivityTimelineList items={items} />
-      ) : (
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-      )}
+      <div className={cn(contentClassName)}>
+        {items.length > 0 ? (
+          <ActivityTimelineList items={items} />
+        ) : (
+          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        )}
+      </div>
     </div>
   )
 }

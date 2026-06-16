@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   useId,
   useMemo,
@@ -10,15 +11,12 @@ import {
 import {
   IconArrowDownRight,
   IconArrowUpRight,
-  IconBook2,
-  IconCircleCheck,
   IconClock,
   IconEye,
-  IconMessageReport,
   IconMinus,
-  IconSearch,
+  IconStar,
+  IconStarFilled,
   IconTicket,
-  IconThumbDown,
   IconThumbUp,
   IconTargetArrow,
 } from "@tabler/icons-react"
@@ -33,6 +31,9 @@ import {
 } from "recharts"
 
 import { StatCard } from "@/components/stats/stat-card"
+import { TicketPriorityLabel } from "@/components/ticket-priority-label"
+import { TicketStatusBadge } from "@/components/ticket-status-badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -41,7 +42,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -51,13 +51,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
+  useKnowledgeInsightSignals,
+  type KnowledgeMatchingSignalView,
+} from "@/components/knowledge-base/use-knowledge-insight-signals"
+import {
   getKnowledgeArticleInsights,
   type KnowledgeArticleInsightsViewModel,
   type KnowledgeInsightMetric,
   type KnowledgeInsightPerformanceRange,
-  type KnowledgeInsightSignal,
   type KnowledgeInsightSignalSource,
   type KnowledgeInsightTrend,
+  type KnowledgeFeedbackComment,
   type KnowledgeLinkedTicket,
   type KnowledgeLinkedTicketContext,
 } from "@/lib/knowledge-base/insights"
@@ -80,6 +84,9 @@ const metricIconByKey: Record<
 type PerformanceChartType = "bar" | "line"
 
 const MIN_HELPFUL_RATE_SEGMENT_PERCENT = 24
+const MATCHING_PROGRESS_MIN_PERCENT = 3
+const SEARCH_DISCOVERY_MIN_PERCENT = 12
+type SearchDiscoveryMetric = "ctr" | "views"
 
 const sourceLabel: Record<KnowledgeInsightSignalSource, string> = {
   manual: "Manual",
@@ -110,6 +117,25 @@ function SectionHeading({ title }: { title: string }) {
     <h2 className="text-lg font-semibold tracking-tight text-foreground">
       {title}
     </h2>
+  )
+}
+
+function EmptyTableRow({
+  children,
+  colSpan,
+}: {
+  children: ReactNode
+  colSpan: number
+}) {
+  return (
+    <TableRow className="hover:bg-transparent">
+      <TableCell
+        colSpan={colSpan}
+        className="h-24 text-center text-sm text-muted-foreground"
+      >
+        {children}
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -692,55 +718,51 @@ function MatchingSection({
 }: {
   insights: KnowledgeArticleInsightsViewModel
 }) {
+  const {
+    maxMatches,
+    sortedSignals,
+    handleAddSignal,
+    handleRemove,
+    handleToggleMute,
+  } = useKnowledgeInsightSignals(insights.matching.signals)
+
   return (
     <section className="space-y-4">
       <SectionHeading title="Matching" />
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="grid gap-4 border-b border-border p-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:p-5">
-          <div className="min-w-0 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base font-semibold tracking-tight">
-                Match signals
-              </h3>
-              <Badge variant="outline" className="h-7 rounded-full px-3">
-                Category: {insights.matching.categoryLabel}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-wrap items-center gap-2 self-start rounded-xl border border-border bg-muted/40 p-2">
-            <div className="relative min-w-40 flex-1">
-              <IconSearch className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                aria-label="Matching test query"
-                readOnly
-                value={insights.matching.testQuery}
-                className="h-8 rounded-lg border-0 bg-transparent px-2 pl-8 shadow-none focus-visible:ring-0"
-              />
-            </div>
-            <Badge
-              variant="secondary"
-              className="h-7 max-w-full rounded-full px-2.5"
-            >
-              {insights.matching.testResult}
-            </Badge>
-          </div>
-        </div>
-
-        <Table>
+        <Table className="min-w-[50rem]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[34%]">Signal</TableHead>
+              <TableHead className="w-[34%]">
+                Signal
+              </TableHead>
               <TableHead>Source</TableHead>
-              <TableHead>Matches 30d</TableHead>
-              <TableHead>Opened</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Matches</TableHead>
+              <TableHead>
+                Article opened
+              </TableHead>
+              <TableHead className="w-32 text-right">
+                <span className="sr-only">Actions</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {insights.matching.signals.map((signal) => (
-              <MatchingSignalRow key={signal.id} signal={signal} />
-            ))}
+            {sortedSignals.length > 0 ? (
+              sortedSignals.map((signal) => (
+                <MatchingSignalRow
+                  key={signal.id}
+                  maxMatches={maxMatches}
+                  signal={signal}
+                  onAddSignal={handleAddSignal}
+                  onMuteSignal={handleToggleMute}
+                  onRemoveSignal={handleRemove}
+                />
+              ))
+            ) : (
+              <EmptyTableRow colSpan={5}>
+                No matching signals are available for this article.
+              </EmptyTableRow>
+            )}
           </TableBody>
         </Table>
       </div>
@@ -748,12 +770,35 @@ function MatchingSection({
   )
 }
 
-function MatchingSignalRow({ signal }: { signal: KnowledgeInsightSignal }) {
+function MatchingSignalRow({
+  maxMatches,
+  signal,
+  onAddSignal,
+  onMuteSignal,
+  onRemoveSignal,
+}: {
+  maxMatches: number
+  signal: KnowledgeMatchingSignalView
+  onAddSignal: (signalId: string) => void
+  onMuteSignal: (signalId: string) => void
+  onRemoveSignal: (signalId: string) => void
+}) {
+  const progressValue = Math.max(
+    Math.round((signal.matches30d / maxMatches) * 100),
+    signal.matches30d > 0 ? MATCHING_PROGRESS_MIN_PERCENT : 0
+  )
+  const isSuggested = signal.source === "suggested"
+  const actionButtonClassName = "h-auto px-0 py-0 text-sm font-semibold"
+
   return (
-    <TableRow>
+    <TableRow
+      className={cn(
+        signal.isMuted && "opacity-55",
+        isSuggested && "bg-primary/5 hover:bg-primary/10"
+      )}
+    >
       <TableCell>
-        <div className="flex min-w-0 items-center gap-2">
-          <IconBook2 className="size-4 shrink-0 text-muted-foreground" />
+        <div className="flex min-w-0 items-center gap-2 font-medium text-foreground">
           <span className="truncate font-medium text-foreground">
             {signal.signal}
           </span>
@@ -762,13 +807,63 @@ function MatchingSignalRow({ signal }: { signal: KnowledgeInsightSignal }) {
       <TableCell>
         <MatchingSourceBadge source={signal.source} />
       </TableCell>
-      <TableCell className="font-medium text-foreground tabular-nums">
-        {signal.matches30d.toLocaleString("en-US")}
+      <TableCell>
+        <div className="flex min-w-[12rem] items-center gap-3">
+          <span className="w-12 font-medium text-foreground tabular-nums">
+            {signal.matches30d.toLocaleString("en-US")}
+          </span>
+          {signal.missedSearchesLabel ? (
+            <span className="text-muted-foreground">
+              {signal.missedSearchesLabel}
+            </span>
+          ) : (
+            <div
+              aria-label={`${signal.matches30d.toLocaleString("en-US")} matches in the last 30 days`}
+              className="h-2 w-28 overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${progressValue}%` }}
+              />
+            </div>
+          )}
+        </div>
       </TableCell>
       <TableCell className="font-medium text-foreground tabular-nums">
         {signal.openRate === null ? "-" : `${signal.openRate}%`}
       </TableCell>
-      <TableCell className="text-muted-foreground">{signal.status}</TableCell>
+      <TableCell className="text-right">
+        {signal.action === "add" ? (
+          <Button
+            size="sm"
+            className="h-8 rounded-full px-4"
+            onClick={() => onAddSignal(signal.id)}
+          >
+            Add signal
+          </Button>
+        ) : signal.action === "remove" ? (
+          <Button
+            variant="ghost"
+            className={cn(
+              actionButtonClassName,
+              "text-destructive hover:text-destructive"
+            )}
+            onClick={() => onRemoveSignal(signal.id)}
+          >
+            Remove?
+          </Button>
+        ) : (
+          <div className="flex justify-end gap-2 text-sm">
+            <Button
+              variant="ghost"
+              className={actionButtonClassName}
+              onClick={() => onMuteSignal(signal.id)}
+            >
+              {signal.isMuted ? "Unmute" : "Mute"}
+            </Button>
+          </div>
+        )}
+      </TableCell>
     </TableRow>
   )
 }
@@ -782,42 +877,76 @@ function LinkedTicketsSection({
     <section className="space-y-4">
       <SectionHeading title="Linked tickets" />
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <Table>
+        <Table className="min-w-[44rem] table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Ticket</TableHead>
-              <TableHead className="min-w-60">Subject</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Reader context</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead className="w-28">Ticket</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead className="hidden w-28 xl:table-cell">Type</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-28">Priority</TableHead>
+              <TableHead className="w-36">Reader context</TableHead>
+              <TableHead className="hidden w-36 xl:table-cell">
+                Customer
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {insights.linkedTickets.rows.map((ticket) => (
-              <TableRow key={ticket.id}>
-                <TableCell className="font-medium text-muted-foreground tabular-nums">
-                  {ticket.ticketNumber}
-                </TableCell>
-                <TableCell className="max-w-80 truncate font-medium text-foreground">
-                  {ticket.subject}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="h-6 rounded-full px-2.5">
-                    {ticketTypeLabel[ticket.type]}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {ticketContextLabel[ticket.context]}
-                </TableCell>
-                <TableCell className="font-medium text-foreground">
-                  {ticket.customer}
-                </TableCell>
-              </TableRow>
-            ))}
+            {insights.linkedTickets.rows.length > 0 ? (
+              insights.linkedTickets.rows.map((ticket) => (
+                <LinkedTicketRow key={ticket.id} ticket={ticket} />
+              ))
+            ) : (
+              <EmptyTableRow colSpan={7}>
+                No linked tickets are available for this article.
+              </EmptyTableRow>
+            )}
           </TableBody>
         </Table>
       </div>
     </section>
+  )
+}
+
+function LinkedTicketRow({ ticket }: { ticket: KnowledgeLinkedTicket }) {
+  const ticketHref = `/tickets/${ticket.ticketId}`
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Link
+          href={ticketHref}
+          className="inline-flex whitespace-nowrap font-medium text-muted-foreground tabular-nums underline-offset-4 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        >
+          {ticket.ticketNumber}
+        </Link>
+      </TableCell>
+      <TableCell className="max-w-80">
+        <Link
+          href={ticketHref}
+          className="block truncate font-medium text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        >
+          {ticket.subject}
+        </Link>
+      </TableCell>
+      <TableCell className="hidden xl:table-cell">
+        <Badge variant="outline" className="h-6 rounded-full px-2.5">
+          {ticketTypeLabel[ticket.type]}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <TicketStatusBadge status={ticket.status} />
+      </TableCell>
+      <TableCell>
+        <TicketPriorityLabel priority={ticket.priority} />
+      </TableCell>
+      <TableCell className="text-muted-foreground">
+        {ticketContextLabel[ticket.context]}
+      </TableCell>
+      <TableCell className="hidden font-medium text-foreground xl:table-cell">
+        {ticket.customer}
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -826,85 +955,264 @@ function FeedbackSection({
 }: {
   insights: KnowledgeArticleInsightsViewModel
 }) {
+  const [filter, setFilter] = useState<"helpful" | "not-helpful">("helpful")
+  const comments = useMemo(
+    () =>
+      [...insights.feedback.helpfulComments, ...insights.feedback.negativeComments]
+        .sort(
+          (firstComment, secondComment) =>
+            getCommentAgeDays(firstComment.age) - getCommentAgeDays(secondComment.age)
+        ),
+    [insights.feedback.helpfulComments, insights.feedback.negativeComments]
+  )
+  const filteredComments = useMemo(
+    () => comments.filter((comment) => comment.vote === filter),
+    [comments, filter]
+  )
+
   return (
     <section className="space-y-4">
-      <SectionHeading title="Feedback" />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <FeedbackColumn
-          title={`Not helpful - ${insights.feedback.notHelpfulVotes} votes`}
-          icon={<IconThumbDown className="size-4" />}
-          comments={insights.feedback.negativeComments}
-          tone="negative"
+      <SectionHeading title="Quality signals" />
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,1fr)]">
+        <CustomerFeedbackPanel
+          averageRating={insights.feedback.averageRating}
+          comments={filteredComments}
+          filter={filter}
+          onFilterChange={setFilter}
+          reviewCount={insights.feedback.reviewCount}
         />
-        <FeedbackColumn
-          title={`Helpful - ${insights.feedback.helpfulVotes} votes`}
-          icon={<IconThumbUp className="size-4" />}
-          comments={insights.feedback.helpfulComments}
-          tone="positive"
+        <SearchDiscoveryPanel
+          queries={insights.searchDiscovery.queries}
         />
       </div>
     </section>
   )
 }
 
-function FeedbackColumn({
-  title,
-  icon,
+function CustomerFeedbackPanel({
+  averageRating,
   comments,
-  tone,
+  filter,
+  onFilterChange,
+  reviewCount,
 }: {
-  title: string
-  icon: ReactNode
-  comments: KnowledgeArticleInsightsViewModel["feedback"]["negativeComments"]
-  tone: "negative" | "positive"
+  averageRating: number
+  comments: KnowledgeFeedbackComment[]
+  filter: "helpful" | "not-helpful"
+  onFilterChange: (nextFilter: "helpful" | "not-helpful") => void
+  reviewCount: number
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
-      <div
-        className={cn(
-          "flex items-center gap-2 text-sm font-semibold",
-          tone === "negative"
-            ? "text-rose-600 dark:text-rose-300"
-            : "text-emerald-600 dark:text-emerald-300"
-        )}
-      >
-        {icon}
-        {title}
-      </div>
-      <div className="mt-4 space-y-3">
+    <InsightMetricBlock
+      action={
+        <div className="inline-flex w-fit items-center gap-1 rounded-full bg-muted p-0.5">
+          <FeedbackFilterButton
+            active={filter === "helpful"}
+            emoji="👍"
+            label="Helpful"
+            onClick={() => onFilterChange("helpful")}
+          />
+          <FeedbackFilterButton
+            active={filter === "not-helpful"}
+            emoji="👎"
+            label="Not helpful"
+            onClick={() => onFilterChange("not-helpful")}
+          />
+        </div>
+      }
+      className="h-full"
+      contentClassName="flex h-[28rem] flex-col overflow-hidden p-0"
+      icon={<IconStarFilled className="size-3.5 fill-amber-400 text-amber-400" />}
+      label={`${averageRating.toFixed(1)} · ${reviewCount} Customer feedbacks`}
+    >
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-1 pb-1">
         {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className="rounded-xl border border-border bg-muted/30 p-3"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1 font-medium text-foreground">
-                {comment.vote === "helpful" ? (
-                  <IconCircleCheck className="size-3.5 text-emerald-600 dark:text-emerald-300" />
-                ) : (
-                  <IconMessageReport className="size-3.5 text-rose-600 dark:text-rose-300" />
-                )}
-                {comment.vote === "helpful" ? "Helpful" : "Not helpful"}
+          <FeedbackListItem key={comment.id} comment={comment} />
+        ))}
+        {comments.length === 0 ? (
+          <div className="px-4 py-8 text-sm text-muted-foreground sm:px-5">
+            No feedback matches this filter yet.
+          </div>
+        ) : null}
+      </div>
+    </InsightMetricBlock>
+  )
+}
+
+function FeedbackFilterButton({
+  active,
+  emoji,
+  label,
+  onClick,
+}: {
+  active: boolean
+  emoji: string
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Button
+      variant={active ? "outline" : "ghost"}
+      size="icon-xs"
+      className={cn(
+        "rounded-full",
+        active
+          ? "bg-background text-foreground shadow-none hover:bg-background dark:bg-input/30"
+          : "text-muted-foreground hover:bg-background/60 hover:text-foreground dark:hover:bg-input/20"
+      )}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      <span aria-hidden="true" className="text-sm leading-none">
+        {emoji}
+      </span>
+    </Button>
+  )
+}
+
+function FeedbackListItem({
+  comment,
+}: {
+  comment: KnowledgeFeedbackComment
+}) {
+  return (
+    <div data-feedback-item className="flex gap-4 rounded-lg px-3 py-4 sm:px-4">
+      <Avatar size="lg">
+        <AvatarFallback className="bg-muted text-sm font-semibold text-foreground">
+          {comment.authorInitials}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1 space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="truncate text-base font-semibold text-foreground">
+                {comment.authorName}
               </span>
-              <span>{comment.age}</span>
+              <StarRating rating={comment.rating} />
             </div>
-            <p className="mt-2 text-sm leading-6 text-foreground">
+            <p className="text-base leading-7 text-muted-foreground">
               {comment.body}
             </p>
-            <Badge variant="secondary" className="mt-3 h-6 rounded-full px-2.5">
-              From: {comment.source}
-            </Badge>
           </div>
-        ))}
+          <div className="flex shrink-0 items-center text-sm text-muted-foreground">
+            <span>{comment.age}</span>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
+function StarRating({ rating }: { rating: number }) {
+  const roundedRating = Math.round(rating)
+
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: 5 }, (_, index) =>
+        index < roundedRating ? (
+          <IconStarFilled
+            key={index}
+            className="size-4 fill-amber-400 text-amber-400"
+          />
+        ) : (
+          <IconStar key={index} className="size-4 text-muted-foreground/45" />
+        )
+      )}
+    </span>
+  )
+}
+
+function SearchDiscoveryPanel({
+  queries,
+}: {
+  queries: KnowledgeArticleInsightsViewModel["searchDiscovery"]["queries"]
+}) {
+  const [selectedMetric, setSelectedMetric] =
+    useState<SearchDiscoveryMetric>("ctr")
+  const maxMetricValue = useMemo(
+    () =>
+      Math.max(
+        ...queries.map((query) =>
+          selectedMetric === "ctr" ? query.ctr : query.views
+        ),
+        1
+      ),
+    [queries, selectedMetric]
+  )
+
+  return (
+    <InsightMetricBlock
+      action={
+        <SegmentedControl
+          ariaLabel="Search discovery metric"
+          options={[
+            { label: "CTR", value: "ctr" },
+            { label: "Views", value: "views" },
+          ]}
+          value={selectedMetric}
+          onChange={(value) =>
+            setSelectedMetric(value as SearchDiscoveryMetric)
+          }
+        />
+      }
+      className="h-full"
+      contentClassName="flex h-[28rem] flex-col overflow-hidden p-0"
+      icon={<IconEye className="size-3.5" />}
+      label="Search Discovery"
+    >
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-1 pt-1">
+        {queries.map((query) => (
+          <div
+            key={query.id}
+            data-search-query-row
+            className="space-y-4 rounded-lg px-3 py-4 sm:px-4"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <p className="min-w-0 text-lg font-medium text-foreground">
+                {query.query}
+              </p>
+              <div className="shrink-0 text-right text-sm">
+                <p className="whitespace-nowrap font-medium text-foreground">
+                  {selectedMetric === "ctr"
+                    ? `${query.ctr}% CTR`
+                    : `${query.views.toLocaleString("en-US")} views`}
+                </p>
+              </div>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{
+                  width: `${Math.max(
+                    Math.round(
+                      ((selectedMetric === "ctr" ? query.ctr : query.views) /
+                        maxMetricValue) *
+                        100
+                    ),
+                    SEARCH_DISCOVERY_MIN_PERCENT
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </InsightMetricBlock>
+  )
+}
+
+function getCommentAgeDays(age: string) {
+  const matches = age.match(/(\d+)/)
+
+  return matches ? Number(matches[1]) : Number.MAX_SAFE_INTEGER
+}
+
 export function KnowledgeArticleInsights({
   article,
 }: KnowledgeArticleInsightsProps) {
-  const insights = getKnowledgeArticleInsights(article)
+  const insights = useMemo(() => getKnowledgeArticleInsights(article), [article])
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-9">

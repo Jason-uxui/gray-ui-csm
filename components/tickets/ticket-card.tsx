@@ -1,6 +1,6 @@
 import { IconBrandSlack, IconMail, IconMessage2 } from "@tabler/icons-react"
 
-import { TicketPriorityIndicator } from "@/components/tickets/ticket-priority-indicator"
+import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
 import { TicketTag } from "@/components/tickets/ticket-tag"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"

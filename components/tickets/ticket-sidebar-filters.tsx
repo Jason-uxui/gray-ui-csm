@@ -12,7 +12,7 @@ import {
   IconUserQuestion,
 } from "@tabler/icons-react"
 
-import { TicketPriorityIndicator } from "@/components/tickets/ticket-priority-indicator"
+import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
 import {
   SidebarGroup,
   SidebarGroupContent,
