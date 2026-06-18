@@ -125,7 +125,7 @@ function KnowledgeArticleLinkCard({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-background p-3 text-left shadow-sm",
+        "rounded-xl border bg-background p-3 text-left",
         className
       )}
     >

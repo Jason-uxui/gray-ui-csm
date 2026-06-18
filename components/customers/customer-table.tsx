@@ -360,7 +360,7 @@ export function CustomersTable({
         stickySummaryFooter
         fillAvailableHeight
         disablePointerDismissal={false}
-        tableContainerClassName="h-full"
+        tableContainerClassName="scrollbar-hidden h-full overflow-x-auto overflow-y-hidden"
       />
     </div>
   )
