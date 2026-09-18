@@ -1,0 +1,27 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28.1275" height="26.7917" viewBox="0 0 28.1275 26.7917" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="Logomark wrapper">
+    <g id="Vector" filter="url(#filter0_dd_0_4)">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M10.955 3C9.2236 3 7.62375 3.89343 6.75807 5.34375L3.64926 10.5521C2.78358 12.0024 2.78358 13.7893 3.64926 15.2396L6.75807 20.4479C7.62375 21.8982 9.2236 22.7917 10.955 22.7917H17.1726C18.9039 22.7917 20.5038 21.8982 21.3695 20.4479L24.4783 15.2396C25.344 13.7893 25.344 12.0024 24.4783 10.5521L21.3695 5.34375C20.5038 3.89343 18.9039 3 17.1726 3H10.955ZM17.1726 6.125L13.2866 6.125C12.6648 6.125 12.2763 6.77599 12.5877 7.29656C13.5483 8.9027 14.5112 10.5076 15.4703 12.1146C15.7589 12.598 15.7589 13.1936 15.4703 13.6771C14.5112 15.284 13.5483 16.889 12.5877 18.4951C12.2763 19.0157 12.6648 19.6667 13.2866 19.6667H17.1726C17.7497 19.6667 18.283 19.3689 18.5715 18.8854L21.6803 13.6771C21.9689 13.1936 21.9689 12.598 21.6804 12.1146L18.5715 6.90625C18.283 6.42281 17.7497 6.125 17.1726 6.125Z" fill="url(#paint0_linear_0_4)"/>
+    </g>
+  </g>
+  <defs>
+    <filter id="filter0_dd_0_4" x="0" y="1" width="28.1275" height="25.7917" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="1"/>
+      <feGaussianBlur stdDeviation="1"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_4"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="1"/>
+      <feGaussianBlur stdDeviation="1.5"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+      <feBlend mode="normal" in2="effect1_dropShadow_0_4" result="effect2_dropShadow_0_4"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_0_4" result="shape"/>
+    </filter>
+    <linearGradient id="paint0_linear_0_4" x1="14.0638" y1="3" x2="14.0638" y2="58.3961" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="white" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -9,7 +9,7 @@ type StatCardProps = {
   value: ReactNode
   valueClassName?: string
   footer: ReactNode
-  density?: "default" | "compact"
+  density?: "default" | "compact" | "ticket"
 }
 
 export function StatCard({
@@ -23,12 +23,16 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "gap-0 rounded-2xl border bg-muted/40 shadow-none ring-0 dark:bg-muted/25",
-        density === "compact" ? "p-1" : "p-1.5"
+        "gap-0 rounded-[14px] border-transparent bg-card shadow-raised-control ring-0",
+        density === "compact" ? "p-1" : density === "ticket" ? "h-full p-1" : "p-1.5"
       )}
     >
       <CardHeader
-        className={cn("px-2 pt-1", density === "compact" ? "pb-1.5" : "pb-2")}
+        className={cn(
+          "!rounded-none pt-1",
+          density === "ticket" ? "!px-3 pb-2" : "!px-4",
+          density === "compact" ? "pb-1.5" : "pb-2"
+        )}
       >
         <div className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {icon}
@@ -37,10 +41,12 @@ export function StatCard({
       </CardHeader>
       <CardContent
         className={cn(
-          "rounded-[calc(var(--radius-2xl)-6px)] border border-border bg-card",
+          "rounded-[calc(var(--radius-2xl)-6px)] border border-border bg-background",
           density === "compact"
             ? "space-y-1.5 px-3 py-2.5"
-            : "space-y-3 px-5 py-4"
+            : density === "ticket"
+              ? "flex min-h-0 flex-1 flex-col justify-between space-y-3 p-3"
+            : "space-y-3 px-4 py-4"
         )}
       >
         <p

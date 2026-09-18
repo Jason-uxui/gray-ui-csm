@@ -331,7 +331,7 @@ function TicketChannelCell({ channel }: { channel: TicketChannel }) {
 function renderStaticTicketCell(ticket: Ticket, columnId: TicketColumnId) {
   if (columnId === "ticketNumber") {
     return (
-      <span className="font-medium text-muted-foreground">
+      <span className="font-medium text-foreground">
         {ticket.ticketNumber}
       </span>
     )
@@ -470,7 +470,7 @@ export function TicketTable({
   }, [onToolbarPropsChange])
 
   return (
-    <div className="h-full min-h-0 overflow-hidden rounded-xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="h-full min-h-0 overflow-hidden rounded-xl border border-border bg-background">
       <DataGrid<Ticket, TicketColumnId>
         rows={sortedTickets}
         columns={visibleColumns}

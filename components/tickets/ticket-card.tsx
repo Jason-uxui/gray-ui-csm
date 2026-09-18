@@ -43,7 +43,7 @@ export function TicketCard({
     <Card
       onClick={onClick}
       className={cn(
-        "gap-0 rounded-2xl border bg-card py-0 shadow-none ring-0 transition-[transform,opacity,box-shadow,border-color,background-color] duration-200",
+        "gap-0 rounded-2xl border bg-background py-0 shadow-none ring-0 transition-[transform,opacity,box-shadow,border-color,background-color] duration-200",
         onClick ? "cursor-pointer" : "",
         isDragging
           ? "scale-[0.98] rotate-1 border-primary/25 opacity-35 shadow-xl"
@@ -69,7 +69,10 @@ export function TicketCard({
         <div className="flex items-center justify-between">
           <Avatar className="size-6 border bg-background">
             {avatarUrl ? (
-              <AvatarImage src={avatarUrl} alt={ticket.assignee?.name ?? "Assignee"} />
+              <AvatarImage
+                src={avatarUrl}
+                alt={ticket.assignee?.name ?? "Assignee"}
+              />
             ) : null}
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>

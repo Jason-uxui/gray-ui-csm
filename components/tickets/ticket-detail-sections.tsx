@@ -664,7 +664,7 @@ export function TicketDetailRightPanel({
                             ? "bg-status-success"
                             : queueStatus === "pending"
                               ? "bg-status-warning"
-                              : "bg-sky-500"
+                              : "bg-status-in-review-foreground"
                       )}
                     />
                     {statusLabel[queueStatus]}
