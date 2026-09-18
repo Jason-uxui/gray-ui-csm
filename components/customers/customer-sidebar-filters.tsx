@@ -12,20 +12,25 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react"
 
+import { Badge } from "@/components/ui/badge"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { customerSidebarGroups } from "@/lib/customers/mock-data"
 import type { CustomerSidebarGroup } from "@/lib/customers/types"
-import { cn } from "@/lib/utils"
 
-const BADGED_VIEW_KEYS = new Set(["mine", "at-risk", "renewal", "high-touch"])
+const BADGED_VIEW_KEYS = new Set([
+  "all",
+  "mine",
+  "at-risk",
+  "renewal",
+  "high-touch",
+])
 
 function CustomerFilterIcon({
   groupKey,
@@ -67,53 +72,48 @@ export function CustomerSidebarFilters() {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-3 py-3">
+    <div className="flex flex-col">
       {customerSidebarGroups.map((group) => (
-        <SidebarGroup key={group.key} className="p-2 pb-3 gap-2">
-          <SidebarGroupLabel className="py-2 px-2 text-xs tracking-widest font-mono text-sidebar-foreground/65 uppercase">
-            {group.label}
-          </SidebarGroupLabel>
+        <div key={group.key}>
+          <SidebarGroup>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
 
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {group.items.map((item) => {
-                const isActive = group.key === "views" && item.key === activeView
-                const shouldShowBadge =
-                  group.key === "views" && BADGED_VIEW_KEYS.has(item.key)
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0">
+                {group.items.map((item) => {
+                  const isActive = group.key === "views" && item.key === activeView
+                  const shouldShowBadge =
+                    group.key === "views" && BADGED_VIEW_KEYS.has(item.key)
 
-                return (
-                  <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton
-                      render={
-                        <Link href={buildItemHref(group.key, item.key)} />
-                      }
-                      isActive={isActive}
-                      className="h-8 rounded-lg px-2"
-                    >
-                      <CustomerFilterIcon
-                        groupKey={group.key}
-                        itemKey={item.key}
-                      />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                    {shouldShowBadge ? (
-                      <SidebarMenuBadge
-                        className={cn(
-                          "top-1.5 rounded-full px-1.5 text-xs font-medium",
-                          isActive
-                            ? "bg-background text-sidebar-accent-foreground"
-                            : "bg-muted-foreground/10 text-sidebar-foreground/80"
-                        )}
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <SidebarMenuButton
+                        render={
+                          <Link href={buildItemHref(group.key, item.key)} />
+                        }
+                        isActive={isActive}
                       >
-                        {item.count}
-                      </SidebarMenuBadge>
-                    ) : null}
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <CustomerFilterIcon
+                          groupKey={group.key}
+                          itemKey={item.key}
+                        />
+                        <span>{item.label}</span>
+                        {shouldShowBadge ? (
+                          <Badge
+                            variant="secondary"
+                            className="ml-auto h-5 shrink-0 px-2.5 text-xs font-medium shadow-raised-control"
+                          >
+                            {item.count}
+                          </Badge>
+                        ) : null}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       ))}
     </div>
   )

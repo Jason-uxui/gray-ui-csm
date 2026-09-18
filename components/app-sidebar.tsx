@@ -6,7 +6,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   IconBook,
-  IconCommand,
   IconInbox,
   IconLock,
   IconSettingsAutomation,
@@ -15,6 +14,7 @@ import {
 } from "@tabler/icons-react"
 
 import { CustomerSidebarFilters } from "@/components/customers/customer-sidebar-filters"
+import { GrayCsmLogo } from "@/components/gray-csm-logo"
 import { TicketSidebarFilters } from "@/components/tickets/ticket-sidebar-filters"
 import { Label } from "@/components/ui/label"
 import {
@@ -59,6 +59,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({
   displayMode = "default",
+  style,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname()
@@ -79,33 +80,29 @@ export function AppSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
+      className="z-40 overflow-hidden group-data-[collapsible=icon]:border-sidebar-border *:data-[sidebar=sidebar]:flex-row"
+      style={
+        {
+          "--sidebar-width": "303px",
+          "--sidebar-width-icon": "56px",
+          ...style,
+        } as React.CSSProperties
+      }
       {...props}
     >
       <Sidebar
         collapsible="none"
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! shrink-0 border-r py-2"
+        className="w-(--sidebar-width-icon)! shrink-0 border-r border-sidebar-border px-1 py-3 group-data-[collapsible=icon]:border-r-0"
       >
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
                 size="lg"
-                className="overflow-hidden rounded-none md:h-8 md:p-0"
+                className="overflow-visible rounded-none md:h-8 md:p-0"
                 render={<Link href="/tickets" />}
               >
-                <div
-                  className="flex aspect-square size-8 items-center justify-center text-primary-foreground"
-                  style={{
-                    borderRadius: "var(--radius-lg)",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    background: "var(--primary)",
-                    boxShadow:
-                      "0 0 0 0.667px rgba(0, 0, 0, 0.20) inset, 0 2px 2px 0 rgba(255, 255, 255, 0.10) inset, 0 2px 2.667px -0.667px rgba(42, 42, 42, 0.1), 0 0.667px 0.667px 0 rgba(42, 42, 42, 0.08)",
-                  }}
-                >
-                  <IconCommand className="size-4" />
-                </div>
+                <GrayCsmLogo />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">Gray CSM</span>
                   <span className="truncate text-xs">Workspace</span>
@@ -115,9 +112,9 @@ export function AppSidebar({
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent className="px-1.5 md:px-0">
-              <SidebarMenu>
+          <SidebarGroup className="border-b-0 p-2">
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">
                 {csmRoutes.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -146,7 +143,7 @@ export function AppSidebar({
           aria-hidden={isSidebarCollapsed}
           className={cn(
             "hidden h-full min-w-0 shrink-0 overflow-hidden transition-[opacity,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:block",
-            "w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-1px)]",
+            "w-[calc(var(--sidebar-width)-var(--sidebar-width-icon))]",
             isSidebarCollapsed
               ? "pointer-events-none -translate-x-3 opacity-0"
               : "translate-x-0 opacity-100"
@@ -180,7 +177,7 @@ export function AppSidebar({
                   <SidebarInput placeholder="Type to search..." />
                 </SidebarHeader>
                 <SidebarContent>
-                  <SidebarGroup className="px-0">
+                  <SidebarGroup className="border-b-0 px-0 py-2">
                     <SidebarGroupContent>
                       {panelItems.map((item) => (
                         <button

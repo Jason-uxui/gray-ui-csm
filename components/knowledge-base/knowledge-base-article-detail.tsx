@@ -1,11 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  IconChevronDown,
-  IconDots,
-  IconPencil,
-} from "@tabler/icons-react"
+import { IconChevronDown, IconDots, IconPencil } from "@tabler/icons-react"
 
 import { KnowledgeArticleActivityTab } from "@/components/knowledge-base/knowledge-article-activity"
 import { KnowledgeArticleInsights } from "@/components/knowledge-base/knowledge-article-insights"
@@ -88,9 +84,9 @@ const articleStatusOptions: Array<{
 ]
 
 const articleStatusClassNames: Record<KnowledgeArticleStatus, string> = {
-  published: " bg-teal-600 text-white",
+  published: " bg-status-approved text-status-on-solid",
   draft: " bg-secondary text-muted-foreground",
-  "needs-review": " bg-amber-600 text-white",
+  "needs-review": " bg-status-changes-requested text-status-on-solid",
 }
 
 function getArticleStatusLabel(status: KnowledgeArticleStatus) {
@@ -196,7 +192,10 @@ function KnowledgeArticleSaveBar({
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
       <div className="pointer-events-auto flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl border border-zinc-800/90 bg-zinc-950 px-1.5 py-1.5 text-zinc-100 shadow-xl ring-1 ring-black/20 dark:border-zinc-300/80 dark:bg-zinc-100 dark:text-zinc-900 dark:ring-white/25">
-        <p className="min-w-0 truncate px-2 text-sm font-medium" aria-live="polite">
+        <p
+          className="min-w-0 truncate px-2 text-sm font-medium"
+          aria-live="polite"
+        >
           {changesLabel}
         </p>
         <div className="flex shrink-0 items-center gap-1">
@@ -305,11 +304,10 @@ export function KnowledgeBaseArticleDetail({
     : knowledgeBasePageCopy.articleNoChangesLabel
   const hasCommentRecords =
     article.comments !== undefined || articleComments.length > 0
-  const commentsCount =
-    hasCommentRecords
-      ? articleComments.length
-      : (article.commentsCount ??
-        Number(knowledgeBasePageCopy.commentsTabCountFallback))
+  const commentsCount = hasCommentRecords
+    ? articleComments.length
+    : (article.commentsCount ??
+      Number(knowledgeBasePageCopy.commentsTabCountFallback))
   const hasActivityRecords = article.activity !== undefined
   const activityCount = hasActivityRecords
     ? (article.activity?.length ?? 0)
@@ -457,9 +455,7 @@ export function KnowledgeBaseArticleDetail({
                   showBodyHeading={false}
                 />
               )}
-              {isEditing ? (
-                <div className="h-20" aria-hidden />
-              ) : null}
+              {isEditing ? <div className="h-20" aria-hidden /> : null}
             </div>
           </div>
         </TabsContent>

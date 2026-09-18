@@ -77,6 +77,7 @@ export function TicketStats({ stats }: TicketStatsProps) {
           label={stat.label}
           value={stat.value}
           footer={<StatTrendRow stat={stat} />}
+          density="ticket"
         />
       ))}
     </section>

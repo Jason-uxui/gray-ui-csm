@@ -83,7 +83,7 @@ export function TicketColumn({
     <section
       ref={setNodeRef}
       className={cn(
-        "flex min-w-0 flex-1 snap-start flex-col gap-2 rounded-2xl border border-transparent bg-muted/40 p-2 transition-[background-color,border-color,box-shadow] dark:border dark:border-border/50 dark:bg-muted/25",
+        "flex min-w-0 flex-1 snap-start flex-col gap-2 rounded-2xl border border-transparent bg-card p-2 shadow-raised-control transition-[background-color,border-color,box-shadow]",
         isOver ? "border-primary/50 bg-primary/5 shadow-sm" : ""
       )}
       data-column-key={columnKey}
