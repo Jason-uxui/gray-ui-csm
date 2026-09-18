@@ -10,6 +10,7 @@ type StatCardProps = {
   valueClassName?: string
   footer: ReactNode
   density?: "default" | "compact" | "ticket"
+  visual?: ReactNode
 }
 
 export function StatCard({
@@ -19,6 +20,7 @@ export function StatCard({
   valueClassName,
   footer,
   density = "default",
+  visual,
 }: StatCardProps) {
   return (
     <Card
@@ -49,16 +51,19 @@ export function StatCard({
             : "space-y-3 px-4 py-4"
         )}
       >
-        <p
-          className={cn(
-            density === "compact"
-              ? "text-lg leading-6 font-medium text-foreground"
-              : "text-3xl leading-8 font-medium text-foreground",
-            valueClassName
-          )}
-        >
-          {value}
-        </p>
+        <div className="flex min-w-0 items-end justify-between gap-3">
+          <p
+            className={cn(
+              density === "compact"
+                ? "text-lg leading-6 font-medium text-foreground"
+                : "text-3xl leading-8 font-medium text-foreground",
+              valueClassName
+            )}
+          >
+            {value}
+          </p>
+          {visual ? <div className="shrink-0">{visual}</div> : null}
+        </div>
         {footer}
       </CardContent>
     </Card>

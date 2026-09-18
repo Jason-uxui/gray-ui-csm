@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation"
 import {
   IconBook,
   IconInbox,
+  IconChartHistogram,
   IconLock,
   IconSettingsAutomation,
   IconTicket,
@@ -49,6 +50,7 @@ function renderSidebarIcon(icon: CsmRouteIconKey) {
   if (icon === "tickets") return <IconTicket />
   if (icon === "customers") return <IconUser />
   if (icon === "knowledge-base") return <IconBook />
+  if (icon === "analytics") return <IconChartHistogram />
   if (icon === "automation") return <IconSettingsAutomation />
   return <IconLock />
 }

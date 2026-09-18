@@ -31,6 +31,7 @@ import {
 } from "recharts"
 
 import { StatCard } from "@/components/stats/stat-card"
+import { InsightMetricBlock } from "@/components/insights/insight-metric-block"
 import { TicketPriorityLabel } from "@/components/ticket-priority-label"
 import { TicketStatusBadge } from "@/components/ticket-status-badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -335,47 +336,6 @@ function SegmentedControl({
           {option.label}
         </Button>
       ))}
-    </div>
-  )
-}
-
-function InsightMetricBlock({
-  action,
-  children,
-  className,
-  contentClassName,
-  icon,
-  label,
-}: {
-  action?: ReactNode
-  children: ReactNode
-  className?: string
-  contentClassName?: string
-  icon: ReactNode
-  label: string
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border bg-muted/40 p-1.5 shadow-none ring-0 dark:bg-muted/25",
-        className
-      )}
-    >
-      <div className="flex min-h-10 items-center justify-between gap-3 px-2 pt-1 pb-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {icon}
-          <span className="truncate">{label}</span>
-        </div>
-        {action}
-      </div>
-      <div
-        className={cn(
-          "rounded-[calc(var(--radius-2xl)-6px)] border border-border bg-card px-5 py-4",
-          contentClassName
-        )}
-      >
-        {children}
-      </div>
     </div>
   )
 }
@@ -733,14 +693,10 @@ function MatchingSection({
         <Table className="min-w-[50rem]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[34%]">
-                Signal
-              </TableHead>
+              <TableHead className="w-[34%]">Signal</TableHead>
               <TableHead>Source</TableHead>
               <TableHead>Matches</TableHead>
-              <TableHead>
-                Article opened
-              </TableHead>
+              <TableHead>Article opened</TableHead>
               <TableHead className="w-32 text-right">
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -916,7 +872,7 @@ function LinkedTicketRow({ ticket }: { ticket: KnowledgeLinkedTicket }) {
       <TableCell>
         <Link
           href={ticketHref}
-          className="inline-flex whitespace-nowrap font-medium text-muted-foreground tabular-nums underline-offset-4 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+          className="inline-flex font-medium whitespace-nowrap text-muted-foreground tabular-nums underline-offset-4 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         >
           {ticket.ticketNumber}
         </Link>
@@ -958,11 +914,14 @@ function FeedbackSection({
   const [filter, setFilter] = useState<"helpful" | "not-helpful">("helpful")
   const comments = useMemo(
     () =>
-      [...insights.feedback.helpfulComments, ...insights.feedback.negativeComments]
-        .sort(
-          (firstComment, secondComment) =>
-            getCommentAgeDays(firstComment.age) - getCommentAgeDays(secondComment.age)
-        ),
+      [
+        ...insights.feedback.helpfulComments,
+        ...insights.feedback.negativeComments,
+      ].sort(
+        (firstComment, secondComment) =>
+          getCommentAgeDays(firstComment.age) -
+          getCommentAgeDays(secondComment.age)
+      ),
     [insights.feedback.helpfulComments, insights.feedback.negativeComments]
   )
   const filteredComments = useMemo(
@@ -981,9 +940,7 @@ function FeedbackSection({
           onFilterChange={setFilter}
           reviewCount={insights.feedback.reviewCount}
         />
-        <SearchDiscoveryPanel
-          queries={insights.searchDiscovery.queries}
-        />
+        <SearchDiscoveryPanel queries={insights.searchDiscovery.queries} />
       </div>
     </section>
   )
@@ -1022,7 +979,9 @@ function CustomerFeedbackPanel({
       }
       className="h-full"
       contentClassName="flex h-[28rem] flex-col overflow-hidden p-0"
-      icon={<IconStarFilled className="size-3.5 fill-amber-400 text-amber-400" />}
+      icon={
+        <IconStarFilled className="size-3.5 fill-amber-400 text-amber-400" />
+      }
       label={`${averageRating.toFixed(1)} · ${reviewCount} Customer feedbacks`}
     >
       <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-1 pb-1">
@@ -1071,11 +1030,7 @@ function FeedbackFilterButton({
   )
 }
 
-function FeedbackListItem({
-  comment,
-}: {
-  comment: KnowledgeFeedbackComment
-}) {
+function FeedbackListItem({ comment }: { comment: KnowledgeFeedbackComment }) {
   return (
     <div data-feedback-item className="flex gap-4 rounded-lg px-3 py-4 sm:px-4">
       <Avatar size="lg">
@@ -1174,7 +1129,7 @@ function SearchDiscoveryPanel({
                 {query.query}
               </p>
               <div className="shrink-0 text-right text-sm">
-                <p className="whitespace-nowrap font-medium text-foreground">
+                <p className="font-medium whitespace-nowrap text-foreground">
                   {selectedMetric === "ctr"
                     ? `${query.ctr}% CTR`
                     : `${query.views.toLocaleString("en-US")} views`}
@@ -1212,7 +1167,10 @@ function getCommentAgeDays(age: string) {
 export function KnowledgeArticleInsights({
   article,
 }: KnowledgeArticleInsightsProps) {
-  const insights = useMemo(() => getKnowledgeArticleInsights(article), [article])
+  const insights = useMemo(
+    () => getKnowledgeArticleInsights(article),
+    [article]
+  )
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-9">
