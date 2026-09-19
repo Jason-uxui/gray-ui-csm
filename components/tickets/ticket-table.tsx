@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import {
   forwardRef,
   useEffect,
@@ -470,7 +472,7 @@ export function TicketTable({
   }, [onToolbarPropsChange])
 
   return (
-    <div className="h-full min-h-0 overflow-hidden rounded-xl border border-border bg-background">
+    <TableSurface className="h-full min-h-0">
       <DataGrid<Ticket, TicketColumnId>
         rows={sortedTickets}
         columns={visibleColumns}
@@ -754,6 +756,6 @@ export function TicketTable({
           return null
         }}
       />
-    </div>
+    </TableSurface>
   )
 }

@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import Link from "next/link"
 import { startTransition, useId, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -494,7 +496,7 @@ function SlaPanel({
         ))}
       </div>
       {expanded ? (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <TableSurface>
           <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
             <p className="truncate text-sm font-semibold">
               Tickets contributing to SLA breaches
@@ -559,7 +561,7 @@ function SlaPanel({
               </TableBody>
             </Table>
           </div>
-        </div>
+        </TableSurface>
       ) : null}
     </InsightMetricBlock>
   )

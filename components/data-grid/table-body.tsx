@@ -71,7 +71,10 @@ export function DataGridTableBody<
   return (
     <TableBody>
       {visibleRows.map((row, rowIndex) => (
-        <TableRow key={row.id}>
+        <TableRow
+          key={row.id}
+          data-state={selectedRowIds.includes(row.id) ? "selected" : undefined}
+        >
           <TableCell className="h-10 border-r px-0 text-center">
             <Checkbox
               aria-label={`Select ${getRowLabel(row)}`}
@@ -142,7 +145,7 @@ export function DataGridTableBody<
                       className={cn(
                         "min-w-0 truncate transition-[padding] duration-150",
                         showDrawerAction &&
-                          "group-hover/cell:pr-16 group-focus-within/cell:pr-16"
+                          "group-focus-within/cell:pr-16 group-hover/cell:pr-16"
                       )}
                     >
                       {renderCell(row, column)}

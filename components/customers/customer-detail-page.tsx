@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { MouseEvent } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -1302,9 +1304,9 @@ export function CustomerDetailPage({
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-2xl border border-border/80 bg-card">
+                  <TableSurface>
                     <Table containerClassName="max-h-[52vh]">
-                      <TableHeader className="sticky top-0 z-10 bg-card">
+                      <TableHeader className="sticky top-0 z-10">
                         <TableRow>
                           <TableHead className="w-10 px-3">
                             <Checkbox
@@ -1406,7 +1408,7 @@ export function CustomerDetailPage({
                         )}
                       </TableBody>
                     </Table>
-                  </div>
+                  </TableSurface>
                 </div>
               </div>
             </TabsContent>

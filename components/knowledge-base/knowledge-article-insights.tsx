@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import Link from "next/link"
 import {
   useId,
@@ -689,7 +691,7 @@ function MatchingSection({
   return (
     <section className="space-y-4">
       <SectionHeading title="Matching" />
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <TableSurface>
         <Table className="min-w-[50rem]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -721,7 +723,7 @@ function MatchingSection({
             )}
           </TableBody>
         </Table>
-      </div>
+      </TableSurface>
     </section>
   )
 }
@@ -832,7 +834,7 @@ function LinkedTicketsSection({
   return (
     <section className="space-y-4">
       <SectionHeading title="Linked tickets" />
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <TableSurface>
         <Table className="min-w-[44rem] table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -859,7 +861,7 @@ function LinkedTicketsSection({
             )}
           </TableBody>
         </Table>
-      </div>
+      </TableSurface>
     </section>
   )
 }
