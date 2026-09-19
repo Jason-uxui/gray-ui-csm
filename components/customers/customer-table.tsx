@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import * as React from "react"
 
 import {
@@ -255,7 +257,7 @@ export function CustomersTable({
   onToolbarPropsChange,
 }: CustomersTableProps) {
   return (
-    <div className="h-full min-h-0 overflow-hidden rounded-xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <TableSurface className="h-full min-h-0">
       <DataGrid<Customer, CustomerColumnId>
         rows={customers}
         columns={customerColumns}
@@ -362,6 +364,6 @@ export function CustomersTable({
         disablePointerDismissal={false}
         tableContainerClassName="scrollbar-hidden h-full overflow-x-auto overflow-y-hidden"
       />
-    </div>
+    </TableSurface>
   )
 }

@@ -51,8 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const shellDisplayMode = getShellDisplayMode(pathname)
   const isTicketsListPage = pathname === "/tickets"
   const isKnowledgeBasePage = pathname === "/knowledge-base"
+  const isAnalyticsPage = pathname === "/analytics"
   const shouldForceSidebarCollapsed =
-    shellDisplayMode === "full-detail" || isKnowledgeBasePage
+    shellDisplayMode === "full-detail" || isKnowledgeBasePage || isAnalyticsPage
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
 
   React.useEffect(() => {

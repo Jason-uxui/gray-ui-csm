@@ -21,6 +21,7 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
+  --color-tab-foreground: var(--tab-foreground);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-inverse-foreground: var(--inverse-foreground);
@@ -93,6 +94,8 @@
   /* Project-owned input border; ring remains sourced from MonoGray Global. */
   --input-border: #e4e4e7;
   --ring: #18181b;
+  /* MonoGray Global: Tabs Bottom Line semantic colors. */
+  --tab-foreground: #09090b;
   --chart-1: oklch(0.905 0.182 98.111);
   --chart-2: oklch(0.795 0.184 86.047);
   --chart-3: oklch(0.681 0.162 75.834);
@@ -116,18 +119,14 @@
   --effect-control-inner-stroke: #000;
   --effect-raised-control:
     0 0 0 1px color-mix(in srgb, var(--effect-control-outline) 40%, transparent),
-    inset 0 1px 1px
-      color-mix(in srgb, var(--effect-control-highlight) 10%, transparent),
-    inset 0 0 1px 1px
-      color-mix(in srgb, var(--effect-control-inner-stroke) 6%, transparent);
+    inset 0 1px 1px color-mix(in srgb, var(--effect-control-highlight) 10%, transparent),
+    inset 0 0 1px 1px color-mix(in srgb, var(--effect-control-inner-stroke) 6%, transparent);
   --effect-primary-raised:
     inset 0 0 12px rgb(255 255 255 / 55%),
     inset 0 0 2px #997b00;
-  --effect-brand-mark-gradient: linear-gradient(
-    177.6deg,
-    transparent 2%,
-    rgb(255 255 255 / 12%) 98.17%
-  );
+  --effect-brand-mark-gradient: linear-gradient(177.6deg,
+      transparent 2%,
+      rgb(255 255 255 / 12%) 98.17%);
 }
 
 .dark {
@@ -161,6 +160,7 @@
   --input: #646a7a;
   --input-border: #27272a;
   --ring: #d4d4d8;
+  --tab-foreground: #fff;
   --chart-1: oklch(0.905 0.182 98.111);
   --chart-2: oklch(0.795 0.184 86.047);
   --chart-3: oklch(0.681 0.162 75.834);
@@ -174,8 +174,7 @@
   --sidebar-accent-foreground: #fff;
   --sidebar-border: #323234;
   --sidebar-ring: oklch(0.552 0.016 285.938);
-  --shadow-inset-surface: 0 2px 4px 0 color-mix(in oklch, white 5%, transparent)
-    inset;
+  --shadow-inset-surface: 0 2px 4px 0 color-mix(in oklch, white 5%, transparent) inset;
   --effect-control-outline: #000;
   --effect-control-highlight: #fff;
   --effect-control-inner-stroke: #fff;

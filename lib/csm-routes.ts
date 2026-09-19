@@ -3,6 +3,7 @@ export type CsmRouteIconKey =
   | "tickets"
   | "customers"
   | "knowledge-base"
+  | "analytics"
   | "automation"
   | "settings"
 
@@ -34,7 +35,8 @@ export const csmRoutes: CsmRoute[] = [
   {
     title: "Inbox",
     path: "/inbox",
-    description: "Unified channels and thread triage for inbound conversations.",
+    description:
+      "Unified channels and thread triage for inbound conversations.",
     icon: "inbox",
     templateMetrics: [
       { label: "Inbound Threads", value: "124" },
@@ -123,6 +125,18 @@ export const csmRoutes: CsmRoute[] = [
           "Track which support articles actually reduce ticket inflow over time.",
       },
     ],
+  },
+  {
+    title: "Analytics",
+    path: "/analytics",
+    description: "Understand support performance and operational trends.",
+    icon: "analytics",
+    templateMetrics: [
+      { label: "New Tickets", value: "1,284", tone: "positive" },
+      { label: "Open Backlog", value: "326", tone: "warning" },
+      { label: "SLA Attainment", value: "91.4%" },
+    ],
+    sidebarPreview: [],
   },
   {
     title: "Automation Rules",

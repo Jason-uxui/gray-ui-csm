@@ -2,13 +2,26 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+function TableSurface({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="table-surface"
+      className={cn(
+        "overflow-hidden rounded-xl border border-border bg-background",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & { containerClassName?: string }
 >(({ className, containerClassName, ...props }, ref) => (
   <div
     className={cn(
-      "scrollbar-hidden relative w-full overflow-auto shadow-none",
+      "scrollbar-hidden relative w-full overflow-auto bg-background shadow-none",
       containerClassName
     )}
   >
@@ -25,7 +38,14 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("border-b", className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn(
+      "border-b bg-background [&>tr]:hover:bg-transparent",
+      className
+    )}
+    {...props}
+  />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -48,7 +68,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      "border-t bg-background font-medium [&>tr]:last:border-b-0",
       className
     )}
     {...props}
@@ -63,7 +83,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "transition-colors hover:bg-card data-[state=selected]:bg-secondary",
       className
     )}
     {...props}
@@ -107,6 +127,7 @@ const TableCaption = React.forwardRef<
 TableCaption.displayName = "TableCaption"
 
 export {
+  TableSurface,
   Table,
   TableHeader,
   TableBody,

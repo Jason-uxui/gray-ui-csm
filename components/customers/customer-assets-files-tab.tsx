@@ -1,5 +1,7 @@
 "use client"
 
+import { TableSurface } from "@/components/ui/table"
+
 import { useMemo, useRef, useState, type ChangeEvent } from "react"
 import Image from "next/image"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
@@ -605,9 +607,9 @@ export function CustomerAssetsFilesTab({
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-border/80 bg-card">
+            <TableSurface>
               <Table containerClassName="max-h-[52vh]">
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="w-10 px-3">
                       <Checkbox
@@ -697,7 +699,7 @@ export function CustomerAssetsFilesTab({
                   )}
                 </TableBody>
               </Table>
-            </div>
+            </TableSurface>
           </section>
         </div>
       </div>

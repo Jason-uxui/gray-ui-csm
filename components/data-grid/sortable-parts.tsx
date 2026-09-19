@@ -99,7 +99,7 @@ export function SortableHeaderCell<ColumnId extends string>({
 }: SortableHeaderCellProps<ColumnId>) {
   return (
     <TableHead
-      className="group/column-head relative h-10 overflow-hidden border-r bg-muted/20 px-2 text-sm"
+      className="group/column-head relative h-10 overflow-hidden border-r px-2 text-sm"
       style={{
         width,
         minWidth: width,

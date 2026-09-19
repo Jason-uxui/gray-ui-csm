@@ -369,8 +369,8 @@ export function KnowledgeBaseArticleDetail({
                 {!isEditing ? (
                   <Button
                     type="button"
-                    size="sm"
-                    className="h-9 rounded-xl px-3"
+                    size="default"
+                    className="rounded-xl"
                     onClick={() => setIsEditing(true)}
                   >
                     <IconPencil className="size-4" />
@@ -384,8 +384,8 @@ export function KnowledgeBaseArticleDetail({
                       <Button
                         type="button"
                         variant="outline"
-                        size="icon-sm"
-                        className="size-10 rounded-xl"
+                        size="icon"
+                        className="rounded-xl"
                       />
                     }
                   >
@@ -406,7 +406,7 @@ export function KnowledgeBaseArticleDetail({
           <div className="px-6">
             <TabsList
               variant="line"
-              className="w-full justify-start gap-1 rounded-none p-0"
+              className="w-full justify-start"
             >
               {articleDetailTabs.map((tab) => {
                 return (
@@ -414,7 +414,7 @@ export function KnowledgeBaseArticleDetail({
                     key={tab.value}
                     value={tab.value}
                     disabled={isEditing && tab.value !== "content"}
-                    className="flex-none gap-2 px-4"
+                    className="flex-none gap-2"
                   >
                     {tab.value === "comments" || tab.value === "activity" ? (
                       <>
