@@ -13,6 +13,11 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { FloatingThemeToggle } from "@/components/floating-theme-toggle"
 import { NavUser } from "@/components/nav-user"
 import {
+  NotificationsPanel,
+  NotificationsPopover,
+} from "@/components/notifications/notifications-panel"
+import { useNotificationsState } from "@/components/notifications/use-notifications-state"
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
@@ -55,6 +60,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const shouldForceSidebarCollapsed =
     shellDisplayMode === "full-detail" || isKnowledgeBasePage || isAnalyticsPage
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
+  const [notificationsOpen, setNotificationsOpen] = React.useState(false)
+  const notificationsState = useNotificationsState()
 
   React.useEffect(() => {
     if (shouldForceSidebarCollapsed) {
@@ -115,14 +122,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <IconSearch className="size-4" />
                   <span className="sr-only">Search</span>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  className="size-9 rounded-full p-0"
-                >
-                  <IconBell className="size-4" />
-                  <span className="sr-only">Notifications</span>
-                </Button>
+                <NotificationsPopover
+                  filter={notificationsState.filter}
+                  notifications={notificationsState.notifications}
+                  unreadCount={notificationsState.unreadCount}
+                  onFilterChange={notificationsState.setFilter}
+                  onMarkAllAsRead={notificationsState.markAllAsRead}
+                  onMarkAsRead={notificationsState.markAsRead}
+                />
                 <Button
                   variant="outline"
                   size="icon-sm"
@@ -151,9 +158,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <IconSearch className="size-4" />
                       Search
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setNotificationsOpen(true)}
+                    >
                       <IconBell className="size-4" />
                       Notifications
+                      {notificationsState.unreadCount > 0 ? (
+                        <span className="ml-auto rounded-full bg-primary px-1.5 text-[10px] leading-4 font-semibold text-primary-foreground">
+                          {notificationsState.unreadCount}
+                        </span>
+                      ) : null}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <IconMessage2 className="size-4" />
@@ -183,6 +197,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           {children}
         </main>
+        <NotificationsPanel
+          filter={notificationsState.filter}
+          notifications={notificationsState.notifications}
+          open={notificationsOpen}
+          unreadCount={notificationsState.unreadCount}
+          onFilterChange={notificationsState.setFilter}
+          onMarkAllAsRead={notificationsState.markAllAsRead}
+          onMarkAsRead={notificationsState.markAsRead}
+          onOpenChange={setNotificationsOpen}
+        />
       </SidebarInset>
     </SidebarProvider>
   )
