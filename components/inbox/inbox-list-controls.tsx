@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { IconSearch } from "@tabler/icons-react"
 
 import { ContactAvatar } from "@/components/inbox/contact-avatar"
@@ -11,9 +11,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -61,9 +59,6 @@ export function InboxFilterMenu() {
         theme="auto"
         className="w-52 border border-border bg-background/95"
       >
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Filter conversations</DropdownMenuLabel>
-        </DropdownMenuGroup>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Priority</DropdownMenuSubTrigger>
           <DropdownMenuSubContent
@@ -125,7 +120,7 @@ export function InboxFilterMenu() {
   )
 }
 
-export function InboxSearchPopover({
+export function InboxSearchDialog({
   items,
   viewTitle,
   onSelect,
@@ -134,19 +129,42 @@ export function InboxSearchPopover({
   viewTitle: string
   onSelect: (id: string) => void
 }) {
-  const { query, setQuery } = useInboxWorkspace()
+  const { setQuery } = useInboxWorkspace()
   const [open, setOpen] = React.useState(false)
-  const results = items.slice(0, 6)
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const normalizedTerm = searchTerm.trim().toLowerCase()
+  const results = items
+    .filter(
+      (item) =>
+        !normalizedTerm ||
+        [
+          item.contact,
+          item.customer,
+          item.accountName,
+          item.subject,
+          item.ticketNumber,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedTerm)
+    )
+    .slice(0, 6)
+
+  const selectResult = (id: string) => {
+    onSelect(id)
+    setOpen(false)
+    setSearchTerm("")
+  }
 
   return (
-    <PopoverPrimitive.Root
+    <DialogPrimitive.Root
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen)
-        if (!nextOpen) setQuery("")
+        if (!nextOpen) setSearchTerm("")
       }}
     >
-      <PopoverPrimitive.Trigger
+      <DialogPrimitive.Trigger
         render={
           <Button
             type="button"
@@ -154,56 +172,59 @@ export function InboxSearchPopover({
             size="icon"
             className="size-10 shrink-0"
             aria-label="Search conversations"
+            onClick={() => setQuery("")}
           />
         }
       >
         <IconSearch className="size-4" />
-      </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Positioner
-          side="bottom"
-          align="end"
-          sideOffset={8}
-          collisionPadding={16}
-          className="z-50 outline-none"
-        >
-          <PopoverPrimitive.Popup className="w-[min(400px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl outline-none">
-            <PopoverPrimitive.Title className="sr-only">
-              Search conversations
-            </PopoverPrimitive.Title>
-            <div className="flex items-center gap-2 border-b px-4 py-3">
-              <IconSearch className="size-4 shrink-0 text-muted-foreground" />
-              <Input
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search conversations"
-                aria-label="Search conversations"
-                className="h-9 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-              />
-            </div>
-            <div className="max-h-80 overflow-y-auto p-2">
-              <p className="px-2 py-2 text-xs font-medium text-muted-foreground">
-                {query ? `Results in ${viewTitle}` : `Recent in ${viewTitle}`}
-              </p>
-              {results.length ? (
-                results.map((item) => (
+      </DialogPrimitive.Trigger>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Backdrop className="fixed inset-0 z-[70] bg-black/30 backdrop-blur-[2px] transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        <DialogPrimitive.Popup className="fixed top-[min(18vh,160px)] left-1/2 z-[71] flex max-h-[min(72vh,640px)] w-[calc(100vw-2rem)] max-w-140 -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-background text-foreground shadow-2xl transition-[opacity,scale,translate] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none data-ending-style:translate-y-2 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:translate-y-2 data-starting-style:scale-[0.98] data-starting-style:opacity-0 motion-reduce:transition-none">
+          <DialogPrimitive.Title className="sr-only">
+            Search conversations
+          </DialogPrimitive.Title>
+          <DialogPrimitive.Description className="sr-only">
+            Search conversations in {viewTitle} and select one to open it.
+          </DialogPrimitive.Description>
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-4">
+            <IconSearch className="size-5 shrink-0 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && results[0]) {
+                  event.preventDefault()
+                  selectResult(results[0].id)
+                }
+              }}
+              placeholder="Search conversations"
+              aria-label="Search conversations"
+              className="h-10 min-w-0 flex-1 border-0! bg-transparent! px-0 text-base shadow-none! focus-visible:border-0! focus-visible:ring-0!"
+            />
+          </div>
+          <div className="min-h-0 overflow-y-auto px-3 pt-2 pb-3">
+            <p className="px-3 py-2 text-xs font-medium text-muted-foreground">
+              {searchTerm
+                ? `Results in ${viewTitle}`
+                : `Recent in ${viewTitle}`}
+            </p>
+            {results.length ? (
+              <div className="space-y-1">
+                {results.map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    className="flex w-full min-w-0 items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
-                    onClick={() => {
-                      onSelect(item.id)
-                      setOpen(false)
-                      setQuery("")
-                    }}
+                    className="flex min-h-14 w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                    onClick={() => selectResult(item.id)}
                   >
                     <ContactAvatar />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-foreground">
                         {item.contact}
                       </span>
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                         {item.subject}
                       </span>
                     </span>
@@ -211,19 +232,16 @@ export function InboxSearchPopover({
                       {item.ticketNumber}
                     </span>
                   </button>
-                ))
-              ) : (
-                <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-                  No matching conversations
-                </p>
-              )}
-            </div>
-            <p className="border-t px-4 py-2 text-xs text-muted-foreground">
-              Search contacts, companies, subjects, or ticket IDs
-            </p>
-          </PopoverPrimitive.Popup>
-        </PopoverPrimitive.Positioner>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+                ))}
+              </div>
+            ) : (
+              <p className="px-3 py-10 text-center text-sm text-muted-foreground">
+                No matching conversations
+              </p>
+            )}
+          </div>
+        </DialogPrimitive.Popup>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }

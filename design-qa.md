@@ -71,13 +71,13 @@ The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer
 - The selected conversation has a compact ticket header, icon-only operational actions with tooltips, a message/activity timeline, and a composer sharing the Ticket Detail shell.
 - The contact placeholder uses Figma's muted/muted-foreground pair in Light and Dark. Its 24px silhouette keeps the Figma 44% opacity and white 54% inner shadow at x 0, y 2, blur 3.1.
 - Below 768px, the list and detail are separate views with a Back control; compact actions move into a menu.
-- The list title aligns with the Views label. Desktop search opens a popover with recent/matching conversations below its input; Filter opens nested Priority and Status menus without shifting the list. On mobile, search stays inline and the filter submenu flips into the viewport.
+- The list title aligns with the Views label. Desktop search opens a centered dialog with recent/matching conversations below its input and a subtle 200ms enter/exit animation; Filter opens nested Priority and Status menus without a redundant title row or shifting the list. On mobile, search stays inline and the filter submenu flips into the viewport.
 
 ## Interaction checks
 
 - View counts, selection, search, priority/status filters, assignment, snooze, resolve, and local reply sending were checked in the browser.
-- Sender selection and Macros update the local composer. Formatting, emoji, attachment, voice, image, and End Chat controls explicitly report preview-only behavior.
-- Search selection, filter submenu selection, Clear filters, and both Light/Dark menu appearances were checked in the browser at desktop and 390px widths.
+- Sender selection and Macros update the local composer. Formatting, emoji, attachment, voice, image, End Chat, and Open full ticket are marked preview-only in tooltips or labels, without status lines beneath the composer.
+- Search selection, Enter-to-select, Escape-to-close, filter submenu selection, Clear filters, and both Light/Dark menu appearances were checked in the browser at desktop and 390px widths.
 - “Open full ticket” is preview-only because Inbox and Tickets currently have separate mock records, so matching IDs can open unrelated content.
 - TypeScript, ESLint, design-token/route guardrails, and production build are release checks; rerun them after the final code change.
 

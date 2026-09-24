@@ -12,14 +12,14 @@ Source: [Desktop / Light](https://www.figma.com/design/sFoSM9QLUXjDWXy1JsmtN0/-I
 
 ## Interaction mapping
 
-| Control                              | Desktop                                    | Narrow                                            |
-| ------------------------------------ | ------------------------------------------ | ------------------------------------------------- |
-| Search                               | Popover with recent/matching conversations | List search field                                 |
-| Priority / status                    | Filter menu with submenus                  | The same filter menu                              |
-| Assign, snooze, resolve, full ticket | Header icon buttons with tooltips          | More-actions menu in the detail header            |
-| Reply                                | Bottom composer                            | Bottom composer; Send disabled for an empty draft |
+| Control                              | Desktop                                   | Narrow                                            |
+| ------------------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| Search                               | Dialog with recent/matching conversations | List search field                                 |
+| Priority / status                    | Filter menu with submenus                 | The same filter menu                              |
+| Assign, snooze, resolve, full ticket | Header icon buttons with tooltips         | More-actions menu in the detail header            |
+| Reply                                | Bottom composer                           | Bottom composer; Send disabled for an empty draft |
 
-The search popover adapts the user's Codex reference to Inbox data: recent conversations appear below the input, and typing filters contacts, companies, subjects, and ticket IDs within the current view. Choosing a result selects that conversation and closes the popover. The filter menu keeps Priority and Status in nested choices and includes Clear filters. These open states are implementation decisions because the Figma examples show only their closed states; do not add unrelated Codex quick actions or new Inbox operations without a product decision.
+The search dialog adapts the user's Codex reference to Inbox data: recent conversations appear below the input, and typing filters contacts, companies, subjects, and ticket IDs within the current view without changing the list behind the dialog. Choosing a result selects that conversation and closes the dialog; Escape also closes it. Its backdrop fades and the panel fades, scales, and shifts subtly over 200ms in both directions, with reduced-motion support. The filter menu keeps Priority and Status in nested choices and includes Clear filters, without a redundant title row. These open states are implementation decisions because the Figma examples show only their closed states; do not add unrelated Codex quick actions or new Inbox operations without a product decision.
 
 ## Data and state
 
@@ -32,6 +32,6 @@ The search popover adapts the user's Codex reference to Inbox data: recent conve
 - Design QA: compare desktop and 390px examples, spacing, row density, icon semantics, hierarchy, and text truncation; inspect Light and Dark.
 - Code QA: verify view/filter/search selection, mobile list/detail/back behavior, action menus, reply, keyboard/focus/labels, empty results, and widths around the 768px breakpoint.
 - Not specified by the static Figma examples: actual photo sourcing, long-thread virtualization, persistence/backend, and detailed failure/loading states. These remain separate follow-ups, not silently implied by this visual sync.
-- The Inbox composer now shares the Ticket Detail shell. Sender selection and Macros work in the local preview; formatting, emoji, attachments, voice, images, and End Chat show preview-only feedback until their behavior and data contracts are specified. Sending a reply still updates only local Inbox state.
+- The Inbox composer now shares the Ticket Detail shell. Sender selection and Macros work in the local preview; formatting, emoji, attachments, voice, images, and End Chat are identified as preview-only in tooltips rather than adding status lines beneath the composer. Sending a reply still updates only local Inbox state.
 - The 24px empty contact avatar follows Figma's `base/muted` and `base/muted-foreground` in both themes, with the exported silhouette at 44% opacity and a white 54% inner shadow (x 0, y 2, blur 3.1). Inbox-scoped token aliases keep this mapping intact without changing the app-wide muted colors.
-- The Inbox and Tickets pages currently use separate mock records. “Open full ticket” therefore shows preview-only feedback instead of navigating to an unrelated record. Before enabling that link, map each conversation to the same ticket record in both pages. Reply and action changes also currently live only in client state.
+- The Inbox and Tickets pages currently use separate mock records. “Open full ticket” remains a preview-only control rather than navigating to an unrelated record; its tooltip and mobile menu label explain this without adding a composer status line. Before enabling that link, map each conversation to the same ticket record in both pages. Reply and action changes also currently live only in client state.

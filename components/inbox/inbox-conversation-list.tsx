@@ -5,7 +5,7 @@ import { IconSearch } from "@tabler/icons-react"
 import { ContactAvatar } from "@/components/inbox/contact-avatar"
 import {
   InboxFilterMenu,
-  InboxSearchPopover,
+  InboxSearchDialog,
 } from "@/components/inbox/inbox-list-controls"
 import { useInboxWorkspace } from "@/components/inbox/inbox-workspace-context"
 import { Button } from "@/components/ui/button"
@@ -92,7 +92,7 @@ export function InboxConversationList({
         </h2>
         <InboxFilterMenu />
         {!mobile ? (
-          <InboxSearchPopover
+          <InboxSearchDialog
             items={items}
             viewTitle={title}
             onSelect={onSelect}

@@ -36,11 +36,9 @@ import { currentUser, replyFromAccounts } from "@/lib/current-user"
 
 function PreviewTool({
   label,
-  onClick,
   children,
 }: {
   label: string
-  onClick: () => void
   children: React.ReactNode
 }) {
   return (
@@ -53,7 +51,6 @@ function PreviewTool({
             size="icon-sm"
             className="rounded-lg text-muted-foreground"
             aria-label={`${label} (preview only)`}
-            onClick={onClick}
           />
         }
       >
@@ -66,12 +63,10 @@ function PreviewTool({
 
 export function InboxReplyComposer({
   reply,
-  feedback,
   onReplyChange,
   onSend,
 }: {
   reply: string
-  feedback: string | null
   onReplyChange: (value: string) => void
   onSend: () => void
 }) {
@@ -79,9 +74,6 @@ export function InboxReplyComposer({
     replyFromAccounts[0]?.address ?? ""
   )
   const [macroQuery, setMacroQuery] = React.useState("")
-  const [previewMessage, setPreviewMessage] = React.useState<string | null>(
-    null
-  )
   const selectedAccount =
     replyFromAccounts.find((account) => account.address === replyFrom) ??
     replyFromAccounts[0]
@@ -91,7 +83,6 @@ export function InboxReplyComposer({
 
   const insertMacro = (macro: string) => {
     onReplyChange([reply.trim(), macro].filter(Boolean).join("\n\n"))
-    setPreviewMessage(null)
   }
 
   return (
@@ -173,50 +164,19 @@ export function InboxReplyComposer({
             aria-label="Message tools"
             className="no-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap sm:flex-wrap sm:overflow-visible"
           >
-            <PreviewTool
-              label="Formatting"
-              onClick={() =>
-                setPreviewMessage(
-                  "Formatting is not available in this preview."
-                )
-              }
-            >
+            <PreviewTool label="Formatting">
               <span className="text-base font-medium">T</span>
             </PreviewTool>
-            <PreviewTool
-              label="Emoji"
-              onClick={() =>
-                setPreviewMessage("Emoji is not available in this preview.")
-              }
-            >
+            <PreviewTool label="Emoji">
               <IconMoodSmile className="size-4" />
             </PreviewTool>
-            <PreviewTool
-              label="Attachment"
-              onClick={() =>
-                setPreviewMessage(
-                  "Attachments are not available in this preview."
-                )
-              }
-            >
+            <PreviewTool label="Attachment">
               <IconPaperclip className="size-4" />
             </PreviewTool>
-            <PreviewTool
-              label="Voice message"
-              onClick={() =>
-                setPreviewMessage(
-                  "Voice messages are not available in this preview."
-                )
-              }
-            >
+            <PreviewTool label="Voice message">
               <IconMicrophone className="size-4" />
             </PreviewTool>
-            <PreviewTool
-              label="Image"
-              onClick={() =>
-                setPreviewMessage("Images are not available in this preview.")
-              }
-            >
+            <PreviewTool label="Image">
               <IconPhoto className="size-4" />
             </PreviewTool>
             <DropdownMenu>
@@ -269,18 +229,23 @@ export function InboxReplyComposer({
             </DropdownMenu>
           </div>
           <div className="flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-9 rounded-xl px-3 text-sm font-medium"
-              onClick={() =>
-                setPreviewMessage(
-                  "End Chat is not available in this preview. Use Resolve in the header."
-                )
-              }
-            >
-              End Chat
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-9 rounded-xl px-3 text-sm font-medium"
+                    aria-label="End Chat (preview only)"
+                  />
+                }
+              >
+                End Chat
+              </TooltipTrigger>
+              <TooltipContent>
+                Use Resolve in the header · Preview only
+              </TooltipContent>
+            </Tooltip>
             <Button
               type="button"
               className="h-9 rounded-xl px-4"
@@ -291,11 +256,6 @@ export function InboxReplyComposer({
             </Button>
           </div>
         </div>
-        {feedback || previewMessage ? (
-          <p role="status" className="mt-2 text-xs text-muted-foreground">
-            {previewMessage ?? feedback}
-          </p>
-        ) : null}
       </div>
     </DiscussionComposerShell>
   )
