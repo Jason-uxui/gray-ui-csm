@@ -11,6 +11,7 @@ import {
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { FloatingThemeToggle } from "@/components/floating-theme-toggle"
+import { InboxWorkspaceProvider } from "@/components/inbox/inbox-workspace-context"
 import { NavUser } from "@/components/nav-user"
 import {
   NotificationsPanel,
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const activeRoute = getRouteByPathname(pathname)
   const shellDisplayMode = getShellDisplayMode(pathname)
   const isTicketsListPage = pathname === "/tickets"
+  const isInboxPage = pathname === "/inbox"
   const isKnowledgeBasePage = pathname === "/knowledge-base"
   const isAnalyticsPage = pathname === "/analytics"
   const shouldForceSidebarCollapsed =
@@ -76,13 +78,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     [shouldForceSidebarCollapsed]
   )
 
-  return (
+  const shell = (
     <SidebarProvider
       open={shouldForceSidebarCollapsed ? false : sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
       style={
         {
-          "--sidebar-width": "303px",
+          "--sidebar-width": isInboxPage ? "360px" : "303px",
           "--sidebar-width-icon": "56px",
         } as React.CSSProperties
       }
@@ -99,10 +101,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
               <Breadcrumb className="min-w-0">
                 <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbItem
+                    className={
+                      isInboxPage ? "hidden lg:block" : "hidden md:block"
+                    }
+                  >
                     <span className="text-muted-foreground">Workspace</span>
                   </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbSeparator
+                    className={
+                      isInboxPage ? "hidden lg:block" : "hidden md:block"
+                    }
+                  />
                   <BreadcrumbItem>
                     <BreadcrumbPage>
                       {activeRoute?.title ?? "Dashboard"}
@@ -190,9 +200,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             "mx-auto flex w-full min-w-0 flex-1 flex-col overflow-x-hidden",
             shellDisplayMode === "full-detail"
               ? "h-svh min-h-0 max-w-none gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:px-8"
-              : isTicketsListPage
-                ? "min-h-0 max-w-500 gap-4 overflow-hidden p-4 sm:p-6 lg:px-5 lg:py-8"
-                : "min-h-0 max-w-500 gap-4 overflow-y-auto p-4 sm:p-6 lg:p-8"
+              : isInboxPage
+                ? "min-h-0 max-w-500 gap-4 overflow-hidden p-4 sm:p-6 lg:px-10 lg:pt-0 lg:pb-8 xl:px-20"
+                : isTicketsListPage
+                  ? "min-h-0 max-w-500 gap-4 overflow-hidden p-4 sm:p-6 lg:px-5 lg:py-8"
+                  : "min-h-0 max-w-500 gap-4 overflow-y-auto p-4 sm:p-6 lg:p-8"
           )}
         >
           {children}
@@ -209,5 +221,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       </SidebarInset>
     </SidebarProvider>
+  )
+
+  return isInboxPage ? (
+    <InboxWorkspaceProvider>{shell}</InboxWorkspaceProvider>
+  ) : (
+    shell
   )
 }

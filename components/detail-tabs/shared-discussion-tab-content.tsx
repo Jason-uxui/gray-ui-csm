@@ -2,11 +2,7 @@
 
 import * as React from "react"
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 export type DiscussionPerson = {
@@ -79,21 +75,35 @@ export function DiscussionMessageEntry({
 export function DiscussionComposerShell({
   currentUser,
   header,
+  className,
+  headerClassName,
   contentClassName,
   children,
 }: {
   currentUser: DiscussionPerson
   header?: React.ReactNode
+  className?: string
+  headerClassName?: string
   contentClassName?: string
   children: React.ReactNode
 }) {
   return (
-    <div className="shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl">
+    <div
+      className={cn(
+        "shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl",
+        className
+      )}
+    >
       <div className={cn("flex items-start gap-3", contentClassName)}>
         <DiscussionAvatar person={currentUser} />
         <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border bg-background shadow-sm">
           {header ? (
-            <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm">
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm",
+                headerClassName
+              )}
+            >
               {header}
             </div>
           ) : null}

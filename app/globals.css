@@ -76,6 +76,9 @@
   --secondary-foreground: #3f3f46;
   --muted: #f7f7f7;
   --muted-foreground: #71717a;
+  /* Figma Sidebar / MediaAsset muted pair differs from the app-wide muted pair. */
+  --inbox-avatar-background: #f4f4f5;
+  --inbox-avatar-foreground: #71717a;
   --accent: #01d4f3;
   --accent-foreground: #18181b;
   --inverse: #09090b;
@@ -119,14 +122,17 @@
   --effect-control-inner-stroke: #000;
   --effect-raised-control:
     0 0 0 1px color-mix(in srgb, var(--effect-control-outline) 40%, transparent),
-    inset 0 1px 1px color-mix(in srgb, var(--effect-control-highlight) 10%, transparent),
-    inset 0 0 1px 1px color-mix(in srgb, var(--effect-control-inner-stroke) 6%, transparent);
+    inset 0 1px 1px
+      color-mix(in srgb, var(--effect-control-highlight) 10%, transparent),
+    inset 0 0 1px 1px
+      color-mix(in srgb, var(--effect-control-inner-stroke) 6%, transparent);
   --effect-primary-raised:
-    inset 0 0 12px rgb(255 255 255 / 55%),
-    inset 0 0 2px #997b00;
-  --effect-brand-mark-gradient: linear-gradient(177.6deg,
-      transparent 2%,
-      rgb(255 255 255 / 12%) 98.17%);
+    inset 0 0 12px rgb(255 255 255 / 55%), inset 0 0 2px #997b00;
+  --effect-brand-mark-gradient: linear-gradient(
+    177.6deg,
+    transparent 2%,
+    rgb(255 255 255 / 12%) 98.17%
+  );
 }
 
 .dark {
@@ -143,6 +149,8 @@
   --secondary-foreground: #d4d4d8;
   --muted: #1f1f23;
   --muted-foreground: #7f7f7f;
+  --inbox-avatar-background: #27272a;
+  --inbox-avatar-foreground: #a1a1aa;
   --accent: #01d4f3;
   --accent-foreground: #feffff;
   --inverse: #fff;
@@ -174,13 +182,13 @@
   --sidebar-accent-foreground: #fff;
   --sidebar-border: #323234;
   --sidebar-ring: oklch(0.552 0.016 285.938);
-  --shadow-inset-surface: 0 2px 4px 0 color-mix(in oklch, white 5%, transparent) inset;
+  --shadow-inset-surface: 0 2px 4px 0 color-mix(in oklch, white 5%, transparent)
+    inset;
   --effect-control-outline: #000;
   --effect-control-highlight: #fff;
   --effect-control-inner-stroke: #fff;
   --effect-primary-raised:
-    inset 0 0 12px rgb(255 255 255 / 65%),
-    inset 0 0 2px rgb(0 0 0 / 60%);
+    inset 0 0 12px rgb(255 255 255 / 65%), inset 0 0 2px rgb(0 0 0 / 60%);
 }
 
 @layer components {

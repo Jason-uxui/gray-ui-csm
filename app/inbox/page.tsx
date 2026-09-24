@@ -1,14 +1,15 @@
-import { CsmPageTemplate } from "@/components/csm-page-template"
-import { getRouteByPathOrThrow } from "@/lib/csm-routes"
+import { Suspense } from "react"
 
-const route = getRouteByPathOrThrow("/inbox")
+import { InboxPage as InboxWorkspace } from "@/components/inbox/inbox-page"
 
 export default function InboxPage() {
   return (
-    <CsmPageTemplate
-      title={route.title}
-      description={route.description}
-      metrics={route.templateMetrics}
-    />
+    <Suspense
+      fallback={
+        <div className="flex min-h-0 flex-1 animate-pulse rounded-xl border bg-muted" />
+      }
+    >
+      <InboxWorkspace />
+    </Suspense>
   )
 }

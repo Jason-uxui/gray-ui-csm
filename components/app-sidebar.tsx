@@ -16,6 +16,7 @@ import {
 
 import { CustomerSidebarFilters } from "@/components/customers/customer-sidebar-filters"
 import { GrayCsmLogo } from "@/components/gray-csm-logo"
+import { InboxSidebarFilters } from "@/components/inbox/inbox-sidebar-filters"
 import { TicketSidebarFilters } from "@/components/tickets/ticket-sidebar-filters"
 import { Label } from "@/components/ui/label"
 import {
@@ -71,6 +72,7 @@ export function AppSidebar({
   const panelItems = matchedItem.sidebarPreview
 
   const isTicketsSection = matchedItem.path === "/tickets"
+  const isInboxSection = matchedItem.path === "/inbox"
   const isCustomersSection = matchedItem.path === "/customers"
   const isKnowledgeBaseSection = matchedItem.path === "/knowledge-base"
   const isSidebarCollapsed = state === "collapsed"
@@ -85,7 +87,7 @@ export function AppSidebar({
       className="z-40 overflow-hidden group-data-[collapsible=icon]:border-sidebar-border *:data-[sidebar=sidebar]:flex-row"
       style={
         {
-          "--sidebar-width": "303px",
+          "--sidebar-width": isInboxSection ? "360px" : "303px",
           "--sidebar-width-icon": "56px",
           ...style,
         } as React.CSSProperties
@@ -94,7 +96,10 @@ export function AppSidebar({
     >
       <Sidebar
         collapsible="none"
-        className="w-(--sidebar-width-icon)! shrink-0 border-r border-sidebar-border px-1 py-3 group-data-[collapsible=icon]:border-r-0"
+        className={cn(
+          "w-(--sidebar-width-icon)! shrink-0 border-r border-sidebar-border px-1 py-3 group-data-[collapsible=icon]:border-r-0",
+          isInboxSection && "hidden md:flex"
+        )}
       >
         <SidebarHeader>
           <SidebarMenu>
@@ -144,7 +149,8 @@ export function AppSidebar({
         <div
           aria-hidden={isSidebarCollapsed}
           className={cn(
-            "hidden h-full min-w-0 shrink-0 overflow-hidden transition-[opacity,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:block",
+            "h-full min-w-0 shrink-0 overflow-hidden transition-[opacity,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            isInboxSection ? "block" : "hidden md:block",
             "w-[calc(var(--sidebar-width)-var(--sidebar-width-icon))]",
             isSidebarCollapsed
               ? "pointer-events-none -translate-x-3 opacity-0"
@@ -152,7 +158,11 @@ export function AppSidebar({
           )}
         >
           <Sidebar collapsible="none" className="h-full w-full min-w-0">
-            {isTicketsSection ? (
+            {isInboxSection ? (
+              <Suspense fallback={null}>
+                <InboxSidebarFilters />
+              </Suspense>
+            ) : isTicketsSection ? (
               <SidebarContent>
                 <Suspense fallback={null}>
                   <TicketSidebarFilters />
