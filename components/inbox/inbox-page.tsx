@@ -22,10 +22,6 @@ export function InboxPage() {
     updateItem,
   } = useInboxWorkspace()
   const [drafts, setDrafts] = React.useState<Record<string, string>>({})
-  const [feedback, setFeedback] = React.useState<{
-    itemId: string
-    message: string
-  } | null>(null)
 
   React.useEffect(() => {
     setMobileDetailOpen(false)
@@ -36,38 +32,31 @@ export function InboxPage() {
     items.find((item) => item.id === selectedId) ?? items[0] ?? null
   const reply = selectedItem ? (drafts[selectedItem.id] ?? "") : ""
 
-  const updateSelected = (
-    updater: (item: InboxItem) => InboxItem,
-    message: string | null
-  ) => {
+  const updateSelected = (updater: (item: InboxItem) => InboxItem) => {
     if (!selectedItem) return
     updateItem(selectedItem.id, updater)
-    setFeedback(message ? { itemId: selectedItem.id, message } : null)
   }
 
   const sendReply = () => {
     if (!selectedItem || !reply.trim()) return
     const body = reply.trim()
-    updateSelected(
-      (item) => ({
-        ...item,
-        unread: false,
-        latestUpdate: body,
-        updatedAt: "Just now",
-        messages: [
-          ...item.messages,
-          {
-            id: `${item.id}-${Date.now()}`,
-            author: "Jason",
-            role: "agent",
-            sentAt: "Just now",
-            isNew: true,
-            body,
-          },
-        ],
-      }),
-      "Reply sent"
-    )
+    updateSelected((item) => ({
+      ...item,
+      unread: false,
+      latestUpdate: body,
+      updatedAt: "Just now",
+      messages: [
+        ...item.messages,
+        {
+          id: `${item.id}-${Date.now()}`,
+          author: "Jason",
+          role: "agent",
+          sentAt: "Just now",
+          isNew: true,
+          body,
+        },
+      ],
+    }))
     setDrafts((current) => ({ ...current, [selectedItem.id]: "" }))
   }
 
@@ -94,54 +83,35 @@ export function InboxPage() {
         <ConversationDetail
           item={selectedItem}
           reply={reply}
-          feedback={
-            feedback?.itemId === selectedItem.id ? feedback.message : null
-          }
           mobileOpen={mobileDetailOpen}
           onReplyChange={(value) =>
             setDrafts((current) => ({ ...current, [selectedItem.id]: value }))
           }
           onSend={sendReply}
           onAssign={() =>
-            updateSelected(
-              (item) => ({
-                ...item,
-                owner: "Jason Duong",
-                mine: true,
-                status: "open",
-              }),
-              "Assigned to you"
-            )
+            updateSelected((item) => ({
+              ...item,
+              owner: "Jason Duong",
+              mine: true,
+              status: "open",
+            }))
           }
           onSnooze={() => {
-            updateSelected(
-              (item) => ({
-                ...item,
-                status: "snoozed",
-                latestUpdate: "Snoozed until tomorrow",
-              }),
-              null
-            )
+            updateSelected((item) => ({
+              ...item,
+              status: "snoozed",
+              latestUpdate: "Snoozed until tomorrow",
+            }))
             setMobileDetailOpen(false)
           }}
           onResolve={() => {
-            updateSelected(
-              (item) => ({
-                ...item,
-                status: "resolved",
-                latestUpdate: "Resolved just now",
-              }),
-              null
-            )
+            updateSelected((item) => ({
+              ...item,
+              status: "resolved",
+              latestUpdate: "Resolved just now",
+            }))
             setMobileDetailOpen(false)
           }}
-          onOpenFullTicket={() =>
-            setFeedback({
-              itemId: selectedItem.id,
-              message:
-                "Full ticket view is not linked to this Inbox preview yet.",
-            })
-          }
           onBack={() => setMobileDetailOpen(false)}
         />
       ) : (

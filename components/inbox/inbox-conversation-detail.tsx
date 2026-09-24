@@ -97,7 +97,7 @@ function HeaderAction({
   children,
 }: {
   label: string
-  onClick: () => void
+  onClick?: () => void
   children: React.ReactNode
 }) {
   return (
@@ -123,26 +123,22 @@ function HeaderAction({
 export function ConversationDetail({
   item,
   reply,
-  feedback,
   mobileOpen,
   onReplyChange,
   onSend,
   onAssign,
   onSnooze,
   onResolve,
-  onOpenFullTicket,
   onBack,
 }: {
   item: InboxItem
   reply: string
-  feedback: string | null
   mobileOpen: boolean
   onReplyChange: (value: string) => void
   onSend: () => void
   onAssign: () => void
   onSnooze: () => void
   onResolve: () => void
-  onOpenFullTicket: () => void
   onBack: () => void
 }) {
   const timelineRef = React.useRef<HTMLDivElement>(null)
@@ -239,10 +235,7 @@ export function ConversationDetail({
           <HeaderAction label="Resolve" onClick={onResolve}>
             <IconCheck className="size-4" />
           </HeaderAction>
-          <HeaderAction
-            label="Open full ticket (preview only)"
-            onClick={onOpenFullTicket}
-          >
+          <HeaderAction label="Open full ticket (preview only)">
             <IconArrowsMaximize className="size-4" />
           </HeaderAction>
         </div>
@@ -274,7 +267,7 @@ export function ConversationDetail({
                 <IconCheck className="size-4" />
                 Resolve
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onOpenFullTicket}>
+              <DropdownMenuItem>
                 <IconArrowsMaximize className="size-4" />
                 Open full ticket (preview only)
               </DropdownMenuItem>
@@ -304,7 +297,6 @@ export function ConversationDetail({
       <InboxReplyComposer
         key={item.id}
         reply={reply}
-        feedback={feedback}
         onReplyChange={onReplyChange}
         onSend={onSend}
       />
