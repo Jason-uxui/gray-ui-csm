@@ -56,4 +56,34 @@ The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer
 - Hidden intermediate dates remain interactive; browser QA verified the Apr 6 tooltip with both ticket series and their values.
 - The 7-day and 90-day ranges use the same separation between plotted data and visible labels; the 90-day view remains readable with ten-day milestones.
 
-final result: passed
+## final result: passed
+
+# Inbox design QA
+
+- Design source: [Inbox desktop](https://www.figma.com/design/sFoSM9QLUXjDWXy1JsmtN0/-Internal--UXUI---Gray-CSM--v2-?node-id=2124-12576) and [responsive examples](https://www.figma.com/design/sFoSM9QLUXjDWXy1JsmtN0/-Internal--UXUI---Gray-CSM--v2-?node-id=2161-1384).
+- Local preview: `http://localhost:3002/inbox?view=mine`.
+- Scope: local, mock-data Inbox implementation; no backend persistence.
+
+## Verified composition
+
+- The 360px secondary sidebar combines Views, conversation search/filters, and the conversation list. No separate queue column remains.
+- Conversation rows are 48px high, with a 24px empty-contact avatar, contact name, one-line subject preview, and unread dot or relative time.
+- The selected conversation has a compact ticket header, icon-only operational actions with tooltips, a message/activity timeline, and a composer sharing the Ticket Detail shell.
+- The contact placeholder uses Figma's muted/muted-foreground pair in Light and Dark. Its 24px silhouette keeps the Figma 44% opacity and white 54% inner shadow at x 0, y 2, blur 3.1.
+- Below 768px, the list and detail are separate views with a Back control; compact actions move into a menu.
+- The list title aligns with the Views label. Desktop search opens a popover with recent/matching conversations below its input; Filter opens nested Priority and Status menus without shifting the list. On mobile, search stays inline and the filter submenu flips into the viewport.
+
+## Interaction checks
+
+- View counts, selection, search, priority/status filters, assignment, snooze, resolve, and local reply sending were checked in the browser.
+- Sender selection and Macros update the local composer. Formatting, emoji, attachment, voice, image, and End Chat controls explicitly report preview-only behavior.
+- Search selection, filter submenu selection, Clear filters, and both Light/Dark menu appearances were checked in the browser at desktop and 390px widths.
+- “Open full ticket” is preview-only because Inbox and Tickets currently have separate mock records, so matching IDs can open unrelated content.
+- TypeScript, ESLint, design-token/route guardrails, and production build are release checks; rerun them after the final code change.
+
+## Remaining product integration
+
+- Connect Inbox and Ticket Detail to one ticket data source before enabling cross-navigation.
+- Specify and implement persistence, realtime updates, file/voice/image handling, and close-chat behavior separately.
+
+final result: passed for the mock-data Inbox scope

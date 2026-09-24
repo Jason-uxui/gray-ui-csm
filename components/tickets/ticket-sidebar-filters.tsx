@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import {
   IconAlertCircle,
@@ -13,15 +12,7 @@ import {
 } from "@tabler/icons-react"
 
 import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
-import { Badge } from "@/components/ui/badge"
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+import { SidebarFilterGroup } from "@/components/sidebar-filter-group"
 import { ticketSidebarGroups } from "@/lib/tickets/mock-data"
 import type { TicketPriority, TicketSidebarGroup } from "@/lib/tickets/types"
 
@@ -93,47 +84,19 @@ export function TicketSidebarFilters() {
   return (
     <div className="flex flex-col">
       {ticketSidebarGroups.map((group) => (
-        <div key={group.key}>
-          <SidebarGroup>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0">
-                {group.items.map((item) => {
-                  const isActive =
-                    group.key === "views" && item.key === activeView
-                  const shouldShowBadge =
-                    group.key === "views" && BADGED_VIEW_KEYS.has(item.key)
-
-                  return (
-                    <SidebarMenuItem key={item.key}>
-                      <SidebarMenuButton
-                        render={
-                          <Link href={buildItemHref(group.key, item.key)} />
-                        }
-                        isActive={isActive}
-                      >
-                        <TicketFilterIcon
-                          groupKey={group.key}
-                          itemKey={item.key}
-                        />
-                        <span>{item.label}</span>
-                        {shouldShowBadge ? (
-                          <Badge
-                            variant="secondary"
-                            className="ml-auto h-5 shrink-0 px-2.5 text-xs font-medium shadow-raised-control"
-                          >
-                            {item.count}
-                          </Badge>
-                        ) : null}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </div>
+        <SidebarFilterGroup
+          key={group.key}
+          label={group.label}
+          activeKey={group.key === "views" ? activeView : ""}
+          items={group.items.map((item) => ({
+            key: item.key,
+            label: item.label,
+            href: buildItemHref(group.key, item.key),
+            icon: <TicketFilterIcon groupKey={group.key} itemKey={item.key} />,
+            count: item.count,
+            showBadge: group.key === "views" && BADGED_VIEW_KEYS.has(item.key),
+          }))}
+        />
       ))}
     </div>
   )
