@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "test:merge": "node --test tests/ticket-merge*.test.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

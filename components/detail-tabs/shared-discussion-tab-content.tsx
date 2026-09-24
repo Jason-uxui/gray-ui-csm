@@ -52,7 +52,7 @@ export function DiscussionMessageEntry({
   author: DiscussionPerson
   timestamp: string
   badges?: React.ReactNode
-  body: string
+  body: React.ReactNode
   attachment?: React.ReactNode
   className?: string
 }) {

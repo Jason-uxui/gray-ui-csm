@@ -41,3 +41,4 @@ next-env.d.ts
 .codex/
 .playwright-cli/
 .playwright-mcp/
+/output/playwright/
