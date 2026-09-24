@@ -92,6 +92,22 @@
   --status-on-solid: #fafafa;
   --status-success: var(--status-approved);
   --status-warning: var(--status-changes-requested);
+  /* Project Theme / status — Figma merge handoff, 23 Sep 2026. */
+  --status-open-background: #dff2fe;
+  --status-open-foreground: #00598a;
+  --status-open-border: #b8e6fe;
+  --status-pending-background: #fef3c7;
+  --status-pending-foreground: #92400e;
+  --status-pending-border: #fde68a;
+  --status-resolved-background: #dcfce7;
+  --status-resolved-foreground: #166534;
+  --status-resolved-border: #bbf7d0;
+  --status-closed-background: #f4f4f5;
+  --status-closed-foreground: #52525b;
+  --status-closed-border: #e4e4e7;
+  --status-merge-background: #fef9c3;
+  --status-merge-foreground: #a16207;
+  --status-merge-border: #fef08a;
   --border: #e3e3e3;
   --input: #414141;
   /* Project-owned input border; ring remains sourced from MonoGray Global. */
@@ -164,6 +180,21 @@
   --status-on-solid: #09090b;
   --status-success: var(--status-approved);
   --status-warning: var(--status-changes-requested);
+  --status-open-background: #082f49;
+  --status-open-foreground: #7dd3fc;
+  --status-open-border: #075985;
+  --status-pending-background: #382b12;
+  --status-pending-foreground: #fcd34d;
+  --status-pending-border: #78551b;
+  --status-resolved-background: #123524;
+  --status-resolved-foreground: #86efac;
+  --status-resolved-border: #226344;
+  --status-closed-background: #27272a;
+  --status-closed-foreground: #d4d4d8;
+  --status-closed-border: #52525b;
+  --status-merge-background: #342c12;
+  --status-merge-foreground: #fde047;
+  --status-merge-border: #786322;
   --border: #323234;
   --input: #646a7a;
   --input-border: #27272a;
@@ -204,6 +235,28 @@
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
+}
+
+@keyframes merge-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.merge-selection-height {
+  overflow: clip;
+  padding: 12px;
+  margin: -12px;
+  box-sizing: content-box;
+  transition: height 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.merge-picker-reveal { animation: merge-reveal 450ms ease-out 180ms both; }
+.merge-state-reveal { animation: merge-reveal 500ms ease-out both; }
+.merge-result-reveal { animation: merge-reveal 650ms ease-out 400ms both; }
+.merge-completion-toast { animation: merge-reveal 500ms ease-out 700ms both; }
+@media (prefers-reduced-motion: reduce) {
+  .merge-selection-height { transition: none; }
+  .merge-picker-reveal, .merge-state-reveal, .merge-result-reveal,
+  .merge-completion-toast { animation: none; }
 }
 
 @layer base {

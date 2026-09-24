@@ -1,4 +1,24 @@
-# Analytics design QA
+# Design QA
+
+## Latest merge polish — 24 Sep 2026
+
+Latest adjustment: picker/note expansion and collapse now take 1000ms. Toast remains horizontally centered but sits 16px from the top, not vertically centered. Its four-second fully-visible duration is unchanged.
+
+Demo pacing follow-up: dialog 500ms, picker/note height 600ms, loading 2200ms, result reveal 650ms. Toast now sits at viewport center and stays fully visible four seconds after entrance. Browser verification confirmed Add ticket is usable after ticket 2, the existing three-ticket cap displays an explanation, loading lasts over 2.1 seconds, and toast is centered and dismisses automatically. Typecheck and eight tests passed. See the latest override in `docs/ticket-merge-handoff.md` for complete timings.
+
+This section supersedes older merge timing and loading notes below.
+
+- Merge is a standalone outline icon action with tooltip in the header.
+- Merge results reuse the conversation author/avatar/time wrapper.
+- Search IDs are muted regular text. Results remain 224px high for all queries, including no matches.
+- Selection area animates height over 240ms; results fade after 80ms; selected content reveals over 220ms. Reduced-motion disables movement.
+- Loading uses the Figma illustration/ring and Cancel merge. The local demo waits 650ms; production must await a real transaction instead.
+- Result reveal is 320ms after 180ms; toast begins after 280ms and stays four seconds.
+- Verified: success, cancellation without committing (draft retained), simulated failure/retry, fixed empty-search height, mobile dark layout bounds, typecheck, eight unit tests, and production build.
+- Seven core Figma flow states are covered. Updated Figma picker styling, header action, and motion specification; no new prototype wiring claimed.
+- Detailed evidence and backend limits: `docs/ticket-merge-handoff.md`.
+
+## Previous scope — Analytics
 
 - Visual source of truth: Knowledge Base article `Insight` tab
 - Reference screenshot: `/tmp/kb-insights-reference.png`
@@ -7,13 +27,13 @@
 - Implementation URL: `http://localhost:3000/analytics?range=30d&compare=previous-period`
 - Tested states: light and dark themes; 1386px desktop; 397px mobile (390px target); default and active filters; SLA table expanded and collapsed
 
-## Visual comparison
+### Analytics visual comparison
 
 Analytics now reuses the same data-display anatomy as Knowledge Base Insights: muted rounded outer surface, compact uppercase heading, bordered white/neutral inner surface, large tabular values, primary-colored trends, and semantic status colors. KPI blocks use the shared `StatCard`; analytical blocks use the shared `InsightMetricBlock`. The ticket-volume chart follows the Total Views treatment with primary gradients and a taller investigation area.
 
-The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer names truncate with a tooltip, numeric cells use tabular figures, short values do not wrap, and lower-priority columns hide at narrow widths. Internal actions use a right-arrow and stay in the same application tab.
+The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer names truncate with a tooltip, numeric cells use tabular figures, short values do not wrap, and lower-priority columns hide at narrow breakpoints. Internal actions use a right-arrow and stay in the same application tab.
 
-## Interaction and responsive evidence
+### Analytics interaction and responsive evidence
 
 - All 9 range/comparison URL combinations render the selected state and update range-based KPI, chart, SLA, quality, issue, and secondary-signal data.
 - Invalid URL values fall back visually to `30d` and `previous-period`; selecting `7d` and `none` updates the URL and removes comparison deltas.
@@ -23,15 +43,12 @@ The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer
 - Dark mode preserves contrast, semantic statuses, chart gradients, and card hierarchy.
 - Final browser console check reports no warnings or errors.
 
-## Findings resolved during QA
+### Analytics findings resolved during QA
 
 - P1: Next.js production prerender required a Suspense boundary around URL search parameters. Added at the route boundary.
 - P1: Mobile grid items inherited intrinsic widths and were visually clipped. Constrained the root grid and each responsive grid to `minmax(0, 1fr)` and stacked filters on mobile.
 - P2: SLA table forced horizontal scrolling at desktop card width. Reduced column/padding footprint and hid supporting columns at narrow breakpoints.
 - P2: Recharts animation caused incomplete screenshots and a transient partial chart. Disabled animation for deterministic complete rendering.
-
-### Feedback round 2
-
 - P1: The volume chart used a fixed height inside a card stretched to match the SLA panel, leaving a large empty area. The block, inner content, and chart now form a full-height flex layout.
 - P1: Both chart series resolved to nearly the same dark-mode color. New tickets keeps `primary`; resolved tickets now uses the darker semantic `chart-4` token, with matching legend and gradient.
 - P1: `monotone` interpolation softened and distorted the trend shape. Both series now use straight `linear` segments, matching the supplied chart reference.
@@ -40,7 +57,7 @@ The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer
 - P2: Major section spacing was too compressed. Desktop/tablet gaps now use 20px while mobile retains 16px.
 - P2: Removed the active-filter helper sentence and the future Self-service block as requested.
 
-## Round 2 verification
+### Analytics round 2 verification
 
 - Desktop dark and light mode: main chart fills the card beside SLA, gradients remain visible, and the two series remain distinct.
 - Main chart tooltip verified at Apr 16 with both `New tickets 168` and `Resolved tickets 142`.
@@ -48,13 +65,71 @@ The SLA table follows the Linked Tickets/Matching table hierarchy. Long customer
 - Active Team filter still enables Clear filters and no longer inserts helper copy into the layout.
 - Mobile measured at 391px: root content has no horizontal overflow; filters remain stacked; the Self-service block is absent.
 - No global colors, route state, table behavior, or mock-data contracts changed.
+- The 30-day view now plots one value per day while retaining a sparse readable X-axis; hidden dates remain interactive and 7-day/90-day ranges use the same separation between plotted data and visible labels.
 
-### Dense daily chart data
+## Current scope — Merge tickets flow
 
-- The 30-day view now plots one value per day instead of only the visible axis milestones, producing more natural short-term movement while keeping straight line segments.
-- The X-axis remains intentionally sparse: Apr 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, and 30.
-- Hidden intermediate dates remain interactive; browser QA verified the Apr 6 tooltip with both ticket series and their values.
-- The 7-day and 90-day ranges use the same separation between plotted data and visible labels; the 90-day view remains readable with ten-day milestones.
+- Source visual truth: user-provided KiriDesk merge-flow screenshots, especially `Screenshot 2026-09-22 at 2.40.30 PM.png` through `Screenshot 2026-09-22 at 2.41.01 PM.png`; the earlier generated wireframe remains supporting structure only.
+- Implementation: `http://localhost:3001/tickets/t-001`
+- Implementation screenshot: Codex in-app browser captures inspected inline during this run (the browser surface did not expose a persistent screenshot path)
+- Desktop viewport: browser default, approximately 1600 × 900 CSS px
+- Responsive viewports: 768 × 900 and 390 × 844 requested; measured mobile dialog bounds were x 12, y 12, width 463.5, height 1031 within the browser's scaled 487 × 1055 CSS viewport
+- Density normalization: browser screenshots and UI were compared at CSS scale; the source board was used as flow and hierarchy guidance rather than a pixel-perfect product screen
+- States checked: action menu, empty/search, selected Ticket 2, optional note, disabled/enabled merge action, processing state, success toast, persistent merge record, previously merged ticket, cancel/reset, responsive modal, dark mode
+
+## Full-view comparison evidence
+
+The implementation preserves the reference's sequence: entry action, searchable modal, selected-ticket state, processing feedback, and a persistent result inside the conversation. The final UI intentionally inherits the existing Gray CSM shell, semantic tokens, typography, button treatments, ticket status badges, and 24px modal radius instead of copying the reference product's decorative connector lines.
+
+## Focused region comparison evidence
+
+- Header: merge icon, title, helper copy, and close action match the intended hierarchy.
+- Ticket stack: Ticket 1 is fixed and visually anchored; each card is intentionally limited to two content rows—ticket number/status and subject—with a quiet remove action on selected targets.
+- Search: query filters realistic existing mock tickets and excludes the current/already-selected tickets.
+- Repeat merge prevention: tickets included in an earlier merge no longer appear as selectable results, with an explanatory empty state.
+- Footer: Cancel is secondary; Merge tickets is disabled until a target is selected.
+- Processing: the modal becomes a compact, non-dismissible progress state for 800ms, clearly naming the destination ticket.
+- Result: merge closes the modal, announces a toast, adds a concise Activity event, and inserts a structured merge record into Conversation with every merged ticket and the optional note.
+
+## Required fidelity surfaces
+
+- Fonts and typography: uses the project's existing type stack, weights, and sentence-case labels; hierarchy is consistent with Ticket detail.
+- Spacing and layout rhythm: 20–24px modal padding, 20px section gaps, compact ticket cards, fixed header/footer, and scrolling body match the target's density.
+- Colors and visual tokens: all surfaces, borders, focus rings, badges, muted text, backdrop, and buttons use existing semantic project tokens; no hardcoded product palette was introduced.
+- Image and asset fidelity: the target contains no raster assets. Icons use the project's existing Tabler icon library.
+- Copy and content: required labels and helper text are present; ticket content comes from the existing mock dataset.
+
+## Findings
+
+No actionable P0, P1, or P2 mismatch remains.
+
+## Interaction and browser verification
+
+- Opened Merge tickets from the ticket-detail overflow menu.
+- Confirmed Merge tickets is disabled in the empty state.
+- Searched for `salesforce` and selected #TC-002.
+- Added #TC-003 as the optional third ticket and confirmed the maximum target limit.
+- Entered an optional internal note and completed the merge.
+- Confirmed the processing state appears before completion.
+- Confirmed the persistent Conversation merge record contains both tickets and the internal note; Activity retains the concise event and the toast confirms completion.
+- Reopened Merge tickets, searched for the ticket just merged, and confirmed it was unavailable with clear explanatory copy.
+- Switched the ticket detail and merge modal to dark mode and visually confirmed surface, border, badge, backdrop, text, and disabled-action contrast; restored light mode afterward.
+- The asynchronous failure path preserves the draft and returns the modal to an inline `Merge failed` alert with retry available. This code path is typechecked but cannot be triggered by the current always-successful demo data provider.
+- Reopened the dialog and confirmed transient selections and note were reset.
+- Confirmed no browser console warnings or errors.
+- Confirmed typecheck, lint, design-token guardrail, and route-thinness checks pass.
+
+## Comparison history
+
+- Initial implementation pass: no P0/P1/P2 issues found in desktop comparison.
+- Responsive pass: measured dialog remained within the scaled mobile viewport; no overlap or hidden persistent footer actions found.
+- Annotation feedback pass: converted section labels to sentence case, reduced ticket cards to two content rows, removed secondary account/submission metadata, and changed Internal note to an on-demand label-plus action matching the Ticket drawer's Tags/Followers disclosure pattern. Browser verification confirmed the note editor opens below the label and receives focus.
+- Reference-learning pass: reduced the modal to a focused 560px maximum width, added a non-dismissible processing state, and replaced the generic Conversation event with a structured merge record. Post-fix browser evidence showed the modal transition, processing screen, two-ticket result, optional note, and semantic success styling with no console warnings or errors.
+- Edge-state pass: added asynchronous error recovery, prevented repeat merges within the current ticket session, verified the explanatory unavailable-result state, and completed a visual dark-mode pass. The mobile layout contract remains unchanged: full-height inset modal below the small breakpoint, scrolling body, and fixed footer.
+
+## Follow-up polish
+
+- P3: When a merge API becomes available, connect the prepared asynchronous callback to the endpoint and replace the session-only unavailable-ticket list with persisted server state and authoritative timestamps.
 
 ## final result: passed
 

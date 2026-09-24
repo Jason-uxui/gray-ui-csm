@@ -13,13 +13,13 @@ export const ticketStatusLabel: Record<TicketQueueStatus, string> = {
 }
 
 export const ticketStatusToneClassName: Record<TicketQueueStatus, string> = {
-  open: "border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/60 dark:text-sky-300",
+  open: "border-[var(--status-open-border)] bg-[var(--status-open-background)] text-[var(--status-open-foreground)]",
   pending:
-    "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/60 dark:text-amber-300",
+    "border-[var(--status-pending-border)] bg-[var(--status-pending-background)] text-[var(--status-pending-foreground)]",
   resolved:
-    "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/60 dark:text-emerald-300",
+    "border-[var(--status-resolved-border)] bg-[var(--status-resolved-background)] text-[var(--status-resolved-foreground)]",
   closed:
-    "border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+    "border-[var(--status-closed-border)] bg-[var(--status-closed-background)] text-[var(--status-closed-foreground)]",
 }
 
 export const ticketChannelLabel: Record<TicketChannel, string> = {

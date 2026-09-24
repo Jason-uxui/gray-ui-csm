@@ -4,6 +4,7 @@ import {
   IconFileText,
   IconMicrophone,
   IconMoodSmile,
+  IconDots,
   IconPaperclip,
   IconPhoto,
   IconSearch,
@@ -38,6 +39,10 @@ import {
 import { TicketTaskInlineList } from "@/components/tickets/ticket-task-inline-list"
 import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
 import { TicketTag } from "@/components/tickets/ticket-tag"
+import {
+  MergeRelationshipConnector,
+  TicketMergeCard,
+} from "@/components/tickets/ticket-merge-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -180,6 +185,102 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
   )
 }
 
+function MergedTicketsTimelineCard({ item }: { item: TicketTimelineEvent }) {
+  const mergeDetails = item.mergeDetails
+  if (!mergeDetails) return null
+  const [destination, ...sources] = mergeDetails.tickets
+  if (!destination) return null
+
+  const card = (
+    <div className="rounded-[14px] border border-border bg-sidebar-accent px-5 py-[18px]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <p className="text-sm font-semibold">
+            {mergeDetails.tickets.length} tickets merged
+          </p>
+          <p className="text-sm leading-5 text-muted-foreground">
+            Combined into {mergeDetails.destinationLabel}
+          </p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="rounded-lg text-muted-foreground"
+                aria-label="Merge result actions"
+              />
+            }
+          >
+            <IconDots className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Merged {item.timestamp}</DropdownMenuLabel>
+              <DropdownMenuItem
+                render={
+                  <a href={`/tickets/${destination.id}?tab=conversation`} />
+                }
+              >
+                Open destination ticket
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="mt-4">
+        <p className="mb-2 text-sm font-medium">Ticket 1 · Current</p>
+        <TicketMergeCard
+          label={destination.label}
+          subject={destination.subject}
+          status={destination.queueStatus}
+          current
+          transparent
+        />
+        {sources.map((source, index) => (
+          <div key={source.id} className="flex">
+            <MergeRelationshipConnector
+              continues={index < sources.length - 1}
+            />
+            <div className="min-w-0 flex-1 pt-6">
+              <TicketMergeCard
+                label={source.label}
+                subject={source.subject}
+                status={source.queueStatus}
+                current
+                transparent
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      {mergeDetails.note ? (
+        <div className="mt-5 border-t border-border pt-5">
+          <div className="border-l border-primary pl-3.5">
+            <p className="font-mono text-sm text-muted-foreground">
+              Merge notes
+            </p>
+            <p className="mt-1 text-sm leading-5 whitespace-pre-wrap text-foreground">
+              {mergeDetails.note}
+            </p>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+  return mergeDetails.author ? (
+    <DiscussionMessageEntry
+      className="merge-result-reveal"
+      author={mergeDetails.author}
+      timestamp={item.timestamp}
+      body={card}
+    />
+  ) : (
+    <div className="merge-result-reveal">{card}</div>
+  )
+}
+
 export function ConversationTabContent({
   conversationItems,
   pendingReply,
@@ -275,7 +376,9 @@ export function ConversationTabContent({
 
     const frameId = window.requestAnimationFrame(() => {
       bottomAnchor.scrollIntoView({
-        behavior: "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
         block: "end",
       })
     })
@@ -499,6 +602,10 @@ export function ConversationTabContent({
       {conversationItems.map((item) => {
         if (item.kind === "message") {
           return <TimelineMessageCard key={item.id} item={item} />
+        }
+
+        if (item.mergeDetails) {
+          return <MergedTicketsTimelineCard key={item.id} item={item} />
         }
 
         return (

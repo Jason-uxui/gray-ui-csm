@@ -1,9 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { arrayMove } from "@dnd-kit/sortable"
-import { IconArrowLeft, IconChevronDown, IconDots } from "@tabler/icons-react"
+import {
+  IconArrowLeft,
+  IconArrowsJoin,
+  IconCheck,
+  IconChevronDown,
+  IconDots,
+} from "@tabler/icons-react"
 
 import {
   detailTabs,
@@ -24,6 +30,7 @@ import {
   TicketDetailRightPanel,
 } from "@/components/tickets/ticket-detail-sections"
 import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
+import { MergeTicketsDialog } from "@/components/tickets/merge-tickets-dialog"
 import { useTicketReplyFlow } from "@/components/tickets/use-ticket-reply-flow"
 import { useTicketTasks } from "@/components/tickets/use-ticket-tasks"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +44,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  MERGE_TOAST_LIFETIME_MS,
+  waitForMergePreview,
+} from "@/lib/tickets/merge-motion"
 import { currentUser, replyFromAccounts } from "@/lib/current-user"
 import type {
   Ticket,
@@ -52,6 +68,7 @@ import type {
   TicketTimelineItem,
 } from "@/lib/tickets/detail-data"
 import { createTicketTask, createTicketTaskId } from "@/lib/tickets/task-utils"
+import { tickets } from "@/lib/tickets/mock-data"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
@@ -91,6 +108,8 @@ export function TicketDetailPage({
     replyFromAccounts[0]?.address ?? ""
   )
   const [templateQuery, setTemplateQuery] = useState("")
+  const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false)
+  const [mergeToast, setMergeToast] = useState<string | null>(null)
 
   const isRightPanelOpen = !isMobile && isDesktopRightPanelOpen
 
@@ -126,6 +145,17 @@ export function TicketDetailPage({
   const activityItems = timeline.filter(
     (item): item is TicketTimelineEvent => item.kind === "event"
   )
+  const mergedTicketIds = useMemo(
+    () =>
+      timeline.flatMap((item) =>
+        item.kind === "event" && item.mergeDetails
+          ? item.mergeDetails.tickets
+              .map((mergedTicket) => mergedTicket.id)
+              .filter((id) => id !== ticket.id)
+          : []
+      ),
+    [ticket.id, timeline]
+  )
 
   const agent = ticket.assignee ?? {
     name: currentUser.name,
@@ -149,6 +179,60 @@ export function TicketDetailPage({
   const appendTimelineEvent = (event: TicketTimelineItem) => {
     setTimeline((currentTimeline) => [...currentTimeline, event])
   }
+
+  const handleMergeTickets = async (
+    selectedTickets: Ticket[],
+    note: string,
+    signal: AbortSignal
+  ) => {
+    // Local preview only: make the pending state observable and cancellable.
+    // A production integration should await its API transaction here instead.
+    await waitForMergePreview(signal)
+    const mergedTicketLabels = selectedTickets
+      .map((selectedTicket) => getTicketNumberLabel(selectedTicket))
+      .join(", ")
+    const destinationLabel = getTicketNumberLabel(ticket)
+
+    appendTimelineEvent({
+      id: `${ticket.id}-merge-${Date.now()}`,
+      kind: "event",
+      timestamp: "Now",
+      title: "Tickets merged",
+      detail: `${mergedTicketLabels} merged into ${destinationLabel}${
+        note ? ` · ${note}` : ""
+      }`,
+      tone: "success",
+      mergeDetails: {
+        author: {
+          name: currentUser.name,
+          avatarUrl: currentUser.avatar,
+          email: currentUser.email,
+        },
+        destinationLabel,
+        tickets: [ticket, ...selectedTickets].map((mergedTicket) => ({
+          id: mergedTicket.id,
+          label: getTicketNumberLabel(mergedTicket),
+          subject: mergedTicket.subject,
+          queueStatus: mergedTicket.queueStatus,
+        })),
+        note: note || undefined,
+      },
+    })
+
+    setMergeToast(
+      `${selectedTickets.length + 1} tickets merged into ${destinationLabel}`
+    )
+  }
+
+  useEffect(() => {
+    if (!mergeToast) return
+    // Keep the toast fully visible for four seconds after its entrance.
+    const timer = window.setTimeout(
+      () => setMergeToast(null),
+      MERGE_TOAST_LIFETIME_MS
+    )
+    return () => window.clearTimeout(timer)
+  }, [mergeToast])
 
   const handleAddInternalNote = () => {
     const trimmedNote = noteDraft.trim()
@@ -312,6 +396,24 @@ export function TicketDetailPage({
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  className="size-9 rounded-xl"
+                  aria-label="Merge tickets"
+                  onClick={() => setIsMergeDialogOpen(true)}
+                />
+              }
+            >
+              <IconArrowsJoin className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Merge tickets</TooltipContent>
+          </Tooltip>
 
           <div className="inline-flex overflow-hidden rounded-2xl border border-transparent">
             <Button
@@ -538,6 +640,28 @@ export function TicketDetailPage({
           isSendingReply={isSendingReply}
         />
       </div>
+
+      <MergeTicketsDialog
+        open={isMergeDialogOpen}
+        onOpenChange={setIsMergeDialogOpen}
+        currentTicket={ticket}
+        tickets={tickets}
+        unavailableTicketIds={mergedTicketIds}
+        onMerge={handleMergeTickets}
+      />
+
+      {mergeToast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="merge-completion-toast fixed top-4 left-1/2 z-[80] flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-popover px-4 py-3 text-sm font-medium text-popover-foreground shadow-xl"
+        >
+          <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <IconCheck className="size-3.5" />
+          </span>
+          {mergeToast}
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -1,5 +1,10 @@
 import { currentUser } from "@/lib/current-user"
-import type { Ticket, TicketChannel, TicketPerson } from "@/lib/tickets/types"
+import type {
+  Ticket,
+  TicketChannel,
+  TicketPerson,
+  TicketQueueStatus,
+} from "@/lib/tickets/types"
 
 export type TicketDetailTab = "conversation" | "task" | "activity" | "notes"
 
@@ -28,6 +33,17 @@ export type TicketTimelineEvent = {
   title: string
   detail: string
   tone?: "neutral" | "success" | "warning"
+  mergeDetails?: {
+    author?: TicketPerson
+    destinationLabel: string
+    tickets: Array<{
+      id: string
+      label: string
+      subject: string
+      queueStatus?: TicketQueueStatus
+    }>
+    note?: string
+  }
 }
 
 export type TicketTimelineNote = {
