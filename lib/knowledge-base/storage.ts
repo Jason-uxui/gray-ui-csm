@@ -76,6 +76,8 @@ function mergeArticleDefaults(
         article.activity?.length ??
         fallbackArticle.activity?.length ??
         article.activityCount,
+      details: article.details ?? fallbackArticle.details,
+      versions: article.versions ?? fallbackArticle.versions,
     }
   })
 }
@@ -99,6 +101,8 @@ function mergeArticleUserState(
     activity,
     activityCount:
       activity?.length ?? article.activityCount ?? existingArticle.activityCount,
+    details: existingArticle.details ?? article.details,
+    versions: existingArticle.versions ?? article.versions,
   }
 }
 

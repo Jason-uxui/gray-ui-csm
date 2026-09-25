@@ -3,19 +3,29 @@
 import * as React from "react"
 
 import {
+  cloneKnowledgeArticleDetails,
+  createDefaultKnowledgeArticleDetails,
+} from "@/lib/knowledge-base/article-details"
+import {
   extractCustomerReplyFromDocument,
   getKnowledgeArticleDocument,
 } from "@/lib/knowledge-base/content"
 import type {
   KnowledgeArticle,
+  KnowledgeArticleDetails,
   KnowledgeArticleSavePatch,
   KnowledgeArticleStatus,
 } from "@/lib/knowledge-base/types"
 
-export type KnowledgeArticleChangedField = "content" | "status" | "title"
+export type KnowledgeArticleChangedField =
+  | "content"
+  | "details"
+  | "status"
+  | "title"
 
 type UseKnowledgeArticleEditorArgs = {
   article: KnowledgeArticle
+  pageCategory: string
   startInEditMode?: boolean
   onSaveArticle: (articleId: string, patch: KnowledgeArticleSavePatch) => void
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void
@@ -24,6 +34,7 @@ type UseKnowledgeArticleEditorArgs = {
 
 export function useKnowledgeArticleEditor({
   article,
+  pageCategory,
   startInEditMode = false,
   onSaveArticle,
   onUnsavedChangesChange,
@@ -33,12 +44,40 @@ export function useKnowledgeArticleEditor({
     () => getKnowledgeArticleDocument(article),
     [article]
   )
+  const savedDetails = React.useMemo(
+    () =>
+      article.details ??
+      createDefaultKnowledgeArticleDetails({
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        status: article.status,
+        author: article.author,
+        pageCategory,
+        views: article.views,
+        helpfulRate: article.helpfulRate,
+        matchReasons: article.matchReasons,
+      }),
+    [
+      article.author,
+      article.details,
+      article.helpfulRate,
+      article.id,
+      article.matchReasons,
+      article.status,
+      article.summary,
+      article.title,
+      article.views,
+      pageCategory,
+    ]
+  )
   const [isEditing, setIsEditing] = React.useState(false)
   const [showDiscardDialog, setShowDiscardDialog] = React.useState(false)
   const [showSaveSuccess, setShowSaveSuccess] = React.useState(false)
   const [draftDocument, setDraftDocument] = React.useState(articleDocument)
   const [draftTitle, setDraftTitle] = React.useState(article.title)
   const [draftStatus, setDraftStatus] = React.useState(article.status)
+  const [draftDetails, setDraftDetails] = React.useState(savedDetails)
 
   const savedSnapshotKey = React.useMemo(
     () =>
@@ -46,8 +85,9 @@ export function useKnowledgeArticleEditor({
         document: articleDocument,
         title: article.title,
         status: article.status,
+        details: savedDetails,
       }),
-    [article.title, article.status, articleDocument]
+    [article.title, article.status, articleDocument, savedDetails]
   )
   const draftSnapshotKey = React.useMemo(
     () =>
@@ -55,8 +95,9 @@ export function useKnowledgeArticleEditor({
         document: draftDocument,
         title: draftTitle,
         status: draftStatus,
+        details: draftDetails,
       }),
-    [draftDocument, draftTitle, draftStatus]
+    [draftDetails, draftDocument, draftTitle, draftStatus]
   )
   const hasUnsavedChanges = draftSnapshotKey !== savedSnapshotKey
   const changedFields = React.useMemo(() => {
@@ -67,22 +108,28 @@ export function useKnowledgeArticleEditor({
     if (JSON.stringify(draftDocument) !== JSON.stringify(articleDocument)) {
       fields.push("content")
     }
+    if (JSON.stringify(draftDetails) !== JSON.stringify(savedDetails)) {
+      fields.push("details")
+    }
 
     return fields
   }, [
     article.status,
     article.title,
     articleDocument,
+    draftDetails,
     draftDocument,
     draftStatus,
     draftTitle,
+    savedDetails,
   ])
 
   const resetDraftState = React.useCallback(() => {
     setDraftDocument(articleDocument)
     setDraftTitle(article.title)
     setDraftStatus(article.status)
-  }, [article.status, article.title, articleDocument])
+    setDraftDetails(cloneKnowledgeArticleDetails(savedDetails))
+  }, [article.status, article.title, articleDocument, savedDetails])
 
   const discardEdits = React.useCallback(() => {
     resetDraftState()
@@ -148,6 +195,15 @@ export function useKnowledgeArticleEditor({
       title: draftTitle.trim() || article.title,
       status: draftStatus,
       customerReply,
+      details: cloneKnowledgeArticleDetails({
+        ...draftDetails,
+        tags: draftDetails.tags.map((tag) => tag.trim()).filter(Boolean),
+        seo: {
+          metaTitle: draftDetails.seo.metaTitle.trim(),
+          metaKeywords: draftDetails.seo.metaKeywords.trim(),
+          metaDescription: draftDetails.seo.metaDescription.trim(),
+        },
+      }),
     })
     setIsEditing(false)
     setShowSaveSuccess(true)
@@ -155,6 +211,7 @@ export function useKnowledgeArticleEditor({
     article.customerReply,
     article.id,
     article.title,
+    draftDetails,
     draftDocument,
     draftStatus,
     draftTitle,
@@ -192,6 +249,9 @@ export function useKnowledgeArticleEditor({
     setDraftTitle,
     draftStatus,
     setDraftStatus: (value: KnowledgeArticleStatus) => setDraftStatus(value),
+    draftDetails,
+    setDraftDetails: (value: KnowledgeArticleDetails) => setDraftDetails(value),
+    savedDetails,
     hasUnsavedChanges,
     changedFields,
     discardEdits,

@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import type { ArticleDetailTab } from "@/components/knowledge-base/knowledge-base-article-detail"
 import { knowledgeBasePageCopy } from "@/components/knowledge-base/knowledge-base-page.copy"
+import { currentUser } from "@/lib/current-user"
+import {
+  createKnowledgeArticleVersion,
+  resolveKnowledgeArticleVersions,
+} from "@/lib/knowledge-base/article-details"
 import {
   createDraftKnowledgeArticle,
   createKnowledgeExplorerGroup,
@@ -234,9 +239,13 @@ export function useKnowledgeBasePageState() {
   const createArticleInActiveGroup = React.useCallback(() => {
     if (!activeGroupId) return
 
+    const activeGroup = groupDefinitions.find(
+      (group) => group.id === activeGroupId
+    )
     const draftArticle = createDraftKnowledgeArticle({
       groupId: activeGroupId,
       title: knowledgeBasePageCopy.untitledArticleTitle,
+      pageCategory: activeGroup?.label ?? "",
     })
 
     setArticles((currentArticles) => [...currentArticles, draftArticle])
@@ -253,7 +262,7 @@ export function useKnowledgeBasePageState() {
     setEditOnMountArticleId(draftArticle.id)
     setHasUnsavedArticleChanges(false)
     navigateToArticle(draftArticle.id)
-  }, [activeGroupId, navigateToArticle])
+  }, [activeGroupId, groupDefinitions, navigateToArticle])
 
   const handleCreateArticle = React.useCallback(() => {
     if (!activeGroupId) return
@@ -366,11 +375,21 @@ export function useKnowledgeBasePageState() {
                 title: patch.title,
                 status: patch.status,
                 customerReply: patch.customerReply,
+                details: patch.details,
                 content: {
                   format: "tiptap-json",
                   document: patch.document,
                 },
                 updatedAt: "Updated just now",
+                versions: [
+                  createKnowledgeArticleVersion([
+                    {
+                      name: currentUser.name,
+                      avatarUrl: currentUser.avatar,
+                    },
+                  ]),
+                  ...resolveKnowledgeArticleVersions(article),
+                ],
               }
             : article
         )

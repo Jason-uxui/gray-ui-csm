@@ -3,6 +3,43 @@ import type { JSONContent } from "@tiptap/react"
 
 export type KnowledgeArticleStatus = "published" | "draft" | "needs-review"
 
+export type KnowledgeArticleDisplayPermission =
+  | "public"
+  | "agent-only"
+  | "private"
+
+export type KnowledgeArticlePerson = {
+  name: string
+  avatarUrl?: string
+  email?: string
+}
+
+export type KnowledgeArticleDetails = {
+  displayPermission: KnowledgeArticleDisplayPermission
+  pageCategory: string
+  tags: string[]
+  publicLink: string
+  expiresAt: string
+  creator: KnowledgeArticlePerson
+  agentsWithAccess: KnowledgeArticlePerson[]
+  feedback: {
+    helpful: number
+    notHelpful: number
+  }
+  seo: {
+    metaTitle: string
+    metaKeywords: string
+    metaDescription: string
+  }
+}
+
+export type KnowledgeArticleVersion = {
+  id: string
+  timestampLabel: string
+  periodLabel: string
+  contributors: KnowledgeArticlePerson[]
+}
+
 export type KnowledgeArticleContent = {
   format: "tiptap-json"
   document: JSONContent
@@ -13,12 +50,14 @@ export type KnowledgeArticleSavePatch = {
   title: string
   status: KnowledgeArticleStatus
   customerReply: string
+  details: KnowledgeArticleDetails
 }
 
 export type KnowledgeArticleCreateInput = {
   groupId: string
   title?: string
   status?: KnowledgeArticleStatus
+  pageCategory?: string
 }
 
 export type KnowledgeArticleComment = {
@@ -99,6 +138,8 @@ export type KnowledgeArticle = {
   activityCount?: number
   isPinned?: boolean
   archivedAt?: string
+  details?: KnowledgeArticleDetails
+  versions?: KnowledgeArticleVersion[]
 }
 
 export type KnowledgeArticleExplorerGroup = {

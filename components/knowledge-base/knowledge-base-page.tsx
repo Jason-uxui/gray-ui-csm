@@ -46,6 +46,11 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
     handleConfirmPendingNavigation,
     handleDismissPendingNavigation,
   } = useKnowledgeBasePageState()
+  const categoryOptions = articleGroups.map((group) => group.label)
+  const selectedArticleGroup =
+    articleGroups.find((group) =>
+      group.articles.some((article) => article.id === selectedArticle?.id)
+    ) ?? null
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -78,6 +83,8 @@ export function KnowledgeBasePage(props: KnowledgeBasePageProps) {
             {selectedArticle ? (
               <KnowledgeBaseArticleDetail
                 article={selectedArticle}
+                pageCategory={selectedArticleGroup?.label ?? ""}
+                categoryOptions={categoryOptions}
                 activeTab={activeArticleTab}
                 startInEditMode={editOnMountArticleId === selectedArticle.id}
                 onEditModeStarted={clearEditOnMountArticleId}

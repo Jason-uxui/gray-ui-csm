@@ -1,4 +1,8 @@
 import { currentUser } from "@/lib/current-user"
+import {
+  createDefaultKnowledgeArticleDetails,
+  createKnowledgeArticleVersion,
+} from "@/lib/knowledge-base/article-details"
 import { createEmptyKnowledgeArticleDocument } from "@/lib/knowledge-base/content"
 import type {
   KnowledgeArticle,
@@ -42,18 +46,21 @@ export function createDraftKnowledgeArticle(
 ): KnowledgeArticle {
   const title = input.title?.trim() || "Untitled article"
   const document = createEmptyKnowledgeArticleDocument()
+  const id = createKnowledgeArticleId()
+  const status = input.status ?? "draft"
+  const author = {
+    name: currentUser.name,
+    avatarUrl: currentUser.avatar,
+  }
 
   return {
-    id: createKnowledgeArticleId(),
+    id,
     title,
     summary: "",
     category: "other",
-    status: input.status ?? "draft",
+    status,
     updatedAt: "Updated just now",
-    author: {
-      name: currentUser.name,
-      avatarUrl: currentUser.avatar,
-    },
+    author,
     matchScore: "low",
     views: 0,
     helpfulRate: 0,
@@ -65,6 +72,20 @@ export function createDraftKnowledgeArticle(
       document,
     },
     customerReply: "",
+    details: createDefaultKnowledgeArticleDetails({
+      id,
+      title,
+      summary: "",
+      status,
+      author,
+      pageCategory: input.pageCategory ?? "",
+      views: 0,
+      helpfulRate: 0,
+      matchReasons: [],
+    }),
+    versions: [
+      createKnowledgeArticleVersion([author], `${id}-created`),
+    ],
   }
 }
 
@@ -80,7 +101,13 @@ export function articleMatchesSearch(
     article.summary,
     article.quickPath,
     article.category.replaceAll("-", " "),
+    article.details?.pageCategory,
+    article.details?.publicLink,
+    article.details?.seo.metaTitle,
+    article.details?.seo.metaKeywords,
+    article.details?.seo.metaDescription,
     ...article.matchReasons,
+    ...(article.details?.tags ?? []),
   ]
 
   return searchableValues

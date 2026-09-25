@@ -8,6 +8,7 @@ import { KnowledgeArticleInsights } from "@/components/knowledge-base/knowledge-
 import { KnowledgeArticleContentView } from "@/components/knowledge-base/knowledge-article-content-view"
 import { KnowledgeArticleComments } from "@/components/knowledge-base/knowledge-article-comments"
 import { KnowledgeArticleEditor } from "@/components/knowledge-base/knowledge-article-editor"
+import { KnowledgeArticleSidePanel } from "@/components/knowledge-base/knowledge-article-side-panel"
 import { knowledgeBasePageCopy } from "@/components/knowledge-base/knowledge-base-page.copy"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ import {
   useKnowledgeArticleEditor,
   type KnowledgeArticleChangedField,
 } from "@/components/knowledge-base/use-knowledge-article-editor"
+import { resolveKnowledgeArticleVersions } from "@/lib/knowledge-base/article-details"
 import type {
   KnowledgeArticle,
   KnowledgeArticleComment,
@@ -38,6 +40,8 @@ import { cn } from "@/lib/utils"
 
 type KnowledgeBaseArticleDetailProps = {
   article: KnowledgeArticle
+  pageCategory: string
+  categoryOptions: string[]
   activeTab: ArticleDetailTab
   startInEditMode?: boolean
   onEditModeStarted?: () => void
@@ -102,6 +106,7 @@ function getArticleStatusClassName(status: KnowledgeArticleStatus) {
 const articleChangedFieldLabels: Record<KnowledgeArticleChangedField, string> =
   {
     content: knowledgeBasePageCopy.articleChangeContentLabel,
+    details: knowledgeBasePageCopy.articleChangeDetailsLabel,
     status: knowledgeBasePageCopy.articleChangeStatusLabel,
     title: knowledgeBasePageCopy.articleChangeTitleLabel,
   }
@@ -227,6 +232,8 @@ function KnowledgeArticleSaveBar({
 
 export function KnowledgeBaseArticleDetail({
   article,
+  pageCategory,
+  categoryOptions,
   activeTab,
   startInEditMode = false,
   onEditModeStarted,
@@ -259,8 +266,12 @@ export function KnowledgeBaseArticleDetail({
     handleCancel,
     handleTabChangeGuard,
     headerTitle,
+    draftDetails,
+    setDraftDetails,
+    savedDetails,
   } = useKnowledgeArticleEditor({
     article,
+    pageCategory,
     startInEditMode,
     onEditModeStarted,
     onSaveArticle,
@@ -313,8 +324,12 @@ export function KnowledgeBaseArticleDetail({
     ? (article.activity?.length ?? 0)
     : (article.activityCount ?? 0)
 
+  const articleVersions = resolveKnowledgeArticleVersions(article)
+  const displayedDetails = isEditing ? draftDetails : savedDetails
+
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Tabs
         value={activeTab}
         onValueChange={(nextTab) =>
@@ -505,6 +520,15 @@ export function KnowledgeBaseArticleDetail({
           onSave={handleSave}
         />
       ) : null}
-    </>
+      </div>
+      <KnowledgeArticleSidePanel
+        articleId={article.id}
+        details={displayedDetails}
+        versions={articleVersions}
+        editable={isEditing}
+        categoryOptions={categoryOptions}
+        onDetailsChange={setDraftDetails}
+      />
+    </div>
   )
 }
