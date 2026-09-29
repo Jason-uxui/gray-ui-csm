@@ -9,6 +9,7 @@ import {
   IconSearch,
 } from "@tabler/icons-react"
 
+import { GrayCsmLogo } from "@/components/gray-csm-logo"
 import { AppSidebar } from "@/components/app-sidebar"
 import { FloatingThemeToggle } from "@/components/floating-theme-toggle"
 import { InboxWorkspaceProvider } from "@/components/inbox/inbox-workspace-context"
@@ -92,14 +93,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AppSidebar displayMode={shellDisplayMode} />
       <SidebarInset className="h-svh overflow-hidden">
         {shellDisplayMode === "default" ? (
-          <header className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-4 bg-background p-4">
+          <header
+            className={cn(
+              "sticky top-0 z-30 flex shrink-0 items-center justify-between gap-4 bg-background p-4",
+              isAnalyticsPage && "border-b sm:border-b-0"
+            )}
+          >
             <div className="flex min-w-0 items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
+              {isAnalyticsPage ? (
+                <>
+                  <SidebarTrigger className="size-8 p-0 sm:hidden">
+                    <GrayCsmLogo />
+                  </SidebarTrigger>
+                  <span className="text-sm text-muted-foreground sm:hidden">
+                    Workspace
+                  </span>
+                  <SidebarTrigger className="-ml-1 hidden sm:inline-flex" />
+                </>
+              ) : (
+                <SidebarTrigger className="-ml-1" />
+              )}
               <Separator
                 orientation="vertical"
-                className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+                className={cn(
+                  "mr-2 data-vertical:h-4 data-vertical:self-auto",
+                  isAnalyticsPage && "hidden sm:block"
+                )}
               />
-              <Breadcrumb className="min-w-0">
+              <Breadcrumb
+                className={cn("min-w-0", isAnalyticsPage && "hidden sm:block")}
+              >
                 <BreadcrumbList>
                   <BreadcrumbItem
                     className={
@@ -189,7 +212,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <FloatingThemeToggle />
               <Separator
                 orientation="vertical"
-                className="data-vertical:h-5 data-vertical:self-auto"
+                className={cn(
+                  "data-vertical:h-5 data-vertical:self-auto",
+                  isAnalyticsPage && "hidden sm:block"
+                )}
               />
               <NavUser user={currentUser} />
             </div>
