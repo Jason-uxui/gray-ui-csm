@@ -77,6 +77,7 @@ import type {
   AnalyticsViewModel,
 } from "@/lib/analytics/types"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const chartConfig = {
   newTickets: { label: "New tickets", color: "var(--primary)" },
@@ -171,18 +172,27 @@ function MetricFooter({ metric }: { metric: AnalyticsMetric }) {
       >
         <TrendIcon className="size-3.5" /> {metric.change}
       </span>
-      <span className="text-muted-foreground">{metric.comparisonLabel}</span>
+      <span className="text-muted-foreground" title={metric.comparisonLabel}>
+        <span className="sm:hidden">vs previous</span>
+        <span className="hidden sm:inline">{metric.comparisonLabel}</span>
+      </span>
     </div>
   )
 }
 
 function MetricCard({ metric }: { metric: AnalyticsMetric }) {
+  const isMobile = useIsMobile()
   return (
     <StatCard
+      mobileCompact
       label={metric.label}
       icon={<HelpTooltip label={metric.label} hint={metric.definition} />}
       value={metric.value}
-      visual={<Sparkline label={metric.label} values={metric.sparkline} />}
+      visual={
+        isMobile ? undefined : (
+          <Sparkline label={metric.label} values={metric.sparkline} />
+        )
+      }
       footer={<MetricFooter metric={metric} />}
     />
   )
@@ -200,20 +210,25 @@ function FilterBar({
   onClear: () => void
 }) {
   return (
-    <div className="flex w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] min-w-0 flex-wrap items-center gap-x-5 gap-y-3 sm:w-full sm:max-w-full">
+    <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-5">
       {(Object.keys(filterLabels) as AnalyticsFilterKey[]).map((key) => (
         <label
           key={key}
-          className="flex w-full max-w-full min-w-0 basis-full items-center gap-2 text-sm font-medium text-foreground sm:w-auto sm:min-w-44 sm:flex-1 sm:basis-auto"
+          className={cn(
+            "flex min-w-0 flex-col items-stretch gap-1.5 text-sm font-medium sm:min-w-44 sm:flex-1 sm:flex-row sm:items-center sm:gap-2",
+            key === "segment" && "col-span-2"
+          )}
         >
-          <span className="shrink-0">{filterLabels[key]}</span>
+          <span className="shrink-0 text-xs font-normal text-muted-foreground sm:text-sm sm:font-medium sm:text-foreground">
+            {filterLabels[key]}
+          </span>
           <Select
             value={filters[key]}
             onValueChange={(value) =>
               onChange(key, value ?? defaultAnalyticsFilters[key])
             }
           >
-            <SelectTrigger className="min-w-0 flex-1 rounded-lg border-border bg-background">
+            <SelectTrigger className="h-10 w-full min-w-0 rounded-lg border-border bg-background sm:h-8 sm:flex-1">
               <span className="truncate">
                 {analyticsFilterOptions[key].find(
                   (option) => option.value === filters[key]
@@ -239,6 +254,10 @@ function FilterBar({
               type="button"
               variant="ghost"
               size="icon-sm"
+              className={cn(
+                "col-span-2 w-auto justify-self-start sm:size-8",
+                activeCount === 0 && "hidden sm:inline-flex"
+              )}
               aria-label="Clear filters"
               disabled={activeCount === 0}
               onClick={onClear}
@@ -246,6 +265,7 @@ function FilterBar({
           }
         >
           <IconFilterX className="size-4" />
+          <span className="sm:hidden">Clear filters</span>
         </TooltipTrigger>
         <TooltipContent>Clear filters</TooltipContent>
       </Tooltip>
@@ -271,11 +291,20 @@ function PeriodControls({
     (option) => option.value === comparison
   )?.label
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid w-full grid-cols-1 gap-2 min-[375px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap">
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" />}>
-          <IconCalendar className="size-4" />
-          {rangeLabel}
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              className="h-10 w-full justify-between rounded-xl px-3 sm:h-8 sm:w-auto sm:rounded-full"
+            />
+          }
+        >
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <IconCalendar className="size-4 shrink-0" />
+            <span>{rangeLabel}</span>
+          </span>
           <IconChevronDown className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -293,7 +322,14 @@ function PeriodControls({
         </DropdownMenuContent>
       </DropdownMenu>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              className="h-10 w-full justify-between rounded-xl px-3 sm:h-8 sm:w-auto sm:rounded-full"
+            />
+          }
+        >
           {comparisonLabel}
           <IconChevronDown className="size-4" />
         </DropdownMenuTrigger>
@@ -316,6 +352,7 @@ function PeriodControls({
 }
 
 function VolumeChart({ data }: { data: AnalyticsViewModel["ticketVolume"] }) {
+  const isMobile = useIsMobile()
   const newTicketsGradient = useId()
   const resolvedGradient = useId()
   return (
@@ -367,13 +404,16 @@ function VolumeChart({ data }: { data: AnalyticsViewModel["ticketVolume"] }) {
             tickLine={false}
             axisLine={false}
             tickMargin={10}
-            interval={0}
+            minTickGap={24}
             tickFormatter={(_, index) => data[index]?.axisLabel ?? ""}
           />
           <YAxis tickLine={false} axisLine={false} />
           <ChartTooltip
+            trigger={isMobile ? "click" : "hover"}
             cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
-            content={<ChartTooltipContent indicator="dot" />}
+            content={
+              <ChartTooltipContent indicator="dot" className="max-w-full" />
+            }
           />
           <Area
             type="linear"
@@ -397,7 +437,7 @@ function VolumeChart({ data }: { data: AnalyticsViewModel["ticketVolume"] }) {
           />
         </AreaChart>
       </ChartContainer>
-      <div className="mt-2 flex gap-5 text-xs text-muted-foreground">
+      <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-2">
           <span className="size-2.5 rounded-full bg-primary" />
           New tickets
@@ -497,7 +537,7 @@ function SlaPanel({
       </div>
       {expanded ? (
         <TableSurface>
-          <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
             <p className="truncate text-sm font-semibold">
               Tickets contributing to SLA breaches
             </p>
@@ -756,7 +796,7 @@ export function AnalyticsPage() {
   }
 
   return (
-    <div className="grid w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] min-w-0 grid-cols-[minmax(0,1fr)] gap-4 pb-6 sm:w-full sm:max-w-full sm:gap-5">
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-4 pb-6 sm:w-full sm:max-w-full sm:gap-5">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
         <PeriodControls
@@ -774,7 +814,7 @@ export function AnalyticsPage() {
         }
         onClear={() => setFilters(defaultAnalyticsFilters)}
       />
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         {viewModel.metrics.map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
         ))}

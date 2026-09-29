@@ -11,6 +11,7 @@ type MetricCardShellProps = {
   className?: string
   headerClassName?: string
   contentClassName?: string
+  labelClassName?: string
 }
 
 /** Shared surface for metric values, charts, and insight panels. */
@@ -22,6 +23,7 @@ export function MetricCardShell({
   className,
   headerClassName,
   contentClassName,
+  labelClassName,
 }: MetricCardShellProps) {
   return (
     <Card
@@ -38,7 +40,7 @@ export function MetricCardShell({
       >
         <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {icon}
-          <span className="truncate">{label}</span>
+          <span className={cn("truncate", labelClassName)}>{label}</span>
         </div>
         {action}
       </CardHeader>
