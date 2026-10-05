@@ -9,6 +9,7 @@ import {
   IconCheck,
   IconChevronDown,
   IconDots,
+  IconUsers,
 } from "@tabler/icons-react"
 
 import {
@@ -42,6 +43,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useTicketAssignment } from "./use-ticket-assignment"
+import { TicketAgentPanel } from "./ticket-agent-panel"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -84,10 +93,12 @@ type CreateTicketTaskPayload = {
 }
 
 export function TicketDetailPage({
-  ticket,
+  ticket: initialTicket,
   detail,
   initialTab = "conversation",
 }: TicketDetailPageProps) {
+  const [ticket, setTicket] = useState(initialTicket)
+  const [peopleOpen, setPeopleOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -109,7 +120,14 @@ export function TicketDetailPage({
   )
   const [templateQuery, setTemplateQuery] = useState("")
   const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false)
-  const [mergeToast, setMergeToast] = useState<string | null>(null)
+  const [ticketToast, setTicketToast] = useState<string | null>(null)
+
+  const { handleTransfer, handleFollowersChange } = useTicketAssignment({
+    ticket,
+    setTicket,
+    setTimeline,
+    notify: setTicketToast,
+  })
 
   const isRightPanelOpen = !isMobile && isDesktopRightPanelOpen
 
@@ -219,20 +237,20 @@ export function TicketDetailPage({
       },
     })
 
-    setMergeToast(
+    setTicketToast(
       `${selectedTickets.length + 1} tickets merged into ${destinationLabel}`
     )
   }
 
   useEffect(() => {
-    if (!mergeToast) return
+    if (!ticketToast) return
     // Keep the toast fully visible for four seconds after its entrance.
     const timer = window.setTimeout(
-      () => setMergeToast(null),
+      () => setTicketToast(null),
       MERGE_TOAST_LIFETIME_MS
     )
     return () => window.clearTimeout(timer)
-  }, [mergeToast])
+  }, [ticketToast])
 
   const handleAddInternalNote = () => {
     const trimmedNote = noteDraft.trim()
@@ -456,6 +474,14 @@ export function TicketDetailPage({
         </div>
       </header>
 
+      <Button
+        variant="outline"
+        className="self-end xl:hidden"
+        onClick={() => setPeopleOpen(true)}
+      >
+        <IconUsers className="size-4" />
+        People & assignment
+      </Button>
       <section className="shrink-0">
         <div className="space-y-3 px-1 pt-1 sm:pt-5 sm:pl-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -634,12 +660,29 @@ export function TicketDetailPage({
           ticket={ticket}
           detail={detail}
           assignee={assignee}
+          onTransfer={handleTransfer}
+          onFollowersChange={handleFollowersChange}
           selectedReplyAccountLabel={selectedReplyAccount?.label}
           onInsertKnowledgeArticle={insertKnowledgeArticle}
           onCreateKnowledgeArticle={handleCreateKnowledgeArticle}
           isSendingReply={isSendingReply}
         />
       </div>
+
+      <Sheet open={peopleOpen} onOpenChange={setPeopleOpen}>
+        <SheetContent className="data-[side=right]:w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>People & assignment</SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+            <TicketAgentPanel
+              ticket={ticket}
+              onTransfer={handleTransfer}
+              onFollowersChange={handleFollowersChange}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <MergeTicketsDialog
         open={isMergeDialogOpen}
@@ -650,7 +693,7 @@ export function TicketDetailPage({
         onMerge={handleMergeTickets}
       />
 
-      {mergeToast ? (
+      {ticketToast ? (
         <div
           role="status"
           aria-live="polite"
@@ -659,7 +702,7 @@ export function TicketDetailPage({
           <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <IconCheck className="size-3.5" />
           </span>
-          {mergeToast}
+          {ticketToast}
         </div>
       ) : null}
     </div>
