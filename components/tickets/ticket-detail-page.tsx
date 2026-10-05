@@ -80,6 +80,11 @@ import { createTicketTask, createTicketTaskId } from "@/lib/tickets/task-utils"
 import { tickets } from "@/lib/tickets/mock-data"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import {
+  SideConversationProvider,
+  SideConversationLauncher,
+  useSideConversation,
+} from "./ticket-side-conversation"
 
 type TicketDetailPageProps = {
   ticket: Ticket
@@ -92,13 +97,14 @@ type CreateTicketTaskPayload = {
   title: string
 }
 
-export function TicketDetailPage({
+function TicketDetailPageContent({
   ticket: initialTicket,
   detail,
   initialTab = "conversation",
 }: TicketDetailPageProps) {
   const [ticket, setTicket] = useState(initialTicket)
   const [peopleOpen, setPeopleOpen] = useState(false)
+  const sideConversation = useSideConversation()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -129,7 +135,8 @@ export function TicketDetailPage({
     notify: setTicketToast,
   })
 
-  const isRightPanelOpen = !isMobile && isDesktopRightPanelOpen
+  const isRightPanelOpen =
+    !isMobile && (isDesktopRightPanelOpen || sideConversation.desktopActive)
 
   const selectedReplyAccount =
     replyFromAccounts.find((account) => account.address === replyFrom) ??
@@ -482,6 +489,7 @@ export function TicketDetailPage({
         <IconUsers className="size-4" />
         People & assignment
       </Button>
+      <SideConversationLauncher />
       <section className="shrink-0">
         <div className="space-y-3 px-1 pt-1 sm:pt-5 sm:pl-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -650,7 +658,12 @@ export function TicketDetailPage({
 
         <TicketDetailRightPanel
           open={isRightPanelOpen}
-          onToggleOpen={() => setIsDesktopRightPanelOpen((isOpen) => !isOpen)}
+          onToggleOpen={() => {
+            if (sideConversation.desktopActive)
+              setActiveRightPanelSection("details")
+            sideConversation.setDesktopActive(false)
+            setIsDesktopRightPanelOpen(!isRightPanelOpen)
+          }}
           activeSection={activeRightPanelSection}
           onSelectSection={(nextSection) => {
             setActiveRightPanelSection(nextSection)
@@ -706,5 +719,13 @@ export function TicketDetailPage({
         </div>
       ) : null}
     </div>
+  )
+}
+
+export function TicketDetailPage(props: TicketDetailPageProps) {
+  return (
+    <SideConversationProvider key={props.ticket.id} ticket={props.ticket}>
+      <TicketDetailPageContent {...props} />
+    </SideConversationProvider>
   )
 }
