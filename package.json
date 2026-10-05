@@ -14,7 +14,8 @@
     "check:design-tokens": "node scripts/check-design-token-drift.mjs",
     "check:routes": "node scripts/check-route-thinness.mjs",
     "check:guardrails": "pnpm check:design-tokens && pnpm check:routes",
-    "install:git-hooks": "node scripts/install-git-hooks.mjs"
+    "install:git-hooks": "node scripts/install-git-hooks.mjs",
+    "test:side-conversation": "node --test tests/side-conversation.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

@@ -1,3 +1,8 @@
+import {
+  SideConversationPanel,
+  ForwardMessageAction,
+  useSideConversation,
+} from "./ticket-side-conversation"
 import * as React from "react"
 import {
   IconChevronDown,
@@ -155,6 +160,7 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
 
   return (
     <DiscussionMessageEntry
+      className={`ticket-message-${item.id}`}
       author={item.author}
       timestamp={item.timestamp}
       body={item.body}
@@ -171,6 +177,7 @@ function TimelineMessageCard({ item }: { item: TicketTimelineMessage }) {
           >
             {channelLabel[item.channel]}
           </Badge>
+          <ForwardMessageAction message={item} />
           {isOutbound ? (
             <Badge
               variant="secondary"
@@ -750,16 +757,25 @@ export function TicketDetailRightPanel({
   onCreateKnowledgeArticle: () => void
   isSendingReply?: boolean
 }) {
+  const side = useSideConversation()
+
   return (
     <DetailRightPanelShell
-      open={open}
+      open={open || side.desktopActive}
+      contentClassName={side.desktopActive ? "overflow-hidden" : undefined}
       sections={rightPanelSections}
-      activeSection={activeSection}
+      activeSection={side.desktopActive ? "side-conversation" : activeSection}
       onToggleOpen={onToggleOpen}
-      onSelectSection={onSelectSection}
+      onSelectSection={(section) => {
+        side.setDesktopActive(section === "side-conversation")
+        onSelectSection(section === "side-conversation" ? "details" : section)
+      }}
       renderSection={() => (
         <>
-          {activeSection === "details" ? (
+          {side.desktopActive && side.isDesktop ? (
+            <SideConversationPanel />
+          ) : null}
+          {!side.desktopActive && activeSection === "details" ? (
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               <DetailStat
                 label="Queue status"
@@ -813,7 +829,7 @@ export function TicketDetailRightPanel({
             </div>
           ) : null}
 
-          {activeSection === "people" ? (
+          {!side.desktopActive && activeSection === "people" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <DiscussionAvatar person={detail.customer} />
@@ -835,7 +851,7 @@ export function TicketDetailRightPanel({
             </div>
           ) : null}
 
-          {activeSection === "knowledge" ? (
+          {!side.desktopActive && activeSection === "knowledge" ? (
             <TicketKnowledgePanel
               onInsertArticle={onInsertKnowledgeArticle}
               onCreateArticle={onCreateKnowledgeArticle}

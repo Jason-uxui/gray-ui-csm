@@ -20,6 +20,7 @@ type DetailRightPanelShellProps<TSection extends string> = {
   onSelectSection: (nextSection: TSection) => void
   renderSection: (section: TSection) => ReactNode
   className?: string
+  contentClassName?: string
 }
 
 export function DetailRightPanelShell<TSection extends string>({
@@ -30,6 +31,7 @@ export function DetailRightPanelShell<TSection extends string>({
   onSelectSection,
   renderSection,
   className,
+  contentClassName,
 }: DetailRightPanelShellProps<TSection>) {
   const activeRightPanel = sections.find(
     (section) => section.value === activeSection
@@ -76,7 +78,7 @@ export function DetailRightPanelShell<TSection extends string>({
         </div>
 
         {open ? (
-          <div className="min-h-0 flex-1 border-l p-2">
+          <div className="min-h-0 min-w-0 flex-1 border-l p-2">
             <div className="flex h-full min-h-0 flex-col">
               <div className="shrink-0 px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">
@@ -84,7 +86,12 @@ export function DetailRightPanelShell<TSection extends string>({
                 </h2>
               </div>
 
-              <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto p-4">
+              <div
+                className={cn(
+                  "scrollbar-hidden min-h-0 flex-1 overflow-y-auto p-4",
+                  contentClassName
+                )}
+              >
                 {renderSection(activeSection)}
               </div>
             </div>

@@ -1,5 +1,6 @@
 import {
   IconBook2,
+  IconMessages,
   IconInfoCircle,
   IconUsers,
 } from "@tabler/icons-react"
@@ -22,7 +23,11 @@ export const detailTabs: Array<{ value: TicketDetailTab; label: string }> = [
   { value: "notes", label: "Notes" },
 ]
 
-export type RightPanelSection = "details" | "people" | "knowledge"
+export type RightPanelSection =
+  | "details"
+  | "people"
+  | "knowledge"
+  | "side-conversation"
 
 export const rightPanelSections: Array<{
   value: RightPanelSection
@@ -31,6 +36,11 @@ export const rightPanelSections: Array<{
 }> = [
   { value: "details", label: "Ticket Details", icon: IconInfoCircle },
   { value: "people", label: "People", icon: IconUsers },
+  {
+    value: "side-conversation",
+    label: "Side Conversation",
+    icon: IconMessages,
+  },
   { value: "knowledge", label: "Knowledge Base", icon: IconBook2 },
 ]
 
