@@ -9,7 +9,6 @@ import {
   IconPhoto,
   IconSearch,
   IconSend,
-  IconUsers,
 } from "@tabler/icons-react"
 
 import {
@@ -73,6 +72,7 @@ import type {
   TicketQueueStatus,
 } from "@/lib/tickets/types"
 import { cn } from "@/lib/utils"
+import { TicketAgentPanel } from "./ticket-agent-panel"
 import { TicketKnowledgePanel } from "./ticket-knowledge-panel"
 import {
   getKnowledgeArticleCategoryLabel,
@@ -729,11 +729,14 @@ export function TicketDetailRightPanel({
   ticket,
   detail,
   assignee,
-  selectedReplyAccountLabel,
   onInsertKnowledgeArticle,
   onCreateKnowledgeArticle,
   isSendingReply = false,
+  onTransfer,
+  onFollowersChange,
 }: {
+  onTransfer: (agent: TicketPerson) => void
+  onFollowersChange: (followers: TicketPerson[]) => void
   open: boolean
   onToggleOpen: () => void
   activeSection: RightPanelSection
@@ -824,32 +827,11 @@ export function TicketDetailRightPanel({
 
               <Separator />
 
-              <div className="flex items-center gap-3">
-                <DiscussionAvatar person={assignee} />
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-foreground">
-                    {assignee.name}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Assignee</div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-start gap-3">
-                <div className="flex size-10 items-center justify-center rounded-2xl border bg-muted text-muted-foreground">
-                  <IconUsers className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-foreground">
-                    Support team
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Reply from {selectedReplyAccountLabel ?? "Support"} and keep
-                    the thread in sync.
-                  </div>
-                </div>
-              </div>
+              <TicketAgentPanel
+                ticket={ticket}
+                onTransfer={onTransfer}
+                onFollowersChange={onFollowersChange}
+              />
             </div>
           ) : null}
 
