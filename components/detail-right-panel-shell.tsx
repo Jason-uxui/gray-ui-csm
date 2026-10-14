@@ -4,6 +4,7 @@ import type { ComponentType, ReactNode } from "react"
 import { IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
+import { TooltipButton } from "@/components/ui/tooltip-button"
 import { cn } from "@/lib/utils"
 
 export type DetailRightPanelSection<TSection extends string> = {
@@ -21,6 +22,9 @@ type DetailRightPanelShellProps<TSection extends string> = {
   renderSection: (section: TSection) => ReactNode
   className?: string
   contentClassName?: string
+  hideHeader?: boolean
+  iconTooltips?: boolean
+  iconButtonClassName?: string
 }
 
 export function DetailRightPanelShell<TSection extends string>({
@@ -32,7 +36,11 @@ export function DetailRightPanelShell<TSection extends string>({
   renderSection,
   className,
   contentClassName,
+  hideHeader = false,
+  iconTooltips = false,
+  iconButtonClassName,
 }: DetailRightPanelShellProps<TSection>) {
+  const IconControl = iconTooltips ? TooltipButton : Button
   const activeRightPanel = sections.find(
     (section) => section.value === activeSection
   )
@@ -41,11 +49,11 @@ export function DetailRightPanelShell<TSection extends string>({
     <aside className={cn("hidden min-h-0 xl:block", className)}>
       <div className="flex h-full min-h-0 overflow-hidden">
         <div className="flex w-14 shrink-0 flex-col items-center gap-2 p-2">
-          <Button
+          <IconControl
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-9 rounded-xl"
+            className={cn("size-9 rounded-xl", iconButtonClassName)}
             onClick={onToggleOpen}
             aria-label={open ? "Collapse right panel" : "Expand right panel"}
           >
@@ -54,25 +62,25 @@ export function DetailRightPanelShell<TSection extends string>({
             ) : (
               <IconChevronsLeft className="size-4" />
             )}
-          </Button>
+          </IconControl>
 
           {sections.map((section) => {
             const SectionIcon = section.icon
             const isActive = activeSection === section.value
 
             return (
-              <Button
+              <IconControl
                 key={section.value}
                 type="button"
                 variant={isActive ? "secondary" : "ghost"}
                 size="icon-sm"
-                className="size-9 rounded-xl"
+                className={cn("size-9 rounded-xl", iconButtonClassName)}
                 aria-label={section.label}
                 aria-pressed={isActive}
                 onClick={() => onSelectSection(section.value)}
               >
                 <SectionIcon className="size-4" />
-              </Button>
+              </IconControl>
             )
           })}
         </div>
@@ -80,11 +88,13 @@ export function DetailRightPanelShell<TSection extends string>({
         {open ? (
           <div className="min-h-0 min-w-0 flex-1 border-l p-2">
             <div className="flex h-full min-h-0 flex-col">
-              <div className="shrink-0 px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {activeRightPanel?.label}
-                </h2>
-              </div>
+              {!hideHeader && (
+                <div className="shrink-0 px-4 py-3">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    {activeRightPanel?.label}
+                  </h2>
+                </div>
+              )}
 
               <div
                 className={cn(

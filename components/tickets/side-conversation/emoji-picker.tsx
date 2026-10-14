@@ -2,29 +2,39 @@
 import { Popover } from "@base-ui/react/popover"
 import { IconMoodSmile } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { TooltipButton } from "@/components/ui/tooltip-button"
+import { cn } from "@/lib/utils"
 const EMOJIS = ["👍", "❤️", "🎉", "😀", "🙏", "👀", "✅", "💡"]
 export function EmojiPicker({
   label,
   reaction = false,
   selected = [],
   onSelect,
+  iconTooltips = false,
+  iconButtonClassName,
 }: {
+  iconTooltips?: boolean
+  iconButtonClassName?: string
   label: string
   reaction?: boolean
   selected?: string[]
   onSelect: (emoji: string) => void
 }) {
+  const TriggerButton = iconTooltips ? TooltipButton : Button
   return (
     <Popover.Root>
       <Popover.Trigger
         render={
-          <Button
+          <TriggerButton
             type="button"
             variant="ghost"
             size="icon-sm"
-            className={reaction ? "size-7 text-muted-foreground" : undefined}
+            className={cn(
+              reaction && "size-7 text-muted-foreground",
+              iconButtonClassName
+            )}
             aria-label={label}
-            title={label}
+            title={iconTooltips ? undefined : label}
           />
         }
       >

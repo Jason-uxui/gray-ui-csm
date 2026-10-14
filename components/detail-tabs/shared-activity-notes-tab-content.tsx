@@ -56,9 +56,14 @@ function NoteCard({ note }: { note: InternalNoteItem }) {
       <TimelineAvatar person={note.author} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold text-foreground">{note.author.name}</span>
+          <span className="font-semibold text-foreground">
+            {note.author.name}
+          </span>
           <span className="text-muted-foreground">{note.timestamp}</span>
-          <Badge variant="outline" className="h-5 rounded-full px-2 text-[11px]">
+          <Badge
+            variant="outline"
+            className="h-5 rounded-full px-2 text-[11px]"
+          >
             Internal
           </Badge>
         </div>
@@ -71,14 +76,16 @@ function NoteCard({ note }: { note: InternalNoteItem }) {
 function ComposerShell({
   currentUser,
   children,
+  showAvatar = true,
 }: {
   currentUser: PersonLike
   children: ReactNode
+  showAvatar?: boolean
 }) {
   return (
     <div className="shrink-0 bg-background/95 px-6 py-5 backdrop-blur-xl">
       <div className="flex items-start gap-3">
-        <TimelineAvatar person={currentUser} />
+        {showAvatar && <TimelineAvatar person={currentUser} />}
         <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border bg-background shadow-sm">
           {children}
         </div>
@@ -115,12 +122,14 @@ export function SharedInternalNotesTabContent({
   noteDraft,
   onNoteDraftChange,
   onAddNote,
+  showComposerAvatar = true,
 }: {
   notes: InternalNoteItem[]
   currentUser: PersonLike
   noteDraft: string
   onNoteDraftChange: (nextValue: string) => void
   onAddNote: () => void
+  showComposerAvatar?: boolean
 }) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
@@ -132,8 +141,9 @@ export function SharedInternalNotesTabContent({
         </div>
       </div>
 
-      <ComposerShell currentUser={currentUser}>
+      <ComposerShell currentUser={currentUser} showAvatar={showComposerAvatar}>
         <textarea
+          aria-label="Internal note"
           value={noteDraft}
           onChange={(event) => onNoteDraftChange(event.target.value)}
           placeholder="Write an internal note..."

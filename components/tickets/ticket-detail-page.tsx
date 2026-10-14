@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { arrayMove } from "@dnd-kit/sortable"
+import { SupportIcon } from "./remote-assist/support-icons"
 import {
   IconArrowLeft,
   IconArrowsJoin,
   IconCheck,
   IconChevronDown,
   IconDots,
+  IconPhone,
+  IconRotateClockwise,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -42,6 +45,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
 import { useTicketAssignment } from "./use-ticket-assignment"
 import { TicketAgentPanel } from "./ticket-agent-panel"
@@ -78,8 +84,23 @@ import type {
 } from "@/lib/tickets/detail-data"
 import { createTicketTask, createTicketTaskId } from "@/lib/tickets/task-utils"
 import { tickets } from "@/lib/tickets/mock-data"
+import { SessionScenarioItems } from "./remote-assist/session-scenarios"
+import { ticketContacts } from "@/lib/tickets/detail-data"
+import { supportAgents } from "@/lib/tickets/agents"
+import { uniqueRecipientContacts } from "@/lib/tickets/remote-assist/recipient-suggestions"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { useRemoteAssist } from "./remote-assist/use-remote-assist"
+import { RemoteInviteDialog } from "./remote-assist/remote-invite-dialog"
+import { RemoteSessionWorkspace } from "./remote-assist/remote-session-workspace"
+import { PhoneSupportPanel } from "./remote-assist/phone-support-panel"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { defaultInvitation } from "@/lib/tickets/remote-assist/mock-data"
+import {
+  sessionTimeline,
+  timeLabel,
+} from "@/lib/tickets/remote-assist/presentation"
+import type { RemoteSession } from "@/lib/tickets/remote-assist/types"
 import {
   SideConversationProvider,
   SideConversationLauncher,
@@ -127,6 +148,9 @@ function TicketDetailPageContent({
   const [templateQuery, setTemplateQuery] = useState("")
   const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false)
   const [ticketToast, setTicketToast] = useState<string | null>(null)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [resendSource, setResendSource] = useState<RemoteSession | null>(null)
+  const [resetSupportOpen, setResetSupportOpen] = useState(false)
 
   const { handleTransfer, handleFollowersChange } = useTicketAssignment({
     ticket,
@@ -164,12 +188,52 @@ function TicketDetailPageContent({
     return Array.from(optionsMap.values())
   }, [detail.customer, notes, ticket.assignee, ticket.requester])
 
-  const conversationItems = timeline.filter(
-    (item) => item.kind === "message" || item.kind === "event"
+  const agent = ticket.assignee ?? {
+    name: currentUser.name,
+    avatarUrl: currentUser.avatar,
+    email: currentUser.email,
+  }
+  const support = useRemoteAssist(ticket, detail.customer, {
+    name: currentUser.name,
+    avatarUrl: currentUser.avatar,
+    email: currentUser.email,
+  })
+  const assistId = searchParams.get("assist")
+  const invitationContacts = useMemo(
+    () =>
+      uniqueRecipientContacts([
+        detail.customer,
+        ...ticketContacts,
+        ...supportAgents,
+        ...support.sessions.flatMap((session) => [
+          session.customer,
+          ...(session.recipientEmails ?? []).map((email) => ({
+            name: email,
+            email,
+          })),
+        ]),
+      ]),
+    [detail.customer, support.sessions]
   )
-  const activityItems = timeline.filter(
-    (item): item is TicketTimelineEvent => item.kind === "event"
+  const selectedSession = support.sessions.find(
+    (session) => session.id === assistId
   )
+  const conversationItems = [
+    ...timeline,
+    ...sessionTimeline(support.sessions),
+  ].filter((item) => item.kind === "message" || item.kind === "event")
+  const activityItems = [
+    ...timeline,
+    ...support.sessions.flatMap((session) =>
+      session.events.map((event) => ({
+        id: event.id,
+        kind: "event" as const,
+        timestamp: timeLabel(event.at),
+        title: event.title,
+        detail: event.detail,
+      }))
+    ),
+  ].filter((item): item is TicketTimelineEvent => item.kind === "event")
   const mergedTicketIds = useMemo(
     () =>
       timeline.flatMap((item) =>
@@ -182,12 +246,6 @@ function TicketDetailPageContent({
     [ticket.id, timeline]
   )
 
-  const agent = ticket.assignee ?? {
-    name: currentUser.name,
-    avatarUrl: currentUser.avatar,
-    email: currentUser.email,
-  }
-
   const activeTab = detailTabs.some((tab) => tab.value === searchTab)
     ? (searchTab as TicketDetailTab)
     : initialTab
@@ -199,6 +257,27 @@ function TicketDetailPageContent({
     router.replace(`${pathname}?${nextSearchParams.toString()}`, {
       scroll: false,
     })
+  }
+
+  const openSupportSession = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("assist", id)
+    router.replace(`${pathname}?${params}`, { scroll: false })
+  }
+  const closeSupportSession = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("assist")
+    params.set("tab", "conversation")
+    router.replace(`${pathname}?${params}`, { scroll: false })
+  }
+  const endSupportSession = (session: RemoteSession) => {
+    support.update(session.id, { type: "end", at: Date.now() })
+    closeSupportSession()
+  }
+  const resendSupportInvitation = (session: RemoteSession) => {
+    closeSupportSession()
+    setResendSource(session)
+    setInviteOpen(true)
   }
 
   const appendTimelineEvent = (event: TicketTimelineItem) => {
@@ -377,6 +456,27 @@ function TicketDetailPageContent({
     ticket,
   })
 
+  if (selectedSession?.kind === "remote") {
+    return (
+      <RemoteSessionWorkspace
+        key={selectedSession.id}
+        session={selectedSession}
+        now={support.now}
+        ticket={ticket}
+        detail={detail}
+        queueStatus={queueStatus}
+        assignee={assignee}
+        onAction={(action) => support.update(selectedSession.id, action)}
+        onBack={() => router.push("/tickets")}
+        onEnd={() => endSupportSession(selectedSession)}
+        onResend={() => resendSupportInvitation(selectedSession)}
+        onTransfer={handleTransfer}
+        onFollowersChange={handleFollowersChange}
+        onCreateArticle={handleCreateKnowledgeArticle}
+      />
+    )
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <header className="flex shrink-0 items-center justify-between gap-2 sm:gap-3">
@@ -409,14 +509,73 @@ function TicketDetailPageContent({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-48">
               <DropdownMenuGroup>
+                <DropdownMenuItem
+                  disabled={
+                    !support.hydrated || support.active?.kind === "phone"
+                  }
+                  onClick={() => {
+                    if (support.active) openSupportSession(support.active.id)
+                    else {
+                      setResendSource(null)
+                      setInviteOpen(true)
+                    }
+                  }}
+                >
+                  <SupportIcon name="menu-monitor" />
+                  Remote Assist
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={
+                    !support.hydrated || support.active?.kind === "remote"
+                  }
+                  onClick={() => {
+                    if (support.active) openSupportSession(support.active.id)
+                    else {
+                      const id = support.create(
+                        defaultInvitation(detail.customer, ticket),
+                        "phone"
+                      )
+                      if (id) openSupportSession(id)
+                    }
+                  }}
+                >
+                  <IconPhone className="size-4" stroke={1.5} />
+                  Call customer
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => updateTab("activity")}>
+                  <SupportIcon name="menu-list" />
                   View activity log
                 </DropdownMenuItem>
+                {support.active?.kind === "phone" && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <IconPhone className="size-4" stroke={1.5} />
+                      Call scenarios
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="max-h-[70dvh] w-64 overflow-y-auto">
+                      <SessionScenarioItems
+                        session={support.active}
+                        onAction={(action) =>
+                          support.update(support.active!.id, action)
+                        }
+                      />
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )}
                 <DropdownMenuItem onClick={() => updateTab("notes")}>
+                  <SupportIcon name="menu-file" />
                   Open internal notes
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/tickets")}>
+                  <SupportIcon name="menu-back" />
                   Back to ticket list
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!support.sessions.length && !support.error}
+                  onClick={() => setResetSupportOpen(true)}
+                >
+                  <IconRotateClockwise className="size-4" stroke={1.5} />
+                  Reset Remote Assist demo
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -481,6 +640,22 @@ function TicketDetailPageContent({
         </div>
       </header>
 
+      {assistId && support.hydrated && !selectedSession && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm"
+        >
+          This demo session is not available in this browser tab.
+          <Button variant="outline" size="sm" onClick={closeSupportSession}>
+            Return to ticket
+          </Button>
+        </div>
+      )}
+      {support.error && (
+        <p role="status" className="shrink-0 text-sm text-destructive">
+          {support.error}
+        </p>
+      )}
       <Button
         variant="outline"
         className="self-end xl:hidden"
@@ -610,6 +785,10 @@ function TicketDetailPageContent({
                 onTemplateQueryChange={setTemplateQuery}
                 onMacroInsert={insertMacro}
                 onSubmitReply={submitReply}
+                onOpenSession={openSupportSession}
+                onSessionAction={support.update}
+                onResendSession={resendSupportInvitation}
+                sessionNow={support.now}
               />
             </TabsContent>
 
@@ -704,6 +883,56 @@ function TicketDetailPageContent({
         tickets={tickets}
         unavailableTicketIds={mergedTicketIds}
         onMerge={handleMergeTickets}
+      />
+
+      {inviteOpen && (
+        <RemoteInviteDialog
+          contacts={invitationContacts}
+          customer={resendSource?.customer ?? detail.customer}
+          initialDraft={
+            resendSource
+              ? {
+                  email: resendSource.customer.email ?? "",
+                  recipients: resendSource.recipientEmails,
+                  subject: resendSource.subject,
+                  message: resendSource.invitationMessage,
+                }
+              : defaultInvitation(detail.customer, ticket)
+          }
+          onClose={() => {
+            setInviteOpen(false)
+            setResendSource(null)
+          }}
+          onSend={(draft) => {
+            const id = support.create(draft)
+            if (!id) return false
+            setInviteOpen(false)
+            setResendSource(null)
+            updateTab("conversation")
+            return true
+          }}
+        />
+      )}
+      {support.active?.kind === "phone" && (
+        <PhoneSupportPanel
+          key={support.active.id}
+          session={support.active}
+          now={support.now}
+          onAction={(action) => support.update(support.active!.id, action)}
+          onEnd={() => endSupportSession(support.active!)}
+        />
+      )}
+      <ConfirmDialog
+        open={resetSupportOpen}
+        onOpenChange={setResetSupportOpen}
+        title="Reset Remote Assist demo?"
+        description="This clears only the remote sessions and calls saved in this browser tab for this ticket."
+        confirmLabel="Reset demo"
+        onConfirm={() => {
+          support.reset()
+          closeSupportSession()
+          setResetSupportOpen(false)
+        }}
       />
 
       {ticketToast ? (

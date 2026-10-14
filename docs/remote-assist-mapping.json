@@ -1,0 +1,130 @@
+{
+  "figmaFileKey": "sFoSM9QLUXjDWXy1JsmtN0",
+  "sourceFlowNode": "2330:1982",
+  "blueprintNode": "2419:2636",
+  "nativeCaptureNode": "2472:2636",
+  "codeCaptureBoardNode": "2474:2636",
+  "designCodeReviewBoardNode": "2474:2641",
+  "checkedOn": "2026-10-14",
+  "branch": "feat/ticket-agent-transfer",
+  "baseCommit": "6ec9d92",
+  "implementationState": "local-uncommitted",
+  "codeConnect": false,
+  "mappings": [
+    {
+      "pin": 1,
+      "source": "header / navigation",
+      "reuse": ["AppShell", "AppSidebar", "Button", "DropdownMenu"],
+      "code": "components/tickets/ticket-detail-page.tsx",
+      "export": "TicketDetailPage"
+    },
+    {
+      "pin": 2,
+      "source": "2387:2642",
+      "reuse": ["Button", "Tooltip"],
+      "code": "components/tickets/remote-assist/remote-session-workspace.tsx",
+      "export": "RemoteSessionWorkspace"
+    },
+    {
+      "pin": 3,
+      "source": "2387:2574",
+      "code": "components/tickets/remote-assist/remote-session-workspace.tsx",
+      "export": "RemoteSessionWorkspace",
+      "contentAsset": "public/remote-assist/desktop@3x.png"
+    },
+    {
+      "pin": 4,
+      "source": "2387:2655 / 2387:2658",
+      "reuse": ["Button", "DiscussionAvatar"],
+      "code": "components/tickets/remote-assist/remote-session-workspace.tsx",
+      "export": "RemoteSessionWorkspace",
+      "localHelper": "ParticipantTile"
+    },
+    {
+      "pin": 5,
+      "source": "session side panel",
+      "reuse": [
+        "DetailRightPanelShell",
+        "SharedInternalNotesTabContent",
+        "ThreadComposer",
+        "DiscussionMessageEntry"
+      ],
+      "code": "components/tickets/remote-assist/session-side-panel.tsx",
+      "export": "SessionSidePanel"
+    },
+    {
+      "pin": 6,
+      "source": "2387:2634",
+      "reuse": ["ConfirmDialog"],
+      "code": "components/tickets/remote-assist/remote-session-workspace.tsx",
+      "export": "RemoteSessionWorkspace"
+    },
+    {
+      "pin": 7,
+      "source": "2357:9008",
+      "reuse": ["Base UI Dialog", "Input", "Button", "DiscussionAvatar"],
+      "code": "components/tickets/remote-assist/remote-invite-dialog.tsx",
+      "export": "RemoteInviteDialog"
+    },
+    {
+      "pin": 8,
+      "source": "2357:9774",
+      "reuse": ["DiscussionMessageEntry", "Card", "Badge", "Button"],
+      "code": "components/tickets/remote-assist/remote-session-cards.tsx",
+      "export": "RemoteInvitationEntry"
+    },
+    {
+      "pin": 9,
+      "source": "2400:5222",
+      "reuse": [
+        "DiscussionMessageEntry",
+        "Card",
+        "ActivityTimelineList",
+        "Sheet"
+      ],
+      "code": "components/tickets/remote-assist/remote-session-cards.tsx",
+      "export": "RemoteSummaryEntry"
+    },
+    {
+      "pin": 10,
+      "source": "2404:6728",
+      "reuse": ["Button", "Tooltip", "DiscussionAvatar", "ConfirmDialog"],
+      "code": "components/tickets/remote-assist/phone-support-panel.tsx",
+      "export": "PhoneSupportPanel"
+    }
+  ],
+  "feedbackReviewRound3Node": "2559:3350",
+  "nativeCallResultCaptureNode": "2551:2",
+  "feedbackRound3Count": 21,
+  "mediaPreview": {
+    "callSource": "2405:7436",
+    "callComponent": "components/tickets/remote-assist/call-recording-player.tsx",
+    "videoComponent": "components/tickets/remote-assist/recording-preview-dialog.tsx",
+    "audioFixture": "public/remote-assist/demo-call.wav",
+    "videoFixture": "public/remote-assist/demo-screen-hd.mp4",
+    "realRecording": false
+  },
+  "nativeCallResultCaptureBoardNode": "2561:3415",
+  "finalAudit": {
+    "reviewBoardNode": "2559:3350",
+    "breakpoints": [320, 390, 768, 1024, 1280, 1490, 1622],
+    "themes": ["Light", "Dark"],
+    "remoteBehaviorTests": 25,
+    "mergeBehaviorTests": 8,
+    "productionBrowserCheck": true,
+    "scope": "local UI demo",
+    "unverified": [
+      "native Safari (Allow remote automation is disabled)",
+      "real devices",
+      "full accessibility audit",
+      "real calling/recording",
+      "designer acceptance"
+    ],
+    "browsersVerified": ["Chrome", "Firefox 156", "WebKit 26.6"],
+    "knowledgeStorageBehaviorTests": 6,
+    "knowledgeEditorVerified": true,
+    "engineeringReview": "docs/remote-assist-quality-review.md",
+    "assetPermission": "Owner confirmed publication alongside repository source on 2026-10-14",
+    "mergeBase": "bed905304f642f8105fdff0dcd1f0517e1d83396"
+  }
+}

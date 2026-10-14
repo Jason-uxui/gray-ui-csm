@@ -90,17 +90,26 @@ function mergeArticleUserState(
 
   const comments = existingArticle.comments ?? article.comments
   const activity = existingArticle.activity ?? article.activity
+  // Saved editor documents are user changes, even when the surrounding demo
+  // snapshot predates the current seed. Refresh untouched samples only.
+  const preservedArticle = existingArticle.content
+    ? { ...article, ...existingArticle }
+    : article
 
   return {
-    ...article,
+    ...preservedArticle,
     isPinned: existingArticle.isPinned ?? article.isPinned,
     archivedAt: existingArticle.archivedAt ?? article.archivedAt,
     comments,
     commentsCount:
-      comments?.length ?? article.commentsCount ?? existingArticle.commentsCount,
+      comments?.length ??
+      article.commentsCount ??
+      existingArticle.commentsCount,
     activity,
     activityCount:
-      activity?.length ?? article.activityCount ?? existingArticle.activityCount,
+      activity?.length ??
+      article.activityCount ??
+      existingArticle.activityCount,
     details: existingArticle.details ?? article.details,
     versions: existingArticle.versions ?? article.versions,
   }
@@ -232,11 +241,19 @@ function notifyKnowledgeBaseStorageUpdated() {
   window.dispatchEvent(new Event(KNOWLEDGE_BASE_STORAGE_UPDATED_EVENT))
 }
 
-export function saveKnowledgeBaseSnapshot(snapshot: KnowledgeBaseStorageSnapshot) {
+export function saveKnowledgeBaseSnapshot(
+  snapshot: KnowledgeBaseStorageSnapshot
+) {
   if (typeof window === "undefined") return
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...snapshot,
+        seedRevision: KNOWLEDGE_BASE_SEED_REVISION,
+      })
+    )
     notifyKnowledgeBaseStorageUpdated()
   } catch {
     // Ignore quota and serialization errors for local prototype persistence.

@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { TooltipButton } from "@/components/ui/tooltip-button"
 import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
@@ -47,11 +48,14 @@ export function TicketAgentPanel({
   ticket,
   onTransfer,
   onFollowersChange,
+  iconTooltips = false,
 }: {
+  iconTooltips?: boolean
   ticket: Ticket
   onTransfer: (agent: TicketPerson) => void
   onFollowersChange: (followers: TicketPerson[]) => void
 }) {
+  const IconControl = iconTooltips ? TooltipButton : Button
   const [selecting, setSelecting] = useState(false)
   const [query, setQuery] = useState("")
   const [target, setTarget] = useState<TicketPerson | null>(null)
@@ -177,9 +181,12 @@ export function TicketAgentPanel({
             className="flex items-center justify-between gap-2 rounded-lg border p-3"
           >
             <Person person={follower} />
-            <Button
+            <IconControl
               variant="ghost"
               size="icon-sm"
+              className={
+                iconTooltips ? "rounded-xl focus-visible:ring-2" : undefined
+              }
               aria-label={`Remove follower ${follower.name}`}
               onClick={() =>
                 onFollowersChange(
@@ -188,7 +195,7 @@ export function TicketAgentPanel({
               }
             >
               <IconX className="size-4" />
-            </Button>
+            </IconControl>
           </div>
         ))}
         {!followers.length && (

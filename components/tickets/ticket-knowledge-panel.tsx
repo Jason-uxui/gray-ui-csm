@@ -13,17 +13,17 @@ import {
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
+import { TooltipButton } from "@/components/ui/tooltip-button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { knowledgeArticles } from "@/lib/knowledge-base/mock-data"
 import { useKnowledgeArticlesFromStorage } from "@/lib/knowledge-base/use-knowledge-articles-storage"
 import type { KnowledgeArticle } from "@/lib/knowledge-base/types"
 import { cn } from "@/lib/utils"
-import {
-  getKnowledgeArticleCategoryLabel,
-} from "./ticket-knowledge-helpers"
+import { getKnowledgeArticleCategoryLabel } from "./ticket-knowledge-helpers"
 
 type TicketKnowledgePanelProps = {
+  iconTooltips?: boolean
   isSendingReply: boolean
   onCreateArticle: () => void
   onInsertArticle: (article: KnowledgeArticle) => void
@@ -39,15 +39,17 @@ export function TicketKnowledgePanel({
   onInsertArticle,
   onCreateArticle,
   isSendingReply,
+  iconTooltips = false,
 }: TicketKnowledgePanelProps) {
+  const IconControl = iconTooltips ? TooltipButton : Button
   const panelRef = React.useRef<HTMLDivElement | null>(null)
   const articleListRef = React.useRef<HTMLDivElement | null>(null)
-  const showPreviewTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
-  const hidePreviewTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
+  const showPreviewTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
+  const hidePreviewTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
   const [selectedArticle, setSelectedArticle] =
     React.useState<KnowledgeArticle | null>(null)
   const [hoveredArticleId, setHoveredArticleId] = React.useState<string | null>(
@@ -276,19 +278,23 @@ export function TicketKnowledgePanel({
             className="h-11 rounded-xl border-border/70 bg-background pl-9 text-sm"
           />
         </div>
-        <Button
+        <IconControl
           type="button"
           variant="default"
           size="icon-lg"
-          className="size-11 shrink-0 rounded-xl"
+          className={cn(
+            "size-11 shrink-0 rounded-xl",
+            iconTooltips && "focus-visible:ring-2"
+          )}
           onClick={onCreateArticle}
           aria-label="Create new article"
         >
           <IconPlus className="size-4" />
-        </Button>
+        </IconControl>
       </div>
 
       <KnowledgeArticleList
+        iconTooltips={iconTooltips}
         ref={articleListRef}
         articles={filteredArticles}
         hoveredArticleId={hoveredArticleId}
@@ -319,6 +325,7 @@ export function TicketKnowledgePanel({
 const KnowledgeArticleList = React.forwardRef<
   HTMLDivElement,
   {
+    iconTooltips?: boolean
     articles: KnowledgeArticle[]
     hoveredArticleId: string | null
     isSendingReply: boolean
@@ -336,9 +343,11 @@ const KnowledgeArticleList = React.forwardRef<
     onArticleHoverStart,
     onArticleHoverEnd,
     isSendingReply,
+    iconTooltips = false,
   },
   ref
 ) {
+  const IconControl = iconTooltips ? TooltipButton : Button
   if (articles.length === 0) {
     return (
       <section>
@@ -373,7 +382,7 @@ const KnowledgeArticleList = React.forwardRef<
                     className="min-w-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     onClick={() => onPreviewArticle(article)}
                   >
-                    <span className="block truncate text-sm font-semibold leading-5 text-foreground">
+                    <span className="block truncate text-sm leading-5 font-semibold text-foreground">
                       {article.title}
                     </span>
                     <span className="mt-0.5 flex min-w-0 items-center gap-1 text-xs">
@@ -396,20 +405,25 @@ const KnowledgeArticleList = React.forwardRef<
                   >
                     <IconPlus className="size-3.5" />
                     <span className="underline underline-offset-2">
-                      {isSendingReply ? "Sending article..." : "Suggest article"}
+                      {isSendingReply
+                        ? "Sending article..."
+                        : "Suggest article"}
                     </span>
                   </Button>
                 </div>
               </div>
-              <Button
+              <IconControl
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                className="mt-0.5 shrink-0 text-muted-foreground"
+                className={cn(
+                  "mt-0.5 shrink-0 text-muted-foreground",
+                  iconTooltips && "rounded-xl focus-visible:ring-2"
+                )}
                 aria-label={`More actions for ${article.title}`}
               >
                 <IconDots className="size-4" />
-              </Button>
+              </IconControl>
             </div>
           </article>
         ))}
@@ -430,16 +444,21 @@ function KnowledgeArticleHoverPreview({
 }: {
   article: KnowledgeArticle | null
   isVisible: boolean
-  position: { left: number; top: number; width: number; maxHeight: number } | null
+  position: {
+    left: number
+    top: number
+    width: number
+    maxHeight: number
+  } | null
   isSendingReply: boolean
   onSuggestArticle: (article: KnowledgeArticle) => void
   onOpenArticle: (article: KnowledgeArticle) => void
   onMouseEnter: () => void
   onMouseLeave: () => void
 }) {
-  const contentSwapTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
+  const contentSwapTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
   const fadeInFrameRef = React.useRef<number | null>(null)
   const [displayArticle, setDisplayArticle] =
     React.useState<KnowledgeArticle | null>(article)
@@ -483,7 +502,12 @@ function KnowledgeArticleHoverPreview({
     }
   }, [isVisible])
 
-  if (!article || !position || !displayArticle || typeof document === "undefined") {
+  if (
+    !article ||
+    !position ||
+    !displayArticle ||
+    typeof document === "undefined"
+  ) {
     return null
   }
 
@@ -621,14 +645,15 @@ function KnowledgeArticlePreview({
 
       <Separator />
 
-      <p className="text-sm leading-6 text-foreground/80">
-        {article.summary}
-      </p>
+      <p className="text-sm leading-6 text-foreground/80">{article.summary}</p>
 
       {imageMedia.length ? (
         <div className="space-y-3">
           {imageMedia.map((media) => (
-            <div key={media.title} className="overflow-hidden rounded bg-background">
+            <div
+              key={media.title}
+              className="overflow-hidden rounded bg-background"
+            >
               {media.src ? (
                 <Image
                   src={media.src}
@@ -661,7 +686,10 @@ function KnowledgeArticlePreview({
             .includes("suggested customer reply")
 
           return (
-            <section key={section.title} className="flex gap-3 text-sm leading-6">
+            <section
+              key={section.title}
+              className="flex gap-3 text-sm leading-6"
+            >
               <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                 {index + 1}
               </span>

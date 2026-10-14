@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "test:merge": "node --test tests/ticket-merge*.test.mjs",
+    "test:remote-assist": "node scripts/test-remote-assist.mjs",
+    "test:knowledge-storage": "node scripts/test-knowledge-storage.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
