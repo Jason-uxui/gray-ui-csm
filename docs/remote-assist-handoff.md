@@ -11,7 +11,7 @@ This is a local UI demo. It sends no email, places no real calls and captures no
 - The isolated sample-customer adapter connects after 1.8 seconds and shares after a further 1.2 seconds while the workspace is open. Control/recording requests get separate simulated approvals after 0.9 seconds. Unmounting, ending or disconnecting cancels pending responses; reconnect resumes only after an explicit reconnect action. Disconnect releases control. The screen is a Figma-derived demo asset with a simulated pointer, keyboard movement and click feedback.
 - Session chat, reply, formatting, emoji and attachments. Internal notes use a separate collection and the existing Notes UI.
 - Screenshot download, browser full screen and small-screen Chat/Notes/Details sheets.
-- Idempotent ending, session summary, event log, recording processing/failed/ready and playable/downloadable demo media.
+- Idempotent ending, session summary, event log, recording processing/failed/ready and playable/downloadable demo media. Both connected demo flows automatically simulate a recording request and customer approval; Remote Assist no longer requires the hidden recording scenario for its default success path. After approval, ending shows processing and then supplied media after four seconds. Explicit declines and ending before approval retain the no-recording state. Existing ended histories are not backfilled.
 - Phone dialing/connected/unanswered, mute, camera indicator, hold/resume, keypad and call results. Below desktop, the call panel can minimize so the ticket reply remains usable.
 - Browser-tab history under `gray-csm-remote-assist:<ticketId>`, with versioned validation and a reset action. Saved history retains the latest twenty sessions. One support session is active per ticket at a time; remote and phone sessions do not run concurrently in this demo.
 
@@ -33,7 +33,7 @@ The demo reads the current ticket/customer and logged-in support user. Sample na
 
 ## Validation
 
-`pnpm test:remote-assist` runs twenty-five behavior tests against transpiled production models and works with the repository's Node 20 CI. These cover multiple recipients, earlier histories and the sample-customer adapter alongside session/permission behavior. The PR workflow invokes this check. Local guardrails, typecheck, lint and production build passed.
+`pnpm test:remote-assist` runs twenty-seven behavior tests against transpiled production models and works with the repository's Node 20 CI. These cover multiple recipients, earlier histories and the sample-customer adapter alongside session/permission behavior, including the automatic remote recording success path and declined/early-ending cases in both flows. The PR workflow invokes this check. Local guardrails, typecheck, lint and production build passed.
 
 Browser checks covered invitation validation/retry/cancellation, clipboard, expiry/resend, customer join, denied/granted control, separate recording consent, screenshot/full screen, attachments, chat/notes separation, reconnect, reload/history, ending, summary, session log, media previews and phone controls/unanswered calls. Remote workspace controls were checked at 320, 390, 768, 1024, 1280 and 1490px; mobile sheets and Light/Dark were checked. Evidence lives in the ignored `output/playwright` folder.
 

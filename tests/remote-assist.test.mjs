@@ -176,7 +176,7 @@ test("sample customer connects, shares, and approves only requested permissions"
   assert.equal(session.status, "connecting")
   session = transitionSession(session, sampleCustomerAction(session, 3000))
   assert.equal(session.status, "live")
-  assert.equal(sampleCustomerResponse(session), null)
+  assert.equal(sampleCustomerResponse(session).action.value, "requested")
   session = transitionSession(session, {
     type: "control",
     value: "requested",
@@ -185,13 +185,11 @@ test("sample customer connects, shares, and approves only requested permissions"
   session = transitionSession(session, sampleCustomerAction(session, 4000))
   assert.equal(session.control, "granted")
   assert.equal(session.recordingPermission, "none")
-  session = transitionSession(session, {
-    type: "recording-permission",
-    value: "requested",
-    at: 4100,
-  })
+  session = transitionSession(session, sampleCustomerAction(session, 4100))
+  assert.equal(session.recordingPermission, "requested")
   session = transitionSession(session, sampleCustomerAction(session, 5000))
   assert.equal(session.recordingPermission, "granted")
+  assert.equal(sampleCustomerResponse(session), null)
 })
 test("sample customer does not restart terminal, disconnected or invalid waiting calls", () => {
   for (const status of [
@@ -427,6 +425,43 @@ test("connected sample calls provide audio through request, grant, processing an
     ),
     null
   )
+})
+
+test("remote demo reaches a playable result without manual recording scenarios", () => {
+  let session = base()
+  session = transitionSession(session, sampleCustomerAction(session, 2000))
+  session = transitionSession(session, sampleCustomerAction(session, 3000))
+  assert.equal(session.status, "live")
+  assert.equal(session.recording, "none")
+  session = transitionSession(session, sampleCustomerAction(session, 4000))
+  assert.equal(session.recordingPermission, "requested")
+  session = transitionSession(session, sampleCustomerAction(session, 5000))
+  assert.equal(session.recording, "recording")
+  session = transitionSession(session, action("end", 6000))
+  assert.equal(session.recording, "processing")
+  session = transitionSession(session, sampleRecordingAction(session, 10000))
+  assert.equal(session.recording, "ready")
+})
+
+test("automatic demo recording preserves declined and early-ending cases in both flows", () => {
+  for (const kind of ["remote", "phone"]) {
+    const live = { ...joined(), kind }
+    const requested = transitionSession(live, sampleCustomerAction(live, 3000))
+    const declined = transitionSession(requested, {
+      type: "recording-permission",
+      value: "denied",
+      at: 3100,
+    })
+    assert.equal(sampleCustomerResponse(declined), null)
+    assert.equal(
+      transitionSession(declined, action("end", 4000)).recording,
+      "none"
+    )
+    const endedEarly = transitionSession(requested, action("end", 3100))
+    assert.equal(endedEarly.recording, "none")
+    assert.equal(sampleCustomerAction(endedEarly, 4000), null)
+    assert.equal(sampleRecordingAction(endedEarly, 8000), null)
+  }
 })
 
 test("unanswered phone timeout and cancellation use call language, with no recording", () => {
