@@ -19,18 +19,18 @@ export function sampleCustomerResponse(session: RemoteSession) {
   if (session.status === "connecting" || session.status === "reconnecting")
     return { delayMs: SHARE_DELAY_MS, action: { type: "join" } as const }
   if (session.status !== "live") return null
-  // Connected sample calls include supplied audio for the result-card demo.
-  // Keep the same request/response transitions as real consent; this adapter
-  // never records the microphone or connects to a calling service.
-  if (session.kind === "phone" && session.recordingPermission === "none")
-    return {
-      delayMs: PERMISSION_DELAY_MS,
-      action: { type: "recording-permission", value: "requested" } as const,
-    }
   if (session.kind === "remote" && session.control === "requested")
     return {
       delayMs: PERMISSION_DELAY_MS,
       action: { type: "control", value: "granted" } as const,
+    }
+  // Both demo flows request sample recording after connecting. Preserve the
+  // separate request/approval transitions and any explicit declined permission;
+  // this adapter never captures a real screen or microphone.
+  if (session.recordingPermission === "none")
+    return {
+      delayMs: PERMISSION_DELAY_MS,
+      action: { type: "recording-permission", value: "requested" } as const,
     }
   if (session.recordingPermission === "requested")
     return {
