@@ -35,14 +35,10 @@ import { DetailRightPanelShell } from "@/components/detail-right-panel-shell"
 import {
   channelLabel,
   macroSuggestions,
-  priorityLabel,
   rightPanelSections,
   type RightPanelSection,
-  statusLabel,
 } from "@/components/tickets/ticket-detail-helpers"
 import { TicketTaskInlineList } from "@/components/tickets/ticket-task-inline-list"
-import { TicketPriorityIndicator } from "@/components/ticket-priority-indicator"
-import { TicketTag } from "@/components/tickets/ticket-tag"
 import {
   MergeRelationshipConnector,
   TicketMergeCard,
@@ -78,6 +74,15 @@ import type {
 } from "@/lib/tickets/types"
 import { cn } from "@/lib/utils"
 import { TicketAgentPanel } from "./ticket-agent-panel"
+import { TicketDetailsContent } from "./ticket-details-content"
+import {
+  RemoteInvitationEntry,
+  RemoteSummaryEntry,
+} from "./remote-assist/remote-session-cards"
+import type {
+  RemoteSession,
+  SessionAction,
+} from "@/lib/tickets/remote-assist/types"
 import { TicketKnowledgePanel } from "./ticket-knowledge-panel"
 import {
   getKnowledgeArticleCategoryLabel,
@@ -93,25 +98,6 @@ type ReplyAccount = {
 }
 
 const PENDING_REPLY_REVEAL_DELAY_MS = 180
-
-function DetailStat({
-  label,
-  value,
-  className,
-}: {
-  label: string
-  value: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={cn("", className)}>
-      <div className="text-xs font-medium tracking-wide text-muted-foreground">
-        <span>{label}</span>
-      </div>
-      <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
-    </div>
-  )
-}
 
 function mapTicketEventToActivityItem(
   item: TicketTimelineEvent
@@ -306,7 +292,15 @@ export function ConversationTabContent({
   onTemplateQueryChange,
   onMacroInsert,
   onSubmitReply,
+  onOpenSession,
+  onSessionAction,
+  onResendSession,
+  sessionNow = 0,
 }: {
+  onOpenSession?: (id: string) => void
+  onSessionAction?: (id: string, action: SessionAction) => void
+  onResendSession?: (session: RemoteSession) => void
+  sessionNow?: number
   conversationItems: Array<TicketTimelineMessage | TicketTimelineEvent>
   pendingReply?: {
     id: string
@@ -607,6 +601,31 @@ export function ConversationTabContent({
       }
     >
       {conversationItems.map((item) => {
+        if (
+          item.kind === "event" &&
+          item.remoteAssist &&
+          onOpenSession &&
+          onSessionAction &&
+          onResendSession
+        ) {
+          return item.remoteAssist.phase === "invitation" ? (
+            <RemoteInvitationEntry
+              key={item.id}
+              session={item.remoteAssist.session}
+              now={sessionNow}
+              onOpen={onOpenSession}
+              onAction={onSessionAction}
+              onResend={onResendSession}
+            />
+          ) : (
+            <RemoteSummaryEntry
+              key={item.id}
+              session={item.remoteAssist.session}
+              now={sessionNow}
+              onAction={onSessionAction}
+            />
+          )
+        }
         if (item.kind === "message") {
           return <TimelineMessageCard key={item.id} item={item} />
         }
@@ -776,59 +795,13 @@ export function TicketDetailRightPanel({
             <SideConversationPanel />
           ) : null}
           {!side.desktopActive && activeSection === "details" ? (
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              <DetailStat
-                label="Queue status"
-                value={
-                  <span className="inline-flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "size-2 rounded-full",
-                        queueStatus === "closed"
-                          ? "bg-zinc-500"
-                          : queueStatus === "resolved"
-                            ? "bg-status-success"
-                            : queueStatus === "pending"
-                              ? "bg-status-warning"
-                              : "bg-status-in-review-foreground"
-                      )}
-                    />
-                    {statusLabel[queueStatus]}
-                  </span>
-                }
-              />
-              <DetailStat
-                label="Priority"
-                value={
-                  <span className="inline-flex items-center gap-2">
-                    <TicketPriorityIndicator priority={ticket.priority} />
-                    {priorityLabel[ticket.priority]}
-                  </span>
-                }
-              />
-              <DetailStat
-                label="Health"
-                value={<TicketTag tone={ticket.health} />}
-              />
-              <DetailStat
-                label="Channel"
-                value={channelLabel[ticket.channel]}
-              />
-              <DetailStat label="Opened" value={detail.openedAt} />
-              <DetailStat
-                label="SLA"
-                value={detail.responseSla}
-                className="col-span-2"
-              />
-              <DetailStat
-                label="Next due"
-                value={detail.nextDue}
-                className="col-span-2"
-              />
-              <DetailStat label="Assigned to" value={assignee.name} />
-            </div>
+            <TicketDetailsContent
+              queueStatus={queueStatus}
+              ticket={ticket}
+              detail={detail}
+              assignee={assignee}
+            />
           ) : null}
-
           {!side.desktopActive && activeSection === "people" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3">

@@ -14,6 +14,7 @@ type ConfirmDialogProps = {
   title: React.ReactNode
   showCloseButton?: boolean
   illustration?: React.ReactNode
+  icon?: React.ReactNode
   description?: React.ReactNode
   confirmLabel?: string
   cancelLabel?: string
@@ -27,6 +28,7 @@ export function ConfirmDialog({
   title,
   description,
   illustration,
+  icon,
   showCloseButton = false,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
@@ -68,6 +70,14 @@ export function ConfirmDialog({
             </div>
           ) : null}
           <div className={cn("px-6 pt-6 pb-4", illustration && "text-center")}>
+            {icon && (
+              <div
+                className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted text-foreground"
+                aria-hidden
+              >
+                {icon}
+              </div>
+            )}
             <DialogPrimitive.Title className="text-lg font-semibold text-foreground">
               {title}
             </DialogPrimitive.Title>

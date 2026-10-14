@@ -12,6 +12,8 @@ import {
 import { EmojiPicker } from "./side-conversation/emoji-picker"
 import { Popover } from "@base-ui/react/popover"
 import { Button } from "@/components/ui/button"
+import { TooltipButton } from "@/components/ui/tooltip-button"
+import { cn } from "@/lib/utils"
 import {
   Tooltip,
   TooltipTrigger,
@@ -33,7 +35,15 @@ export function ThreadComposer({
   onSend,
   replyTo,
   onCancelReply,
+  placeholder = "Write an internal message…",
+  sendLabel = "Send internal message",
+  iconTooltips = false,
+  iconButtonClassName,
 }: {
+  iconTooltips?: boolean
+  iconButtonClassName?: string
+  placeholder?: string
+  sendLabel?: string
   replyTo?: ThreadReply
   onCancelReply: () => void
   name: string
@@ -45,6 +55,7 @@ export function ThreadComposer({
   pending: boolean
   onSend: () => void
 }) {
+  const IconControl = iconTooltips ? TooltipButton : Button
   const textarea = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     if (replyTo) textarea.current?.focus()
@@ -84,22 +95,22 @@ export function ThreadComposer({
               {replyTo.body}
             </p>
           </div>
-          <Button
+          <IconControl
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-6 shrink-0"
+            className={cn("size-6 shrink-0", iconButtonClassName)}
             aria-label="Cancel reply"
             onClick={onCancelReply}
           >
             <IconX className="size-3.5" />
-          </Button>
+          </IconControl>
         </div>
       )}
       <textarea
         ref={textarea}
         aria-label={`Message ${name}`}
-        placeholder={replyTo ? "Write a reply…" : "Write an internal message…"}
+        placeholder={replyTo ? "Write a reply…" : placeholder}
         className="block min-h-24 w-full resize-none bg-transparent px-3 py-3 text-sm placeholder:text-muted-foreground focus:outline-none"
         value={draft}
         onChange={(e) => onDraftChange(e.target.value)}
@@ -124,22 +135,22 @@ export function ThreadComposer({
                   width={28}
                   height={28}
                   alt={file.name}
-                  className="size-7 rounded object-cover"
+                  className="size-7 shrink-0 rounded object-cover"
                 />
               ) : (
                 <IconPaperclip className="size-3 shrink-0" />
               )}
               <span className="truncate">{file.name}</span>
-              <Button
+              <IconControl
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="size-5"
+                className={cn("size-5", iconButtonClassName)}
                 aria-label={`Remove ${file.name}`}
                 onClick={() => onRemoveAttachment(file.id)}
               >
                 <IconX className="size-3" />
-              </Button>
+              </IconControl>
             </span>
           ))}
         </div>
@@ -149,12 +160,13 @@ export function ThreadComposer({
           <Popover.Root>
             <Popover.Trigger
               render={
-                <Button
+                <IconControl
                   type="button"
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Text formatting"
-                  title="Text formatting"
+                  title={iconTooltips ? undefined : "Text formatting"}
+                  className={iconButtonClassName}
                 />
               }
             >
@@ -186,7 +198,12 @@ export function ThreadComposer({
               </Popover.Positioner>
             </Popover.Portal>
           </Popover.Root>
-          <EmojiPicker label="Add emoji" onSelect={insert} />
+          <EmojiPicker
+            label="Add emoji"
+            onSelect={insert}
+            iconTooltips={iconTooltips}
+            iconButtonClassName={iconButtonClassName}
+          />
           <Tooltip>
             <TooltipTrigger
               render={
@@ -195,13 +212,18 @@ export function ThreadComposer({
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Attach file"
+                  className={iconButtonClassName}
                   onClick={() => fileInput.current?.click()}
                 />
               }
             >
               <IconPaperclip className="size-4" />
             </TooltipTrigger>
-            <TooltipContent>Attach file</TooltipContent>
+            <TooltipContent
+              positionerClassName={iconTooltips ? "z-[90]" : undefined}
+            >
+              Attach file
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
@@ -211,13 +233,18 @@ export function ThreadComposer({
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Add image"
+                  className={iconButtonClassName}
                   onClick={() => imageInput.current?.click()}
                 />
               }
             >
               <IconPhoto className="size-4" />
             </TooltipTrigger>
-            <TooltipContent>Add image</TooltipContent>
+            <TooltipContent
+              positionerClassName={iconTooltips ? "z-[90]" : undefined}
+            >
+              Add image
+            </TooltipContent>
           </Tooltip>
         </div>
         <Tooltip>
@@ -226,14 +253,18 @@ export function ThreadComposer({
               <Button
                 type="submit"
                 size="icon-sm"
-                aria-label="Send internal message"
+                aria-label={sendLabel}
                 disabled={pending || (!draft.trim() && !attachments.length)}
               />
             }
           >
             <IconSend className="size-4" />
           </TooltipTrigger>
-          <TooltipContent>Send · Enter</TooltipContent>
+          <TooltipContent
+            positionerClassName={iconTooltips ? "z-[90]" : undefined}
+          >
+            Send · Enter
+          </TooltipContent>
         </Tooltip>
       </div>
       <input

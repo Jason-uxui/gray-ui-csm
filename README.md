@@ -2,7 +2,7 @@
 
 <p align="center">
   An open-source Customer Success workspace UI that demonstrates how design systems,
-  complex ticket workflows, and polished interaction patterns can be implemented in production-grade React code.
+  complex ticket workflows, and polished interaction patterns can be implemented in maintainable React code.
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ This repository is intentionally built as a **design engineering showcase**:
 - Reusable UI primitives and route-driven structure
 - Realistic mock content for UX storytelling and state transitions
 
-> Note: This is currently a front-end demo. Data is mocked and stored in local files.
+> Note: This is a front-end demo. Sample data comes from local fixtures, with some edits saved in browser storage.
 
 ## Key Screens
 
@@ -44,6 +44,12 @@ This repository is intentionally built as a **design engineering showcase**:
   - Conversation/task/activity/notes tabs
   - Context panel (details/people/knowledge)
   - Reply workflows with macro suggestions
+  - Remote Assist and Phone Support from the ticket's **More actions** menu
+    (simulated customer consent, session states, recordings and results)
+
+- **Knowledge Base**
+  - Rich-text article editing, metadata and version history
+  - Save/discard guards and browser-local persistence
 
 - **CSM Navigation Sections**
   - Inbox, Customers, Knowledge Base, Automation, Settings
@@ -108,6 +114,9 @@ pnpm start
 ```bash
 pnpm typecheck
 pnpm lint
+pnpm check:guardrails
+pnpm test:remote-assist
+pnpm test:knowledge-storage
 ```
 
 ## Scripts
@@ -118,10 +127,18 @@ pnpm lint
 - `pnpm typecheck` - TypeScript check
 - `pnpm lint` - ESLint checks
 - `pnpm format` - Prettier format `ts/tsx`
+- `pnpm check:guardrails` - Token and thin-route contracts
+- `pnpm test:remote-assist` - Remote Assist and Phone Support behavior
+- `pnpm test:knowledge-storage` - Article persistence and migration regressions
 
 ## Mock Data and Production Notes
 
 Current ticket and workspace content is mock data for UI demonstration.
+
+Remote Assist and Phone Support use a sample-customer adapter. Invitations do not
+send email, calls do not connect to a phone service, and preview recordings are
+supplied fixtures. See the [feature handoff](./docs/remote-assist-handoff.md) for
+state coverage, Figma references and verified limitations.
 
 Before using this in production:
 
@@ -136,3 +153,5 @@ Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
 ## License
 
 This repository is licensed under the [MIT License](./LICENSE).
+Supplied design/media assets have a separate provenance and rights boundary;
+see [Remote Assist assets](./public/remote-assist/README.md).

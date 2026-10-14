@@ -1,4 +1,5 @@
 import { currentUser } from "@/lib/current-user"
+import type { RemoteSession } from "./remote-assist/types"
 import type {
   Ticket,
   TicketChannel,
@@ -33,6 +34,7 @@ export type TicketTimelineEvent = {
   title: string
   detail: string
   tone?: "neutral" | "success" | "warning"
+  remoteAssist?: { session: RemoteSession; phase: "invitation" | "summary" }
   mergeDetails?: {
     author?: TicketPerson
     destinationLabel: string
@@ -97,7 +99,7 @@ type TicketScenario = {
   internal: string
 }
 
-const customerPool: TicketPerson[] = [
+export const ticketContacts: TicketPerson[] = [
   {
     name: "Amina Rahman",
     email: "amina@pinepeak.example",
@@ -214,7 +216,7 @@ function getScenario(ticket: Ticket, accountName: string): TicketScenario {
 }
 
 export function buildTicketDetail(ticket: Ticket): TicketDetail {
-  const customer = ticket.requester ?? pickFromPool(ticket.id, customerPool)
+  const customer = ticket.requester ?? pickFromPool(ticket.id, ticketContacts)
   const accountName = ticket.accountName ?? pickFromPool(ticket.id, accountPool)
   const agent = getSupportAgent()
   const scenario = getScenario(ticket, accountName)

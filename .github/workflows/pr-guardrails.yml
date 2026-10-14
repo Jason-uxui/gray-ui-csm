@@ -38,5 +38,11 @@ jobs:
       - name: Run typecheck
         run: pnpm typecheck
 
+      - name: Test Remote Assist demo behavior
+        run: pnpm test:remote-assist
+
+      - name: Test Knowledge Base persistence
+        run: pnpm test:knowledge-storage
+
       - name: Run build
         run: pnpm build

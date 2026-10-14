@@ -54,7 +54,9 @@ import { cn } from "@/lib/utils"
 const articleHeadingLevels = [2, 3, 4, 5, 6] as const
 
 type ArticleHeadingLevel = (typeof articleHeadingLevels)[number]
-type KnowledgeArticleImageMedia = NonNullable<KnowledgeArticle["media"]>[number] & {
+type KnowledgeArticleImageMedia = NonNullable<
+  KnowledgeArticle["media"]
+>[number] & {
   type: "image"
 }
 
@@ -62,12 +64,12 @@ const articleHeadingLevelOptions: Array<{
   level: ArticleHeadingLevel
   label: string
 }> = [
-    { level: 2, label: knowledgeBasePageCopy.articleToolbarHeadingTwoLabel },
-    { level: 3, label: knowledgeBasePageCopy.articleToolbarHeadingThreeLabel },
-    { level: 4, label: knowledgeBasePageCopy.articleToolbarHeadingFourLabel },
-    { level: 5, label: knowledgeBasePageCopy.articleToolbarHeadingFiveLabel },
-    { level: 6, label: knowledgeBasePageCopy.articleToolbarHeadingSixLabel },
-  ]
+  { level: 2, label: knowledgeBasePageCopy.articleToolbarHeadingTwoLabel },
+  { level: 3, label: knowledgeBasePageCopy.articleToolbarHeadingThreeLabel },
+  { level: 4, label: knowledgeBasePageCopy.articleToolbarHeadingFourLabel },
+  { level: 5, label: knowledgeBasePageCopy.articleToolbarHeadingFiveLabel },
+  { level: 6, label: knowledgeBasePageCopy.articleToolbarHeadingSixLabel },
+]
 
 const articleMediaNodeName = "articleMedia"
 
@@ -114,6 +116,9 @@ const ArticleMediaNode = Node.create({
 
 const editorExtensions = [
   StarterKit.configure({
+    // Explicit extensions below own these options; StarterKit v3 includes them.
+    link: false,
+    underline: false,
     heading: {
       levels: [...articleHeadingLevels],
     },
@@ -386,10 +391,7 @@ function KnowledgeArticleInlineToolbar({
       >
         <IconCode className="size-4" />
       </ToolbarButton>
-      <Separator
-        orientation="vertical"
-        className="mx-1.5 h-5 bg-border/70"
-      />
+      <Separator orientation="vertical" className="mx-1.5 h-5 bg-border/70" />
       <ToolbarButton
         label={knowledgeBasePageCopy.articleToolbarLinkLabel}
         active={editor.isActive("link")}
@@ -458,10 +460,7 @@ function KnowledgeArticleBlockToolbar({ editor }: { editor: Editor }) {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Separator
-        orientation="vertical"
-        className="mx-1.5 h-5 bg-border/70"
-      />
+      <Separator orientation="vertical" className="mx-1.5 h-5 bg-border/70" />
       <ToolbarButton
         label={knowledgeBasePageCopy.articleToolbarBulletListLabel}
         active={editor.isActive("bulletList")}
@@ -476,10 +475,7 @@ function KnowledgeArticleBlockToolbar({ editor }: { editor: Editor }) {
       >
         <IconListNumbers className="size-4" />
       </ToolbarButton>
-      <Separator
-        orientation="vertical"
-        className="mx-1.5 h-5 bg-border/70"
-      />
+      <Separator orientation="vertical" className="mx-1.5 h-5 bg-border/70" />
       <ToolbarButton
         label={knowledgeBasePageCopy.articleToolbarBlockquoteLabel}
         active={editor.isActive("blockquote")}
@@ -580,7 +576,10 @@ export function KnowledgeArticleEditor({
                 onOpenLinkDialog={openLinkDialog}
               />
             </BubbleMenu>
-            <FloatingMenu editor={editor} className={editorMenuSurfaceClassName}>
+            <FloatingMenu
+              editor={editor}
+              className={editorMenuSurfaceClassName}
+            >
               <KnowledgeArticleBlockToolbar editor={editor} />
             </FloatingMenu>
           </>

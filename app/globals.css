@@ -28,6 +28,9 @@
   --color-inverse: var(--inverse);
   --color-foreground-secondary: var(--foreground-secondary);
   --color-destructive: var(--destructive);
+  --color-remote-call-end: var(--remote-call-end);
+  --color-remote-call-end-foreground: var(--remote-call-end-foreground);
+  --color-remote-control-cursor: var(--remote-control-cursor);
   --color-destructive-surface: var(--destructive-surface);
   --color-status-approved: var(--status-approved);
   --color-status-changes-requested: var(--status-changes-requested);
@@ -63,6 +66,10 @@
 }
 
 :root {
+  /* Project-owned Remote Assist call action, Figma 2404:6751. */
+  --remote-call-end: #dc2626;
+  --remote-call-end-foreground: #fafafa;
+  --remote-control-cursor: #fff;
   --background: #f7f7f7;
   --foreground: #18181b;
   --foreground-secondary: #3f3f46;
@@ -238,8 +245,14 @@
 }
 
 @keyframes merge-reveal {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .merge-selection-height {
@@ -249,14 +262,28 @@
   box-sizing: content-box;
   transition: height 1000ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.merge-picker-reveal { animation: merge-reveal 450ms ease-out 180ms both; }
-.merge-state-reveal { animation: merge-reveal 500ms ease-out both; }
-.merge-result-reveal { animation: merge-reveal 650ms ease-out 400ms both; }
-.merge-completion-toast { animation: merge-reveal 500ms ease-out 700ms both; }
+.merge-picker-reveal {
+  animation: merge-reveal 450ms ease-out 180ms both;
+}
+.merge-state-reveal {
+  animation: merge-reveal 500ms ease-out both;
+}
+.merge-result-reveal {
+  animation: merge-reveal 650ms ease-out 400ms both;
+}
+.merge-completion-toast {
+  animation: merge-reveal 500ms ease-out 700ms both;
+}
 @media (prefers-reduced-motion: reduce) {
-  .merge-selection-height { transition: none; }
-  .merge-picker-reveal, .merge-state-reveal, .merge-result-reveal,
-  .merge-completion-toast { animation: none; }
+  .merge-selection-height {
+    transition: none;
+  }
+  .merge-picker-reveal,
+  .merge-state-reveal,
+  .merge-result-reveal,
+  .merge-completion-toast {
+    animation: none;
+  }
 }
 
 @layer base {
