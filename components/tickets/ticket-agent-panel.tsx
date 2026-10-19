@@ -2,13 +2,7 @@
 
 import { useId, useState } from "react"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import {
-  IconArrowDown,
-  IconArrowsExchange,
-  IconMail,
-  IconSearch,
-  IconX,
-} from "@tabler/icons-react"
+import { IconArrowDown, IconMail, IconSearch, IconX } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { TooltipButton } from "@/components/ui/tooltip-button"
@@ -26,6 +20,7 @@ import {
 } from "@/lib/tickets/agents"
 import { getTicketInitials } from "@/lib/tickets/presentation"
 import { getTicketNumberLabel } from "./ticket-detail-helpers"
+import { TransferTicketIllustration } from "./transfer-ticket-illustration"
 import type { Ticket, TicketPerson } from "@/lib/tickets/types"
 
 function Person({ person }: { person: TicketPerson }) {
@@ -244,10 +239,12 @@ export function TicketAgentPanel({
             workspace permissions.
           </>
         }
+        illustrationClassName="bg-transparent"
         illustration={
-          <div className="flex size-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-            <IconArrowsExchange className="size-10" />
-          </div>
+          <TransferTicketIllustration
+            key={target?.email ?? target?.name ?? "closed"}
+            active={target !== null}
+          />
         }
         confirmLabel={
           ticket.assignee ? "Confirm Transfer" : "Confirm Assignment"
