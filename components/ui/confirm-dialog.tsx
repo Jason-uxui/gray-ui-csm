@@ -14,6 +14,7 @@ type ConfirmDialogProps = {
   title: React.ReactNode
   showCloseButton?: boolean
   illustration?: React.ReactNode
+  illustrationClassName?: string
   icon?: React.ReactNode
   description?: React.ReactNode
   confirmLabel?: string
@@ -28,6 +29,7 @@ export function ConfirmDialog({
   title,
   description,
   illustration,
+  illustrationClassName,
   icon,
   showCloseButton = false,
   confirmLabel = "Confirm",
@@ -65,7 +67,12 @@ export function ConfirmDialog({
             </DialogPrimitive.Close>
           ) : null}
           {illustration ? (
-            <div className="flex h-40 shrink-0 items-center justify-center bg-primary/10">
+            <div
+              className={cn(
+                "flex h-40 shrink-0 items-center justify-center bg-primary/10",
+                illustrationClassName
+              )}
+            >
               {illustration}
             </div>
           ) : null}
